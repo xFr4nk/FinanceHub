@@ -1,0 +1,25 @@
+{
+  "name": "FinanceHub",
+  "short_name": "FinanceHub",
+  "description": "Il tuo gestore di finanze personali",
+  "start_url": "/FinanceHub/",
+  "scope": "/FinanceHub/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080a0f",
+  "theme_color": "#080a0f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
