@@ -1720,18 +1720,23 @@ function mergeAccArrays(local, cloud){
   return Object.values(map);
 }
 
+function cleanForFirebase(obj){
+  // Firebase rejects undefined values — replace them with null recursively
+  return JSON.parse(JSON.stringify(obj, (k, v) => v === undefined ? null : v));
+}
+
 function syncToCloud(immediate){
   if(!fbUser || !fbDb) return;
   clearTimeout(syncTimeout);
   const doSync = ()=>{
-    const data = {
+    const data = cleanForFirebase({
       transactions: transactions,
       categories: categories,
       accounts: accounts,
       settings: settings,
       profile: userProfile,
       updatedAt: Date.now()
-    };
+    });
     fbDb.ref('users/'+fbUser.uid+'/data').set(data)
       .then(()=>{
         const el = document.getElementById('profile-sync-status');
@@ -2203,7 +2208,7 @@ function processRecurring(){
       const nextStr = next.toISOString().split('T')[0];
       if (nextStr > today) break;
       if (endDate && next > endDate) break;
-      const child = {...tx, id:uid(), date:nextStr, recurringMaster:false, lastGenerated:undefined};
+      const child = {...tx, id:uid(), date:nextStr, recurringMaster:false, lastGenerated:null};
       toAdd.push(child);
       generated = true;
       last.setTime(next.getTime());
@@ -2576,7 +2581,7 @@ function saveTx(){
     id:editId||uid(), type:currentTxType, desc, amount, date:dateTime, account, category, notes,
     recurring, recurEnd: recurring!=='none'&&recurring!=='custom'?recurEnd:'',
     recurringMaster: !editId && recurring!=='none',
-    lastGenerated: !editId && recurring!=='none' ? date : undefined,
+    lastGenerated: !editId && recurring!=='none' ? date : null,
     recurEvery, recurUnit, recurHour, recurMinute,
     photo,
     _updatedAt: Date.now()
