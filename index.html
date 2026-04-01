@@ -11,6 +11,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>FinanceHub</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -256,7 +259,7 @@ body {
   justify-content: center;
 }
 .filter-row::-webkit-scrollbar { display: none; }
-.filter-chip { flex-shrink: 0; padding: 7px 13px; background: var(--bg1); border: 1px solid var(--border); border-radius: 20px; font-family: var(--font); font-size: 11.5px; font-weight: 600; color: var(--t2); cursor: pointer; outline: none; -webkit-appearance: none; text-align: center; }
+.filter-chip { flex-shrink: 0; padding: 7px 13px; background: var(--bg1); border: 1px solid var(--border); border-radius: 20px; font-family: var(--font); font-size: 11.5px; font-weight: 600; color: var(--t2); cursor: pointer; outline: none; -webkit-appearance: none; text-align: center; text-align-last: center; }
 .filter-chip option { background: var(--bg2); }
 .tx-list { padding: 0 16px 16px; }
 .empty-state { text-align: center; padding: 48px 20px; color: var(--t3); }
@@ -437,8 +440,9 @@ body {
 .lang-flag { font-size: 22px; flex-shrink: 0; }
 .lang-name { font-size: 14px; font-weight: 600; flex: 1; }
 .lang-check { color: var(--blue); font-size: 16px; }
+/* Profile icon in settings */
+.settings-row-icon img { width:36px;height:36px;border-radius:50%;object-fit:cover; }
 </style>
-</head>
 <body>
 <div class="app">
 
@@ -576,6 +580,19 @@ body {
       <div class="settings-section">
         <div class="settings-section-title" id="lbl-general">Generale</div>
 
+        <!-- Profile -->
+        <div class="settings-row" onclick="openProfileModal()">
+          <div class="settings-row-left">
+            <div class="settings-row-icon" id="settings-profile-icon">👤</div>
+            <div>
+              <div class="settings-row-label" id="lbl-profile">Profilo</div>
+              <div class="settings-row-sub" id="lbl-profile-sub">Nome, foto e account</div>
+            </div>
+          </div>
+          <div class="settings-row-value" id="lbl-profile-name">Ospite</div>
+          <div class="settings-row-arrow">›</div>
+        </div>
+
         <!-- Default currency -->
         <div class="settings-row" onclick="document.getElementById('settings-currency').focus()">
           <div class="settings-row-left">
@@ -660,6 +677,16 @@ body {
       <div class="form-group">
         <label class="form-label" id="lbl-date">Data</label>
         <input class="form-input" type="date" id="tx-date"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" id="lbl-tx-hour">Ora</label>
+        <input class="form-input" type="number" id="tx-hour" placeholder="0" min="0" max="23" value="0" inputmode="numeric"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="lbl-tx-minute">Minuto</label>
+        <input class="form-input" type="number" id="tx-minute" placeholder="0" min="0" max="59" value="0" inputmode="numeric"/>
       </div>
     </div>
     <div class="form-group" id="from-account-group">
@@ -883,6 +910,70 @@ body {
   <img id="lightbox-img" src="" alt="receipt"/>
 </div>
 
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="profile-modal" onclick="handleModalBg(event,'profile-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      👤 <span id="lbl-profile-modal-title">Profilo</span>
+      <button class="modal-close" onclick="closeModal2('profile-modal')">✕</button>
+    </div>
+    <!-- Photo -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:20px">
+      <div id="profile-photo-wrap" style="position:relative;width:88px;height:88px;cursor:pointer" onclick="document.getElementById('profile-photo-file').click()">
+        <div id="profile-photo-display" style="width:88px;height:88px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden">
+          <span id="profile-photo-placeholder">👤</span>
+          <img id="profile-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%"/>
+        </div>
+        <div style="position:absolute;bottom:0;right:0;width:26px;height:26px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px">📷</div>
+      </div>
+      <input type="file" id="profile-photo-file" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)"/>
+      <div style="font-size:11px;color:var(--t3)">Tocca per cambiare foto</div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input class="form-input" type="text" id="profile-name" placeholder="Mario" autocomplete="given-name"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cognome</label>
+        <input class="form-input" type="text" id="profile-surname" placeholder="Rossi" autocomplete="family-name"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data di nascita</label>
+      <input class="form-input" type="date" id="profile-birthday"/>
+    </div>
+    <div style="background:var(--bg3);border-radius:var(--r);padding:14px 16px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">☁️ Sincronizzazione Cloud</div>
+      <div id="profile-logged-out">
+        <div style="font-size:12px;color:var(--t2);margin-bottom:12px">Accedi per sincronizzare i dati su tutti i tuoi dispositivi. Puoi usare l'app anche senza account.</div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="profile-email" placeholder="mario@email.com" autocomplete="email"/>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="password" id="profile-password" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <button class="save-btn" style="background:var(--purple);margin-top:0" onclick="profileLogin()">☁️ Accedi / Registrati</button>
+        <div style="font-size:10px;color:var(--t3);text-align:center;margin-top:8px">Prima volta? Verrà creato automaticamente un account.</div>
+      </div>
+      <div id="profile-logged-in" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+          <div>
+            <div style="font-size:13px;font-weight:600" id="profile-cloud-email"></div>
+            <div style="font-size:11px;color:var(--t2)" id="profile-sync-status">Sincronizzato ✓</div>
+          </div>
+        </div>
+        <button class="danger-btn" style="margin-top:0" onclick="profileLogout()">Disconnetti</button>
+      </div>
+    </div>
+    <button class="save-btn" onclick="saveProfile()">💾 Salva profilo</button>
+  </div>
+</div>
+
 <script>
 // ===================== CURRENCIES =====================
 const CURRENCIES = [
@@ -995,6 +1086,19 @@ const TRANSLATIONS = {
     recurEnd: 'Data fine ricorrenza', customRecur: 'Ricorrenza personalizzata',
     every: 'Ogni', unit: 'Unità', days: 'Giorni', weeks: 'Settimane', months: 'Mesi',
     hour: 'Ora', minute: 'Minuto',
+    txHour: 'Ora transazione', txMinute: 'Minuto transazione',
+    profile: 'Profilo', profileSub: 'Nome, foto e account',
+    profileName: 'Nome', profileSurname: 'Cognome', profileEmail: 'Email',
+    profilePassword: 'Password', profileBirthday: 'Data di nascita',
+    profilePhoto: 'Foto profilo', profileSave: '💾 Salva profilo',
+    profileLogin: 'Accedi con email', profileLogout: 'Disconnetti',
+    profileGuest: 'Ospite', profileSync: 'Dati sincronizzati ✓',
+    profileSyncError: 'Errore sincronizzazione',
+    profileLoginBtn: 'Accedi / Registrati',
+    profileLogoutConfirm: 'Disconnettersi? I dati locali verranno mantenuti.',
+    convertingCurrency: 'Conversione in corso...',
+    currencyConverted: 'Valuta convertita ✓',
+    currencyConvertError: 'Errore conversione valuta',
     photo: 'Foto (scontrino, ecc.)', tapToAddPhoto: 'Tocca per aggiungere foto',
     save: '💾 Salva', saveChanges: '💾 Salva Modifiche',
     newCat: '🏷️ Nuova Categoria', editCat: '✏️ Modifica Categoria',
@@ -1049,6 +1153,19 @@ const TRANSLATIONS = {
     recurEnd: 'Recurrence end date', customRecur: 'Custom recurrence',
     every: 'Every', unit: 'Unit', days: 'Days', weeks: 'Weeks', months: 'Months',
     hour: 'Hour', minute: 'Minute',
+    txHour: 'Transaction hour', txMinute: 'Transaction minute',
+    profile: 'Profile', profileSub: 'Name, photo and account',
+    profileName: 'First Name', profileSurname: 'Last Name', profileEmail: 'Email',
+    profilePassword: 'Password', profileBirthday: 'Birthday',
+    profilePhoto: 'Profile Photo', profileSave: '💾 Save profile',
+    profileLogin: 'Sign in with email', profileLogout: 'Sign out',
+    profileGuest: 'Guest', profileSync: 'Data synced ✓',
+    profileSyncError: 'Sync error',
+    profileLoginBtn: 'Sign In / Register',
+    profileLogoutConfirm: 'Sign out? Local data will be kept.',
+    convertingCurrency: 'Converting...',
+    currencyConverted: 'Currency converted ✓',
+    currencyConvertError: 'Currency conversion error',
     photo: 'Photo (receipt, etc.)', tapToAddPhoto: 'Tap to add photo',
     save: '💾 Save', saveChanges: '💾 Save Changes',
     newCat: '🏷️ New Category', editCat: '✏️ Edit Category',
@@ -1157,6 +1274,12 @@ const TRANSLATIONS = {
     recurEnd: 'Date fin de récurrence', customRecur: 'Récurrence personnalisée',
     every: 'Tous les', unit: 'Unité', days: 'Jours', weeks: 'Semaines', months: 'Mois',
     hour: 'Heure', minute: 'Minute',
+    profile: 'Profil', profileSub: 'Nom, photo et compte',
+    profileGuest: 'Invité', profileSync: 'Données synchronisées ✓',
+    profileSyncError: 'Erreur de synchronisation',
+    profileLoginBtn: 'Se connecter / S\'inscrire',
+    profileLogoutConfirm: 'Se déconnecter ? Les données locales seront conservées.',
+    convertingCurrency: 'Conversion en cours...', currencyConverted: 'Devise convertie ✓', currencyConvertError: 'Erreur de conversion',
     photo: 'Photo (reçu, etc.)', tapToAddPhoto: 'Appuyez pour ajouter une photo',
     save: '💾 Enregistrer', saveChanges: '💾 Sauvegarder',
     newCat: '🏷️ Nouvelle Catégorie', editCat: '✏️ Modifier Catégorie',
@@ -1211,6 +1334,12 @@ const TRANSLATIONS = {
     recurEnd: 'Ende der Wiederholung', customRecur: 'Benutzerdefinierte Wiederholung',
     every: 'Alle', unit: 'Einheit', days: 'Tage', weeks: 'Wochen', months: 'Monate',
     hour: 'Stunde', minute: 'Minute',
+    profile: 'Profil', profileSub: 'Name, Foto und Konto',
+    profileGuest: 'Gast', profileSync: 'Daten synchronisiert ✓',
+    profileSyncError: 'Synchronisierungsfehler',
+    profileLoginBtn: 'Anmelden / Registrieren',
+    profileLogoutConfirm: 'Abmelden? Lokale Daten werden beibehalten.',
+    convertingCurrency: 'Konvertierung...', currencyConverted: 'Währung konvertiert ✓', currencyConvertError: 'Konvertierungsfehler',
     photo: 'Foto (Quittung, etc.)', tapToAddPhoto: 'Tippen um Foto hinzuzufügen',
     save: '💾 Speichern', saveChanges: '💾 Änderungen speichern',
     newCat: '🏷️ Neue Kategorie', editCat: '✏️ Kategorie bearbeiten',
@@ -1355,18 +1484,22 @@ let currentTxType = 'expense';
 let chartRefs = {};
 let emojiPickerTarget = null;
 
-// ===================== EMOJI DATA =====================
+// ===================== EMOJI DATA (Catalogo completo Apple) =====================
 const EMOJI_CATEGORIES = [
-  { label: '😀 Faccine', emojis: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😉','😊','😇','🥰','😍','🤩','😘','😋','😛','😜','🤪','😝','🤑','🤗','🤔','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖'] },
-  { label: '👋 Gesti', emojis: ['👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','💪','🦵','🦶'] },
-  { label: '🐶 Animali', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🐢','🦎','🐍','🦕','🦖','🐙','🦑','🦐','🦀','🐟','🐠','🐡','🐳','🐋','🦈','🐬'] },
-  { label: '🌺 Natura', emojis: ['🌸','💐','🌹','🥀','🌺','🌻','🌼','🌷','🌱','🌿','☘️','🍀','🍃','🍂','🍁','🍄','💧','🌊','🌈','⚡','❄️','☃️','⛄','🔥','💥','🌟','⭐','🌙','☀️','⛅','🌧','🌩','🌪'] },
-  { label: '🍕 Cibo', emojis: ['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥒','🌶️','🧄','🧅','🥔','🍠','🥐','🥯','🍞','🥖','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕','🌮','🌯','🥗','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🍤','🍙','🍚','🍘','🧁','🍰','🎂','🍩','🍪','🌰','🥜','☕','🍵','🧃','🥛','🍺','🍻','🥂','🍷','🥃','🍸','🍹'] },
-  { label: '✈️ Viaggi', emojis: ['🚗','🚕','🚙','🚌','🏎️','🚓','🚑','🚒','🚚','🚛','🚜','🏍️','🛵','🚲','🛴','⛵','🚤','🛥️','🛳️','🚢','✈️','🛩️','🛫','🛬','🪂','💺','🚁','🚀','🛸','🌍','🗺️','🧭','🏔️','⛰️','🌋','🏕️','🏖️','🏜️','🏝️','🏛️','🏗️','🏠','🏡','🏢','🏦','🏨','🏪','🏫','🏬','🏭','🏯','🏰','💒','🗼','🗽','⛪','🕌','🕍','🕋','⛩️'] },
-  { label: '⚽ Sport', emojis: ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🏓','🏸','🏒','🥍','🏑','🏏','⛳','🎣','🤿','🎽','🎿','🛷','🥌','🎯','🪀','🎲','🧩','🎮','🕹️','🎰','🧸','🎭','🎨','🎪','🎤','🎧','🎼','🎵','🎶','🎷','🎸','🎹','🎺','🎻','🥁'] },
-  { label: '💡 Oggetti', emojis: ['📱','💻','⌨️','🖥️','📺','📷','📸','📹','🎥','📞','☎️','📡','🔋','🔌','💡','🔦','🕯️','🧯','💈','🪒','🧴','🧷','🧹','🧺','🧻','🚿','🛁','🧼','🪑','🚪','🛋️','🛏️','🛒','🎁','🎀','🎊','🎉','🎈','✨','📔','📒','📕','📗','📘','📙','📚','📋','📊','📈','📉','📌','📍','📎','✂️','🔒','🔓','🔑','🗝️','🔨','⚒️','🛠️','🔧','🔩','⚙️','⚖️','🔗','🧲','🪜','⚗️','🧪','🧫','🧬','🔭','🔬','💊','💉','🩺','🏧','💳','💰','💵','💴','💶','💷','💸','💹','✉️','📧','📦','📫','📬','📮'] },
-  { label: '💼 Finanza', emojis: ['💰','💳','💵','💴','💶','💷','💸','💹','📈','📉','📊','🏦','🏧','💱','💲','🪙','💎','🏆','🥇','🥈','🥉','🎖️','🎀','🎁','🛍️','🛒','🧾','🤝','📝','📋','📌','📍','🗂️','💼','🏢','🏬','🏪'] },
+  { label: '😀 Faccine', emojis: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🫢','🫣','🤫','🤔','🫡','🤐','🤨','😐','😑','😶','🫥','😏','😒','🙄','😬','🤥','🫠','😌','😔','😪','🤤','😴','🥱','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','💫','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','🫤','😟','🙁','☹️','😮','😯','😲','😳','🥺','🥹','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾'] },
+  { label: '👋 Persone & Gesti', emojis: ['👋','🤚','🖐️','✋','🖖','🫱','🫲','🫳','🫴','🫵','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👍','👎','✊','👊','🤛','🤜','👏','🫶','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦵','🦶','👂','🦻','👃','🫀','🫁','🧠','🦷','🦴','👀','👁️','👅','👄','🫦','🧑','👶','🧒','👦','👧','🧑','👱','👨','🧔','👩','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','💆','💇','🚶','🧍','🧎','🏃','💃','🕺','🕴️','👯','🧖','🧗','🏇','🏂','🏋️','🤼','🤸','🤺','🏊','🤽','🚣','🧘','🛀','🛌','👭','👫','👬','💑','💏','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👩‍👦','👩‍👧','👩‍👧‍👦','👨‍👦','👨‍👧','👨‍👧‍👦','🪢','🧣','🧤','🧥','🥼','👚','👕','👖','🩲','🩳','👗','👘','🥻','🩱','👙','🩴','👠','👡','👢','👞','👟','🥾','🧢','👒','🎩','🎓','⛑️','💄','💍','💎','👜','👛','👝','🎒','🧳','🛍️','🕶️','🥽','🌂','☂️'] },
+  { label: '🐶 Animali', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🐤','🐣','🐥','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🪱','🐛','🦋','🐌','🐞','🐜','🪲','🦟','🦗','🪳','🕷️','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🦣','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🦬','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙','🐐','🦌','🐕','🐩','🦮','🐕‍🦺','🐈','🐈‍⬛','🪶','🐓','🦃','🦤','🦚','🦜','🦢','🕊️','🐇','🦝','🦨','🦡','🦫','🦦','🦥','🐁','🐀','🐿️','🦔','🐾','🐲','🐉','🌵','🎄','🌲','🌳','🌴','🪵','🌱','🌿','☘️','🍀','🎍','🎋','🍃','🍂','🍁','🍄','🐚','🪸','🌾','💐','🌷','🌹','🥀','🌺','🌸','🌼','🌻','🌞','🌝','🌛','🌜','🌚','🌕','🌖','🌗','🌘','🌑','🌒','🌓','🌔','🌙','🌟','⭐','🌠','🌌','🌤️','⛅','🌥️','🌦️','🌧️','⛈️','🌩️','🌨️','❄️','☃️','⛄','🌬️','💨','🌀','🌈','🌂','☂️','☔','☁️','🌊','🌫️'] },
+  { label: '🌺 Natura & Tempo', emojis: ['🌍','🌎','🌏','🌐','🗺️','🧭','🏔️','⛰️','🌋','🗻','🏕️','🏖️','🏜️','🏝️','🏞️','🌅','🌄','🌠','🎇','🎆','🌇','🌆','🏙️','🌃','🌌','🌉','🌁','⛲','🎑','🏟️','🌿','🍃','🍂','🍁','🍄','🌾','💧','💦','🌊','🌈','⚡','❄️','☃️','⛄','🔥','💥','🌟','⭐','💫','✨','🌙','☀️','🌤️','⛅','🌧️','🌩️','🌪️','🌫️','🌬️','🌀','🌈','🌂','☂️','☔','⚡','❄️','🔥','💥','🌿','🌱','🌲','🌳','🌴','🪴','🌵','🎋','🎍','🍀','☘️','🍁','🍂','🍃','🪨','🪵','🌾','💐','🌷','🌹','🥀','🌺','🌸','🌼','🌻','🫧','🪷','🪻'] },
+  { label: '🍕 Cibo & Bevande', emojis: ['🍎','🍐','🍊','🍋','🍋‍🟩','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🫒','🥦','🥬','🥒','🌶️','🫑','🧄','🧅','🥔','🍠','🫚','🧅','🥐','🥯','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕','🌮','🌯','🫔','🥙','🧆','🥚','🍲','🥘','🍛','🍜','🍝','🍠','🍢','🍣','🍤','🍙','🍚','🍘','🍥','🥮','🍡','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🧃','🥛','☕','🫖','🍵','🧋','🍺','🍻','🥂','🍷','🥃','🍸','🍹','🍾','🧉','🍶','🍱','🍘','🫙','🥡','🧊','🫗','🍴','🍽️','🥄','🔪','🫙'] },
+  { label: '✈️ Viaggi & Luoghi', emojis: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🏍️','🛵','🛺','🚲','🛴','🛹','🛼','🚏','🛣️','🛤️','⛽','🚨','🚥','🚦','🛑','🚧','⚓','🛟','⛵','🛶','🚤','🛥️','🛳️','⛴️','🚢','✈️','🛩️','🛫','🛬','🪂','💺','🚁','🚟','🚠','🚡','🛰️','🚀','🛸','🌍','🗺️','🧭','🗼','🗽','🗿','🏰','🏯','🕌','🛕','🕍','⛪','🏛️','⛩️','🏗️','🏢','🏣','🏤','🏥','🏦','🏨','🏪','🏫','🏬','🏭','🏠','🏡','⛺','🛖','🏕️','💒','🏟️','🎠','🎡','🎢','🗺️','🏔️','⛰️','🌋','🏕️','🏖️','🏜️','🏝️','🏞️'] },
+  { label: '⚽ Sport & Attività', emojis: ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🏓','🏸','🏒','🥍','🏑','🏏','🪃','⛳','🎣','🤿','🎽','🎿','🛷','🥌','🛹','🛼','⛸️','🥊','🥋','🎯','🪀','🪁','🎲','🧩','🎮','🕹️','🎰','🎳','🏋️','🤼','🤸','🤺','⛷️','🏊','🤽','🚣','🧘','🚵','🚴','🏇','🤾','🏌️','🏄','🏇','🧗','🏆','🥇','🥈','🥉','🏅','🎖️','🎗️','🎟️','🎫','🎪','🤹','🎭','🎨','🖼️','🎬','🎤','🎧','🎼','🎵','🎶','🎷','🎸','🎹','🎺','🎻','🪕','🥁','🪘','🎙️','📻','📺','🎦','🎬','🎨'] },
+  { label: '💡 Oggetti & Casa', emojis: ['📱','💻','⌨️','🖥️','🖨️','🖱️','💽','💾','💿','📀','📷','📸','📹','🎥','📞','☎️','📟','📠','📺','📻','📡','🔋','🪫','🔌','💡','🔦','🕯️','🧯','🛢️','💈','🪒','🧴','🧷','🧹','🧺','🧻','🚿','🛁','🧼','🪥','🪑','🚪','🛋️','🛏️','🛒','🧺','🪣','🧲','🪜','🧰','🔧','🔩','⚙️','🔨','⚒️','🛠️','⛏️','🪚','🔑','🗝️','🔒','🔓','🪝','🧲','🪜','💎','💰','💳','💵','💴','💶','💷','💸','💹','🏧','🪙','💱','💲','✉️','📧','📦','📫','📬','📮','📯','📢','📣','🔔','🔕','🔇','🔈','🔉','🔊','📢','🔔','🔕','📜','📃','📋','📊','📈','📉','📌','📍','📎','🖇️','✂️','🗃️','🗄️','🗑️','🔍','🔎','🔏','🔐','🔒','🔓'] },
+  { label: '💼 Finanza & Lavoro', emojis: ['💰','💳','💵','💴','💶','💷','💸','💹','📈','📉','📊','🏦','🏧','💱','💲','🪙','💎','🏆','🥇','🥈','🥉','🎖️','🎀','🎁','🛍️','🛒','🧾','🤝','📝','📋','📌','📍','🗂️','💼','🏢','🏬','🏪','📁','📂','🗂️','🗃️','📋','📊','📈','📉','📌','📍','📎','✂️','🖊️','🖋️','✒️','🖌️','🖍️','📝','✏️','📏','📐','🔗','📌','📍','🗓️','📅','📆','🗑️','📧','📨','📩','📤','📥','📦','📫','📪','📬','📭','📮'] },
+  { label: '🎉 Simboli & Festività', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','❤️‍🩹','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🔱','♻️','✅','🔰','🈯','💹','❎','🌐','✳️','❇️','🍀','✔️','🔲','🔳','⬛','⬜','◼️','◻️','◾','◽','▪️','▫️','🟥','🟧','🟨','🟩','🟦','🟪','⚫','⚪','🟫','🎌','🏁','🚩','🏴','🏳️','🎊','🎉','🎈','🎀','🎁','🎗️','🎟️','🎫','🎠','🎡','🎢','🎪','🤹','🎭','🎬','🎤','🎧','🎼'] },
+  { label: '🔢 Numeri & Testo', emojis: ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','🔠','🔡','🔢','🔣','🔤','🅰️','🅱️','🆎','🆑','🅾️','🆘','🆔','🆕','🆓','🆒','🆗','🆙','🆚','🈵','🈹','🈸','🈶','🈚','🈷️','🈴','🈲','💯','🔝','🔙','🔛','🔜','🔚','⬆️','⬇️','⬅️','➡️','↗️','↘️','↙️','↖️','↕️','↔️','↩️','↪️','⤴️','⤵️','🔃','🔄','🔀','🔁','🔂','🔼','🔽','⏩','⏪','⏫','⏬','⏭️','⏮️','⏯️','⏹️','⏸️','⏺️','▶️','⏏️','🎦','🔅','🔆','📶','📳','📴','📵','📞','🔇','🔈','🔉','🔊','📢','📣','🔔','🔕','🃏','🀄'] },
+  { label: '⌚ Orologi & Frecce', emojis: ['🕛','🕧','🕐','🕜','🕑','🕝','🕒','🕞','🕓','🕟','🕔','🕠','🕕','🕡','🕖','🕢','🕗','🕣','🕘','🕤','🕙','🕥','🕚','🕦','⌚','⏰','⏱️','⏲️','🕰️','⌛','⏳','📅','📆','🗓️','🗑️','📇','🗃️','🗄️','📋','📊','📈','📉','📌','📍','📎','✂️','🔍','🔎','🔏','🔐','🔒','🔓','🔨','🪓','⛏️','⚒️','🛠️','🔧','🔩','⚙️','🗜️','🔗','⛓️','🪝','🧲','🪜','💡','🔦','🕯️','🪔','🧯','🛢️','💰','💴','💵','💶','💷','💸','💳','🪙','💹','📱','💻','🖥️','🖨️','⌨️','🖱️','🖲️','💽','💾','💿','📀','📷','📸','📹','🎥','📡','☎️','📞','📟','📠','🔋','🪫','🔌'] },
 ];
+
 
 // ===================== INIT =====================
 document.addEventListener('DOMContentLoaded', () => {
@@ -1384,16 +1517,215 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!categories.length) seedCategories(); else { processRecurring(); updateAll(); }
   applyTranslations();
   renderLangList('');
+  initFirebase();
 });
 
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
-function saveData(){
+
+// ===================== FIREBASE CONFIG =====================
+const FB_CONFIG = {
+  apiKey: "AIzaSyAehEZEz72TwMZsqIHH_2hFOH2eypL0t60",
+  authDomain: "finance-hub-c6cfa.firebaseapp.com",
+  databaseURL: "https://finance-hub-c6cfa-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "finance-hub-c6cfa",
+  storageBucket: "finance-hub-c6cfa.firebasestorage.app",
+  messagingSenderId: "568884693042",
+  appId: "1:568884693042:web:ce0602f70a3c25b00b542b"
+};
+
+let fbApp = null, fbAuth = null, fbDb = null, fbUser = null;
+let syncTimeout = null;
+
+function initFirebase(){
+  try {
+    if(typeof firebase === 'undefined') return;
+    if(!fbApp) {
+      fbApp = firebase.initializeApp(FB_CONFIG);
+      fbAuth = firebase.auth();
+      fbDb = firebase.database();
+    }
+    fbAuth.onAuthStateChanged(user => {
+      fbUser = user;
+      updateProfileDisplay();
+      if(user) syncFromCloud();
+    });
+  } catch(e){ console.warn('Firebase init error:', e); }
+}
+
+function syncToCloud(){
+  if(!fbUser || !fbDb) return;
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(()=>{
+    const data = {
+      transactions: transactions,
+      categories: categories,
+      accounts: accounts,
+      settings: settings,
+      profile: userProfile,
+      updatedAt: Date.now()
+    };
+    fbDb.ref('users/'+fbUser.uid+'/data').set(data)
+      .then(()=>{ document.getElementById('profile-sync-status') && (document.getElementById('profile-sync-status').textContent='Sincronizzato ✓'); })
+      .catch(e=>{ console.warn('Sync error',e); });
+  }, 1500);
+}
+
+function syncFromCloud(){
+  if(!fbUser || !fbDb) return;
+  fbDb.ref('users/'+fbUser.uid+'/data').once('value').then(snap=>{
+    const data = snap.val();
+    if(!data) { syncToCloud(); return; }
+    transactions = data.transactions || [];
+    categories = data.categories || [];
+    accounts = data.accounts || [];
+    if(data.settings) settings = {...settings, ...data.settings};
+    if(data.profile) userProfile = {...userProfile, ...data.profile};
+    saveLocal();
+    updateAll();
+    applyTranslations();
+    updateProfileDisplay();
+    toast('Dati sincronizzati ✓','success');
+  }).catch(e=>{ console.warn('Sync from cloud error',e); });
+}
+
+function profileLogin(){
+  if(!fbAuth){ toast('Firebase non configurato','error'); return; }
+  const email = document.getElementById('profile-email').value.trim();
+  const pass = document.getElementById('profile-password').value;
+  if(!email||!pass){ toast('Inserisci email e password','error'); return; }
+  // Try sign in, if fails try register
+  fbAuth.signInWithEmailAndPassword(email, pass)
+    .then(result=>{ fbUser=result.user; toast('Accesso effettuato ✓','success'); closeModal2('profile-modal'); syncFromCloud(); })
+    .catch(err=>{
+      if(err.code==='auth/user-not-found'||err.code==='auth/invalid-credential'){
+        fbAuth.createUserWithEmailAndPassword(email, pass)
+          .then(result=>{ fbUser=result.user; toast('Account creato ✓','success'); closeModal2('profile-modal'); syncToCloud(); })
+          .catch(e=>{ toast(e.message,'error'); });
+      } else { toast(err.message,'error'); }
+    });
+}
+
+function profileLogout(){
+  if(!confirm(t('profileLogoutConfirm'))) return;
+  if(fbAuth) fbAuth.signOut().then(()=>{ fbUser=null; updateProfileDisplay(); toast('Disconnesso','info'); });
+}
+
+// ===================== USER PROFILE =====================
+let userProfile = JSON.parse(localStorage.getItem('fh_profile') || '{"name":"","surname":"","email":"","birthday":"","photo":""}');
+
+function saveLocal(){
   localStorage.setItem('fh_tx',JSON.stringify(transactions));
   localStorage.setItem('fh_cats',JSON.stringify(categories));
   localStorage.setItem('fh_accounts',JSON.stringify(accounts));
   localStorage.setItem('fh_settings',JSON.stringify(settings));
+  localStorage.setItem('fh_profile',JSON.stringify(userProfile));
 }
-function seedCategories(){
+
+function saveData(){
+  saveLocal();
+  syncToCloud();
+}
+
+function handleProfilePhoto(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    userProfile.photo=ev.target.result;
+    const img=document.getElementById('profile-photo-img');
+    const ph=document.getElementById('profile-photo-placeholder');
+    img.src=ev.target.result; img.style.display='block'; ph.style.display='none';
+    updateProfileDisplay();
+  };
+  reader.readAsDataURL(file);
+}
+
+function openProfileModal(){
+  document.getElementById('profile-name').value=userProfile.name||'';
+  document.getElementById('profile-surname').value=userProfile.surname||'';
+  document.getElementById('profile-birthday').value=userProfile.birthday||'';
+  // Photo
+  if(userProfile.photo){
+    document.getElementById('profile-photo-img').src=userProfile.photo;
+    document.getElementById('profile-photo-img').style.display='block';
+    document.getElementById('profile-photo-placeholder').style.display='none';
+  } else {
+    document.getElementById('profile-photo-img').style.display='none';
+    document.getElementById('profile-photo-placeholder').style.display='block';
+  }
+  // Auth state
+  if(fbUser){
+    document.getElementById('profile-logged-out').style.display='none';
+    document.getElementById('profile-logged-in').style.display='block';
+    document.getElementById('profile-cloud-email').textContent=fbUser.email||'';
+  } else {
+    document.getElementById('profile-logged-out').style.display='block';
+    document.getElementById('profile-logged-in').style.display='none';
+    document.getElementById('profile-email').value=userProfile.email||'';
+  }
+  document.getElementById('profile-modal').classList.add('active');
+}
+
+function saveProfile(){
+  userProfile.name=document.getElementById('profile-name').value.trim();
+  userProfile.surname=document.getElementById('profile-surname').value.trim();
+  userProfile.birthday=document.getElementById('profile-birthday').value;
+  saveData();
+  updateProfileDisplay();
+  closeModal2('profile-modal');
+  toast(t('saved'),'success');
+}
+
+function updateProfileDisplay(){
+  const nameEl=document.getElementById('lbl-profile-name');
+  const iconEl=document.getElementById('settings-profile-icon');
+  if(!nameEl||!iconEl) return;
+  const fullName = [userProfile.name, userProfile.surname].filter(Boolean).join(' ');
+  nameEl.textContent = fullName || (fbUser ? fbUser.email?.split('@')[0] : t('profileGuest')) || t('profileGuest');
+  if(userProfile.photo){
+    iconEl.innerHTML=`<img src="${userProfile.photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover"/>`;
+  } else {
+    iconEl.textContent='👤';
+  }
+  // Show sync badge in header if logged in
+  const hdr=document.getElementById('profile-logged-in');
+  if(hdr && fbUser) hdr.style.display='block';
+  if(hdr && !fbUser) hdr.style.display='none';
+}
+
+// ===================== CURRENCY CONVERSION =====================
+async function convertAllAmounts(fromCode, toCode){
+  if(fromCode===toCode) return;
+  toast(t('convertingCurrency'),'info');
+  try {
+    const res = await fetch(`https://api.frankfurter.app/latest?from=${fromCode}&to=${toCode}`);
+    const data = await res.json();
+    const rate = data.rates[toCode];
+    if(!rate) throw new Error('no rate');
+    // Convert all transaction amounts
+    transactions = transactions.map(tx=>({...tx, amount: Math.round(tx.amount * rate * 100)/100}));
+    // Convert account balances (done via transactions, nothing else needed)
+    saveData(); updateAll();
+    toast(`${t('currencyConverted')} (1 ${fromCode} = ${rate.toFixed(4)} ${toCode})`, 'success');
+  } catch(e){
+    toast(t('currencyConvertError'),'error');
+  }
+}
+
+function saveSettings(){
+  const newCurrency = document.getElementById('settings-currency').value;
+  const oldCurrency = settings.currency || 'EUR';
+  if(newCurrency !== oldCurrency){
+    // Ask user if they want to convert amounts
+    if(confirm(`Convertire tutti gli importi da ${oldCurrency} a ${newCurrency} al tasso attuale?`)){
+      settings.currency = newCurrency;
+      saveData();
+      convertAllAmounts(oldCurrency, newCurrency);
+      return;
+    }
+  }
+  settings.currency = newCurrency;
+  saveData(); updateAll();
+}function seedCategories(){
   categories=[
     {id:uid(),name:'Alimentari',color:'#22d48a',emoji:'🛒'},
     {id:uid(),name:'Trasporti',color:'#4f8ef7',emoji:'🚗'},
@@ -1404,11 +1736,6 @@ function seedCategories(){
     {id:uid(),name:'Ristoranti',color:'#fbbf24',emoji:'🍕'},
     {id:uid(),name:'Utenze',color:'#22d3ee',emoji:'💡'},
   ];
-  saveData(); updateAll();
-}
-
-function saveSettings(){
-  settings.currency = document.getElementById('settings-currency').value;
   saveData(); updateAll();
 }
 
@@ -1454,6 +1781,8 @@ function applyTranslations(){
   document.getElementById('lbl-description').textContent = t('description');
   document.getElementById('lbl-amount').textContent = t('amount');
   document.getElementById('lbl-date').textContent = t('date');
+  if(document.getElementById('lbl-tx-hour')) document.getElementById('lbl-tx-hour').textContent = t('hour');
+  if(document.getElementById('lbl-tx-minute')) document.getElementById('lbl-tx-minute').textContent = t('minute');
   document.getElementById('account-label').textContent = t('account');
   document.getElementById('lbl-dest-account').textContent = t('destAccount');
   document.getElementById('lbl-category').textContent = t('categories');
@@ -1465,6 +1794,10 @@ function applyTranslations(){
   document.getElementById('lbl-unit').textContent = t('unit');
   document.getElementById('lbl-time-hour').textContent = t('hour');
   document.getElementById('lbl-time-min').textContent = t('minute');
+  // Settings profile row
+  document.getElementById('lbl-profile').textContent = t('profile');
+  document.getElementById('lbl-profile-sub').textContent = t('profileSub');
+  updateProfileDisplay();
   document.getElementById('lbl-photo').textContent = t('photo');
   document.getElementById('lbl-photo-tap').textContent = t('tapToAddPhoto');
   document.getElementById('tx-save-btn').textContent = t('save');
@@ -1487,7 +1820,7 @@ function applyTranslations(){
   document.getElementById('lbl-cat-icon').textContent = t('catIcon');
   document.getElementById('lbl-tap-choose').textContent = t('tapChoose');
   document.getElementById('cat-save-btn').textContent = t('createCat');
-  document.getElementById('btn-new-cat').textContent = '＋ '+t('catName');
+  document.getElementById('btn-new-cat').textContent = t('newCategory');
   document.getElementById('lbl-your-categories').textContent = t('yourCategories');
   // Acc modal
   document.getElementById('lbl-acc-name').textContent = t('accName');
@@ -1880,7 +2213,12 @@ function openModal(type, editId){
     const tx=transactions.find(x=>x.id===editId); if(!tx) return;
     document.getElementById('tx-desc').value=tx.desc;
     document.getElementById('tx-amount').value=tx.amount;
-    document.getElementById('tx-date').value=tx.date;
+    // Parse date and time
+    const txDate = new Date(tx.date);
+    const dateStr = tx.date.includes('T') ? tx.date.split('T')[0] : tx.date;
+    document.getElementById('tx-date').value=dateStr;
+    document.getElementById('tx-hour').value=txDate.getHours ? txDate.getHours() : 0;
+    document.getElementById('tx-minute').value=txDate.getMinutes ? txDate.getMinutes() : 0;
     document.getElementById('tx-notes').value=tx.notes||'';
     document.getElementById('tx-recurring').value=tx.recurring||'none';
     document.getElementById('tx-recur-end').value=tx.recurEnd||'';
@@ -1899,7 +2237,10 @@ function openModal(type, editId){
     document.getElementById('tx-save-btn').textContent=t('saveChanges');
     document.getElementById('modal-title-text').textContent=t('editTx');
   } else {
-    document.getElementById('tx-date').value=new Date().toISOString().split('T')[0];
+    const now = new Date();
+    document.getElementById('tx-date').value=now.toISOString().split('T')[0];
+    document.getElementById('tx-hour').value=now.getHours();
+    document.getElementById('tx-minute').value=now.getMinutes();
     document.getElementById('tx-desc').value='';
     document.getElementById('tx-amount').value='';
     document.getElementById('tx-notes').value='';
@@ -1961,6 +2302,8 @@ function saveTx(){
   const desc=document.getElementById('tx-desc').value.trim();
   const amount=parseFloat(document.getElementById('tx-amount').value);
   const date=document.getElementById('tx-date').value;
+  const txHour=parseInt(document.getElementById('tx-hour').value)||0;
+  const txMinute=parseInt(document.getElementById('tx-minute').value)||0;
   const account=document.getElementById('tx-account').value;
   const toAccount=document.getElementById('tx-to-account').value;
   const category=document.getElementById('tx-category').value;
@@ -1977,8 +2320,10 @@ function saveTx(){
   if(!amount||amount<=0){ toast(t('amountInvalid'),'error'); return; }
   if(!date){ toast(t('dateRequired'),'error'); return; }
   if(currentTxType==='transfer'&&account===toAccount){ toast(t('diffAccounts'),'error'); return; }
+  // Build datetime string with hour/minute
+  const dateTime = date + 'T' + String(txHour).padStart(2,'0') + ':' + String(txMinute).padStart(2,'0') + ':00';
   const tx={
-    id:editId||uid(), type:currentTxType, desc, amount, date, account, category, notes,
+    id:editId||uid(), type:currentTxType, desc, amount, date:dateTime, account, category, notes,
     recurring, recurEnd: recurring!=='none'&&recurring!=='custom'?recurEnd:'',
     recurringMaster: !editId && recurring!=='none',
     lastGenerated: !editId && recurring!=='none' ? date : undefined,
@@ -2020,7 +2365,10 @@ function renderTxItem(tx, withDel=true){
   const sign=tx.type==='income'?'+':tx.type==='expense'?'−':'⇄';
   const cat=getCatById(tx.category);
   const catLabel=cat?`${cat.emoji} ${cat.name}`:'';
-  const d=new Date(tx.date).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
+  const d=new Date(tx.date);
+  const dateStr=d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
+  const timeStr=tx.date.includes('T')?(d.getHours()===0&&d.getMinutes()===0?'':', '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')):'';
+  const dLabel=dateStr+timeStr;
   const recurBadge=tx.recurring&&tx.recurring!=='none'?`<span class="recur-tag">🔄 ${recurLabel(tx.recurring)}</span>`:'';
   const photoBtn=tx.photo?`<img class="tx-photo-thumb" src="${tx.photo}" onclick="openLightbox('${tx.photo}')" alt="foto"/>`:'' ;
   const actions=withDel?`<div class="tx-actions">
@@ -2034,7 +2382,7 @@ function renderTxItem(tx, withDel=true){
     <div class="tx-icon" style="background:${bg}">${emoji}</div>
     <div class="tx-info">
       <div class="tx-desc">${tx.desc}${recurBadge}</div>
-      <div class="tx-meta">${d} · ${acc}${catLabel?' · '+catLabel:''}</div>
+      <div class="tx-meta">${dLabel} · ${acc}${catLabel?' · '+catLabel:''}</div>
     </div>
     <div class="tx-amount ${ac}">${sign}${currSym}${Math.abs(tx.amount).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
     ${actions}
