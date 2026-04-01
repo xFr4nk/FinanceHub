@@ -74,6 +74,8 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  cursor: default;
+  user-select: none;
 }
 .header-title .logo-finance { color: var(--t1); }
 .header-title .logo-hub {
@@ -98,21 +100,23 @@ body {
 
 /* BOTTOM NAV */
 .bottom-nav {
-  flex-shrink: 0; height: calc(56px + var(--safe-bottom));
+  flex-shrink: 0;
+  height: calc(62px + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   background: rgba(13,16,23,0.97); backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px); border-top: 1px solid var(--border);
-  display: flex; z-index: 50;
+  display: flex; z-index: 50; align-items: stretch;
 }
 .nav-tab {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 3px; cursor: pointer; transition: color 0.2s;
-  color: var(--t3); font-size: 9.5px; font-weight: 600;
-  letter-spacing: 0.4px; text-transform: uppercase;
+  gap: 4px; cursor: pointer; transition: color 0.2s;
+  color: var(--t3); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.3px; text-transform: uppercase;
+  padding: 8px 0;
 }
 .nav-tab.active { color: var(--blue); }
-.nav-tab-icon { font-size: 19px; line-height: 1; }
+.nav-tab-icon { font-size: 20px; line-height: 1; }
 
 /* PAGES */
 .page { display: none; animation: fadeUp 0.22s ease; }
@@ -213,6 +217,15 @@ body {
 .chart-wrap { height: 180px; position: relative; }
 .chart-wrap.pie { height: 200px; }
 
+/* TREND TABS inside chart card */
+.trend-tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+.trend-tab {
+  padding: 5px 11px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 16px; font-family: var(--font); font-size: 10.5px;
+  font-weight: 600; color: var(--t2); cursor: pointer; transition: all 0.2s;
+}
+.trend-tab.active { background: var(--blue-d); border-color: var(--blue); color: var(--blue); }
+
 /* RECENT TX */
 .recent-section { margin: 0 16px 16px; }
 .tx-item { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--border); position: relative; }
@@ -237,9 +250,13 @@ body {
 .tx-photo-thumb { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; cursor: pointer; border: 1px solid var(--border2); flex-shrink: 0; }
 
 /* ---- TRANSACTIONS PAGE ---- */
-.filter-row { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.filter-row {
+  display: flex; gap: 8px; padding: 12px 16px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  justify-content: center;
+}
 .filter-row::-webkit-scrollbar { display: none; }
-.filter-chip { flex-shrink: 0; padding: 7px 13px; background: var(--bg1); border: 1px solid var(--border); border-radius: 20px; font-family: var(--font); font-size: 11.5px; font-weight: 600; color: var(--t2); cursor: pointer; outline: none; -webkit-appearance: none; }
+.filter-chip { flex-shrink: 0; padding: 7px 13px; background: var(--bg1); border: 1px solid var(--border); border-radius: 20px; font-family: var(--font); font-size: 11.5px; font-weight: 600; color: var(--t2); cursor: pointer; outline: none; -webkit-appearance: none; text-align: center; }
 .filter-chip option { background: var(--bg2); }
 .tx-list { padding: 0 16px 16px; }
 .empty-state { text-align: center; padding: 48px 20px; color: var(--t3); }
@@ -291,6 +308,7 @@ body {
 .form-input:focus, .form-select:focus { border-color: var(--blue); }
 .form-select option { background: var(--bg1); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .no-display { display: none !important; }
 
 .save-btn { width: 100%; padding: 16px; background: var(--blue); color: #fff; border: none; border-radius: var(--r); font-family: var(--font); font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 6px; letter-spacing: 0.1px; }
@@ -352,7 +370,7 @@ body {
 .photo-preview-del { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; background: var(--red); border: none; border-radius: 50%; color: white; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
 /* TOAST */
-.toast { position: fixed; bottom: calc(70px + var(--safe-bottom)); left: 16px; right: 16px; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r); padding: 13px 16px; font-size: 13.5px; font-weight: 600; z-index: 999; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); animation: toastIn 0.3s ease; letter-spacing: -0.1px; }
+.toast { position: fixed; bottom: calc(74px + var(--safe-bottom)); left: 16px; right: 16px; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r); padding: 13px 16px; font-size: 13.5px; font-weight: 600; z-index: 999; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); animation: toastIn 0.3s ease; letter-spacing: -0.1px; }
 @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 .toast.success { border-left: 3px solid var(--green); }
 .toast.error { border-left: 3px solid var(--red); }
@@ -388,6 +406,37 @@ body {
 
 /* CURRENCY SYMBOL in hero */
 .currency-badge { font-size: 9px; font-weight: 700; color: var(--t2); text-transform: uppercase; letter-spacing: 0.8px; background: var(--bg3); padding: 2px 6px; border-radius: 6px; display: inline-block; margin-left: 6px; vertical-align: middle; }
+
+/* ---- SETTINGS PAGE ---- */
+.settings-section { padding: 0 16px; margin-bottom: 20px; }
+.settings-section-title { font-size: 10px; font-weight: 700; color: var(--t2); text-transform: uppercase; letter-spacing: 1.2px; padding: 16px 0 10px; }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 15px 16px; margin-bottom: 8px;
+  cursor: pointer; transition: all 0.15s; gap: 12px;
+}
+.settings-row:active { background: var(--bg2); }
+.settings-row-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.settings-row-icon { font-size: 20px; width: 36px; height: 36px; border-radius: 10px; background: var(--bg3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.settings-row-label { font-size: 14px; font-weight: 600; }
+.settings-row-sub { font-size: 11px; color: var(--t2); margin-top: 2px; }
+.settings-row-value { font-size: 12px; color: var(--t2); font-weight: 600; flex-shrink: 0; }
+.settings-row-arrow { color: var(--t3); font-size: 12px; flex-shrink: 0; }
+.settings-inline-select { background: transparent; border: none; color: var(--t2); font-family: var(--font); font-size: 12px; font-weight: 600; outline: none; cursor: pointer; -webkit-appearance: none; text-align: right; max-width: 140px; }
+.settings-inline-select option { background: var(--bg1); }
+
+/* Language modal search */
+.lang-search { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border2); border-radius: var(--r); color: var(--t1); font-family: var(--font); font-size: 14px; outline: none; margin-bottom: 12px; }
+.lang-search:focus { border-color: var(--blue); }
+.lang-list { max-height: 50vh; overflow-y: auto; }
+.lang-item { display: flex; align-items: center; gap: 12px; padding: 13px 4px; border-bottom: 1px solid var(--border); cursor: pointer; transition: all 0.15s; }
+.lang-item:last-child { border-bottom: none; }
+.lang-item:active { background: var(--blue-d); border-radius: 10px; }
+.lang-item.selected { color: var(--blue); }
+.lang-flag { font-size: 22px; flex-shrink: 0; }
+.lang-name { font-size: 14px; font-weight: 600; flex: 1; }
+.lang-check { color: var(--blue); font-size: 16px; }
 </style>
 </head>
 <body>
@@ -399,8 +448,8 @@ body {
       <span class="logo-finance">Finance</span><span class="logo-hub">Hub</span>
     </div>
     <div class="header-right">
-      <button class="fab fab-income" style="flex:none;padding:9px 13px;font-size:11.5px;" onclick="openModal('income')">＋ Entrata</button>
-      <button class="fab fab-expense" style="flex:none;padding:9px 13px;font-size:11.5px;" onclick="openModal('expense')">− Spesa</button>
+      <button class="fab fab-income" style="flex:none;padding:9px 13px;font-size:11.5px;" onclick="openModal('income')" id="hdr-btn-income">＋ Entrata</button>
+      <button class="fab fab-expense" style="flex:none;padding:9px 13px;font-size:11.5px;" onclick="openModal('expense')" id="hdr-btn-expense">− Spesa</button>
     </div>
   </div>
 
@@ -410,7 +459,7 @@ body {
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div class="dash-hero">
-        <div class="hero-label">Patrimonio Totale</div>
+        <div class="hero-label" id="hero-label-total">Patrimonio Totale</div>
         <div class="hero-amount"><small id="hero-currency-symbol">€</small><span id="hero-total">0,00</span></div>
         <div class="hero-stats">
           <div class="hero-stat">
@@ -422,7 +471,7 @@ body {
             <div class="hero-stat-val" style="color:var(--red)" id="hero-exp">€0</div>
           </div>
           <div class="hero-stat">
-            <div class="hero-stat-label">Saldo netto</div>
+            <div class="hero-stat-label" id="hero-net-label">Saldo netto</div>
             <div class="hero-stat-val" id="hero-net">€0</div>
           </div>
         </div>
@@ -430,33 +479,41 @@ body {
 
       <!-- Period selector -->
       <div class="period-tabs" id="period-tabs">
-        <div class="period-tab" onclick="setPeriod('daily')">Oggi</div>
-        <div class="period-tab" onclick="setPeriod('weekly')">Settimana</div>
-        <div class="period-tab active" onclick="setPeriod('monthly')">Mese</div>
-        <div class="period-tab" onclick="setPeriod('yearly')">Anno</div>
-        <div class="period-tab" onclick="setPeriod('total')">Totale</div>
+        <div class="period-tab" id="ptab-daily" onclick="setPeriod('daily')">Oggi</div>
+        <div class="period-tab" id="ptab-weekly" onclick="setPeriod('weekly')">Settimana</div>
+        <div class="period-tab active" id="ptab-monthly" onclick="setPeriod('monthly')">Mese</div>
+        <div class="period-tab" id="ptab-yearly" onclick="setPeriod('yearly')">Anno</div>
+        <div class="period-tab" id="ptab-total" onclick="setPeriod('total')">Totale</div>
       </div>
 
       <div class="fab-row">
-        <button class="fab fab-income" onclick="openModal('income')">📈 Entrata</button>
-        <button class="fab fab-expense" onclick="openModal('expense')">📉 Spesa</button>
-        <button class="fab fab-transfer" onclick="openModal('transfer')">⇄ Sposta</button>
+        <button class="fab fab-income" onclick="openModal('income')" id="dash-btn-income">📈 Entrata</button>
+        <button class="fab fab-expense" onclick="openModal('expense')" id="dash-btn-expense">📉 Spesa</button>
+        <button class="fab fab-transfer" onclick="openModal('transfer')" id="dash-btn-transfer">⇄ Sposta</button>
       </div>
 
-      <div class="section-title">I tuoi conti</div>
+      <div class="section-title" id="lbl-accounts">I tuoi conti</div>
       <div class="accounts-scroll" id="acc-scroll"></div>
 
       <div class="chart-card" style="margin-top:14px">
         <div class="chart-card-header">
           <div>
-            <div class="chart-card-title">Andamento</div>
+            <div class="chart-card-title" id="lbl-trend">Andamento</div>
             <div class="chart-card-sub" id="chart-sub-label">Ultimi 6 mesi</div>
           </div>
+        </div>
+        <!-- Trend period tabs -->
+        <div class="trend-tabs" id="trend-tabs">
+          <div class="trend-tab" onclick="setTrendPeriod('monthly')" id="ttab-monthly">Mensile</div>
+          <div class="trend-tab active" onclick="setTrendPeriod('quarterly')" id="ttab-quarterly">Trimestrale</div>
+          <div class="trend-tab" onclick="setTrendPeriod('semiannual')" id="ttab-semiannual">Semestrale</div>
+          <div class="trend-tab" onclick="setTrendPeriod('yearly')" id="ttab-yearly">Annuale</div>
+          <div class="trend-tab" onclick="setTrendPeriod('alltime')" id="ttab-alltime">Totale</div>
         </div>
         <div class="chart-wrap"><canvas id="dashLineChart"></canvas></div>
       </div>
 
-      <div class="section-title" style="margin-top:14px">Transazioni recenti</div>
+      <div class="section-title" style="margin-top:14px" id="lbl-recent-tx">Transazioni recenti</div>
       <div class="recent-section" id="recent-list"></div>
     </div>
 
@@ -485,32 +542,82 @@ body {
     <!-- CATEGORIES -->
     <div class="page" id="page-categories">
       <div style="padding:16px 16px 8px;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1.2px">Le tue categorie</div>
-        <button class="fab fab-income" style="flex:none;padding:8px 13px;font-size:11.5px;" onclick="openCatModal()">＋ Nuova</button>
+        <div class="section-title" style="padding:0" id="lbl-your-categories">Le tue categorie</div>
+        <button class="fab fab-income" style="flex:none;padding:8px 13px;font-size:11.5px;" onclick="openCatModal()" id="btn-new-cat">＋ Nuova</button>
       </div>
       <div class="cat-grid" id="cat-grid"></div>
     </div>
 
     <!-- CHARTS -->
     <div class="page" id="page-charts">
-      <button class="export-btn" onclick="openExportModal()">📤 Esporta report PDF</button>
+      <button class="export-btn" onclick="openExportModal()" id="btn-export-pdf">📤 Esporta report PDF</button>
       <div class="charts-grid" style="margin-top:14px">
         <div class="chart-card">
-          <div class="chart-card-header"><div><div class="chart-card-title">Entrate vs Spese</div><div class="chart-card-sub">Confronto mensile</div></div></div>
+          <div class="chart-card-header"><div><div class="chart-card-title" id="lbl-inc-vs-exp">Entrate vs Spese</div><div class="chart-card-sub" id="lbl-monthly-comparison">Confronto mensile</div></div></div>
           <div class="chart-wrap"><canvas id="barChart"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-card-header"><div><div class="chart-card-title">Spese per Categoria</div><div class="chart-card-sub">Mese corrente</div></div></div>
+          <div class="chart-card-header"><div><div class="chart-card-title" id="lbl-exp-by-cat">Spese per Categoria</div><div class="chart-card-sub" id="lbl-current-month">Mese corrente</div></div></div>
           <div class="chart-wrap pie"><canvas id="pieChart"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-card-header"><div><div class="chart-card-title">Distribuzione Conti</div></div></div>
+          <div class="chart-card-header"><div><div class="chart-card-title" id="lbl-acc-distribution">Distribuzione Conti</div></div></div>
           <div class="chart-wrap pie"><canvas id="accPieChart"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-card-header"><div><div class="chart-card-title">Top Categorie</div><div class="chart-card-sub">Spese cumulative</div></div></div>
+          <div class="chart-card-header"><div><div class="chart-card-title" id="lbl-top-cats">Top Categorie</div><div class="chart-card-sub" id="lbl-cumulative-exp">Spese cumulative</div></div></div>
           <div class="chart-wrap" style="height:200px"><canvas id="catBarChart"></canvas></div>
         </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="settings-section">
+        <div class="settings-section-title" id="lbl-general">Generale</div>
+
+        <!-- Default currency -->
+        <div class="settings-row" onclick="document.getElementById('settings-currency').focus()">
+          <div class="settings-row-left">
+            <div class="settings-row-icon">💱</div>
+            <div>
+              <div class="settings-row-label" id="lbl-default-currency">Valuta predefinita</div>
+              <div class="settings-row-sub" id="lbl-currency-sub">Usata per il patrimonio totale</div>
+            </div>
+          </div>
+          <select class="settings-inline-select" id="settings-currency" onchange="saveSettings()"></select>
+        </div>
+
+        <!-- Language -->
+        <div class="settings-row" onclick="openLangModal()">
+          <div class="settings-row-left">
+            <div class="settings-row-icon">🌍</div>
+            <div>
+              <div class="settings-row-label" id="lbl-language">Lingua</div>
+              <div class="settings-row-sub" id="lbl-language-sub">Lingua dell'interfaccia</div>
+            </div>
+          </div>
+          <div class="settings-row-value" id="lbl-current-lang">Italiano</div>
+          <div class="settings-row-arrow">›</div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title" id="lbl-data-section">Dati</div>
+        <div class="settings-row" onclick="openExportModal()">
+          <div class="settings-row-left">
+            <div class="settings-row-icon">📤</div>
+            <div>
+              <div class="settings-row-label" id="lbl-export-data">Esporta dati PDF</div>
+              <div class="settings-row-sub" id="lbl-export-sub">Genera report stampabile</div>
+            </div>
+          </div>
+          <div class="settings-row-arrow">›</div>
+        </div>
+      </div>
+
+      <div style="padding:0 16px;margin-top:8px">
+        <div style="text-align:center;font-size:11px;color:var(--t3);padding:16px 0">FinanceHub · v2.0</div>
       </div>
     </div>
 
@@ -518,10 +625,11 @@ body {
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <div class="nav-tab active" id="nav-dashboard" onclick="showPage('dashboard')"><div class="nav-tab-icon">📊</div><span>Home</span></div>
-    <div class="nav-tab" id="nav-transactions" onclick="showPage('transactions')"><div class="nav-tab-icon">📋</div><span>Movimenti</span></div>
-    <div class="nav-tab" id="nav-categories" onclick="showPage('categories')"><div class="nav-tab-icon">🏷️</div><span>Categorie</span></div>
-    <div class="nav-tab" id="nav-charts" onclick="showPage('charts')"><div class="nav-tab-icon">📈</div><span>Grafici</span></div>
+    <div class="nav-tab active" id="nav-dashboard" onclick="showPage('dashboard')"><div class="nav-tab-icon">📊</div><span id="nav-lbl-home">Home</span></div>
+    <div class="nav-tab" id="nav-transactions" onclick="showPage('transactions')"><div class="nav-tab-icon">📋</div><span id="nav-lbl-movements">Movimenti</span></div>
+    <div class="nav-tab" id="nav-categories" onclick="showPage('categories')"><div class="nav-tab-icon">🏷️</div><span id="nav-lbl-categories">Categorie</span></div>
+    <div class="nav-tab" id="nav-charts" onclick="showPage('charts')"><div class="nav-tab-icon">📈</div><span id="nav-lbl-charts">Grafici</span></div>
+    <div class="nav-tab" id="nav-settings" onclick="showPage('settings')"><div class="nav-tab-icon">⚙️</div><span id="nav-lbl-settings">Impostazioni</span></div>
   </nav>
 
 </div>
@@ -541,16 +649,16 @@ body {
       <button class="type-tab" onclick="setTxType('transfer')" id="tab-transfer">⇄ Sposta</button>
     </div>
     <div class="form-group">
-      <label class="form-label">Descrizione</label>
+      <label class="form-label" id="lbl-description">Descrizione</label>
       <input class="form-input" type="text" id="tx-desc" placeholder="Es. Supermercato..." autocomplete="off"/>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Importo</label>
+        <label class="form-label" id="lbl-amount">Importo</label>
         <input class="form-input" type="number" id="tx-amount" placeholder="0,00" min="0.01" step="0.01" inputmode="decimal"/>
       </div>
       <div class="form-group">
-        <label class="form-label">Data</label>
+        <label class="form-label" id="lbl-date">Data</label>
         <input class="form-input" type="date" id="tx-date"/>
       </div>
     </div>
@@ -559,35 +667,64 @@ body {
       <select class="form-select" id="tx-account"></select>
     </div>
     <div class="form-group no-display" id="to-account-group">
-      <label class="form-label">Conto Destinazione</label>
+      <label class="form-label" id="lbl-dest-account">Conto Destinazione</label>
       <select class="form-select" id="tx-to-account"></select>
     </div>
     <div class="form-group" id="cat-field">
-      <label class="form-label">Categoria</label>
+      <label class="form-label" id="lbl-category">Categoria</label>
       <select class="form-select" id="tx-category"><option value="">Nessuna</option></select>
     </div>
     <div class="form-group">
-      <label class="form-label">Note (opzionale)</label>
+      <label class="form-label" id="lbl-notes">Note (opzionale)</label>
       <input class="form-input" type="text" id="tx-notes" placeholder="Note..." autocomplete="off"/>
     </div>
     <!-- RECURRING -->
     <div class="form-group">
-      <label class="form-label">Ricorrenza</label>
+      <label class="form-label" id="lbl-recurrence">Ricorrenza</label>
       <select class="form-select" id="tx-recurring">
         <option value="none">Nessuna (singola)</option>
         <option value="daily">Giornaliera</option>
         <option value="weekly">Settimanale</option>
         <option value="monthly">Mensile</option>
         <option value="yearly">Annuale</option>
+        <option value="custom">Personalizzata</option>
       </select>
     </div>
     <div class="form-group no-display" id="recur-end-group">
-      <label class="form-label">Data fine ricorrenza</label>
+      <label class="form-label" id="lbl-recur-end">Data fine ricorrenza</label>
       <input class="form-input" type="date" id="tx-recur-end"/>
+    </div>
+    <!-- CUSTOM RECURRENCE -->
+    <div class="form-group no-display" id="recur-custom-group">
+      <label class="form-label" id="lbl-custom-recur">Ricorrenza personalizzata</label>
+      <div class="form-row" style="margin-bottom:10px">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" id="lbl-every">Ogni</label>
+          <input class="form-input" type="number" id="tx-recur-every" placeholder="1" min="1" value="1" inputmode="numeric"/>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" id="lbl-unit">Unità</label>
+          <select class="form-select" id="tx-recur-unit">
+            <option value="days">Giorni</option>
+            <option value="weeks">Settimane</option>
+            <option value="months">Mesi</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" id="lbl-time-hour">Ora</label>
+          <input class="form-input" type="number" id="tx-recur-hour" placeholder="0" min="0" max="23" value="0" inputmode="numeric"/>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" id="lbl-time-min">Minuto</label>
+          <input class="form-input" type="number" id="tx-recur-minute" placeholder="0" min="0" max="59" value="0" inputmode="numeric"/>
+        </div>
+      </div>
     </div>
     <!-- PHOTO -->
     <div class="form-group" id="tx-photo-group">
-      <label class="form-label">Foto (scontrino, ecc.)</label>
+      <label class="form-label" id="lbl-photo">Foto (scontrino, ecc.)</label>
       <div id="tx-photo-preview-wrap" class="no-display">
         <div class="photo-preview-wrap">
           <img id="tx-photo-preview" class="photo-preview-img" src="" alt="preview"/>
@@ -596,7 +733,7 @@ body {
       </div>
       <div class="photo-upload-area" id="tx-photo-upload-area" onclick="document.getElementById('tx-photo-file').click()">
         <div class="photo-upload-icon">📷</div>
-        <div class="photo-upload-label">Tocca per aggiungere foto</div>
+        <div class="photo-upload-label" id="lbl-photo-tap">Tocca per aggiungere foto</div>
       </div>
       <input type="file" id="tx-photo-file" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)"/>
     </div>
@@ -614,11 +751,11 @@ body {
       <button class="modal-close" onclick="closeCatModal()">✕</button>
     </div>
     <div class="form-group">
-      <label class="form-label">Nome</label>
+      <label class="form-label" id="lbl-cat-name">Nome</label>
       <input class="form-input" type="text" id="cat-name-input" placeholder="Es. Alimentari..." autocomplete="off"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Colore</label>
+      <label class="form-label" id="lbl-cat-color">Colore</label>
       <div class="color-picker-wrap">
         <div id="selected-color-preview" class="selected-color-preview" style="background:#4f8ef7"></div>
         <div class="gradient-presets" id="gradient-presets"></div>
@@ -628,11 +765,11 @@ body {
       <input type="hidden" id="cat-color-input" value="#4f8ef7"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Icona</label>
+      <label class="form-label" id="lbl-cat-icon">Icona</label>
       <div class="emoji-picker-wrap">
         <button class="emoji-trigger" id="cat-emoji-trigger" onclick="openEmojiPicker('cat')" type="button">
           <span class="emoji-trigger-preview" id="cat-emoji-preview">🏷️</span>
-          <span class="emoji-trigger-label">Tocca per scegliere</span>
+          <span class="emoji-trigger-label" id="lbl-tap-choose">Tocca per scegliere</span>
           <span class="emoji-trigger-arrow">▼</span>
         </button>
       </div>
@@ -660,11 +797,11 @@ body {
       <button class="modal-close" onclick="closeAccModal()">✕</button>
     </div>
     <div class="form-group">
-      <label class="form-label">Nome Conto</label>
+      <label class="form-label" id="lbl-acc-name">Nome Conto</label>
       <input class="form-input" type="text" id="acc-name-input" placeholder="Es. N26, PostePay..." autocomplete="off"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Colore</label>
+      <label class="form-label" id="lbl-acc-color">Colore</label>
       <div class="color-picker-wrap">
         <div id="acc-selected-color-preview" class="selected-color-preview" style="background:#4f8ef7"></div>
         <div class="gradient-presets" id="acc-gradient-presets"></div>
@@ -674,24 +811,24 @@ body {
       <input type="hidden" id="acc-color-input" value="#4f8ef7"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Emoji</label>
+      <label class="form-label" id="lbl-acc-emoji">Emoji</label>
       <div class="emoji-picker-wrap">
         <button class="emoji-trigger" id="acc-emoji-trigger" onclick="openEmojiPicker('acc')" type="button">
           <span class="emoji-trigger-preview" id="acc-emoji-preview">🏦</span>
-          <span class="emoji-trigger-label">Tocca per scegliere</span>
+          <span class="emoji-trigger-label" id="lbl-tap-choose-acc">Tocca per scegliere</span>
           <span class="emoji-trigger-arrow">▼</span>
         </button>
       </div>
       <input type="hidden" id="acc-emoji-input" value="🏦"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Valuta</label>
+      <label class="form-label" id="lbl-acc-currency">Valuta</label>
       <select class="form-select" id="acc-currency-select"></select>
     </div>
     <div class="form-group">
       <label class="form-label">
         <input type="checkbox" id="acc-include-total" checked style="margin-right:8px;width:auto;"/>
-        Includi nel patrimonio totale
+        <span id="lbl-include-total">Includi nel patrimonio totale</span>
       </label>
     </div>
     <input type="hidden" id="acc-edit-id" value=""/>
@@ -700,30 +837,27 @@ body {
   </div>
 </div>
 
-<!-- SETTINGS MODAL -->
-<div class="modal-overlay" id="settings-modal" onclick="handleModalBg(event,'settings-modal')">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">⚙️ Impostazioni <button class="modal-close" onclick="closeModal2('settings-modal')">✕</button></div>
-    <div class="form-group">
-      <label class="form-label">Valuta predefinita</label>
-      <select class="form-select" id="settings-currency" onchange="saveSettings()"></select>
-    </div>
-    <div style="font-size:11px;color:var(--t2);margin-top:-8px;margin-bottom:14px">La valuta predefinita viene usata per il patrimonio totale e i conti senza valuta specifica.</div>
-  </div>
-</div>
-
 <!-- EXPORT MODAL -->
 <div class="modal-overlay" id="export-modal" onclick="handleModalBg(event,'export-modal')">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">📤 Esporta PDF <button class="modal-close" onclick="closeModal2('export-modal')">✕</button></div>
-    <div style="font-size:12px;color:var(--t2);margin-bottom:16px">Scegli il periodo da esportare:</div>
-    <button class="export-period-btn" onclick="exportPDF('daily')">📅 Oggi</button>
-    <button class="export-period-btn" onclick="exportPDF('weekly')">📅 Questa settimana</button>
-    <button class="export-period-btn" onclick="exportPDF('monthly')">📅 Questo mese</button>
-    <button class="export-period-btn" onclick="exportPDF('yearly')">📅 Quest'anno</button>
-    <button class="export-period-btn" onclick="exportPDF('total')">📅 Storico completo</button>
+    <div class="modal-title" id="export-modal-title">📤 Esporta PDF <button class="modal-close" onclick="closeModal2('export-modal')">✕</button></div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:16px" id="lbl-choose-period">Scegli il periodo da esportare:</div>
+    <button class="export-period-btn" onclick="exportPDF('daily')" id="exp-btn-daily">📅 Oggi</button>
+    <button class="export-period-btn" onclick="exportPDF('weekly')" id="exp-btn-weekly">📅 Questa settimana</button>
+    <button class="export-period-btn" onclick="exportPDF('monthly')" id="exp-btn-monthly">📅 Questo mese</button>
+    <button class="export-period-btn" onclick="exportPDF('yearly')" id="exp-btn-yearly">📅 Quest'anno</button>
+    <button class="export-period-btn" onclick="exportPDF('total')" id="exp-btn-total">📅 Storico completo</button>
+  </div>
+</div>
+
+<!-- LANGUAGE MODAL -->
+<div class="modal-overlay" id="lang-modal" onclick="handleModalBg(event,'lang-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🌍 <span id="lbl-lang-modal-title">Scegli Lingua</span> <button class="modal-close" onclick="closeModal2('lang-modal')">✕</button></div>
+    <input class="lang-search" id="lang-search" placeholder="Cerca lingua..." oninput="filterLangs(this.value)" autocomplete="off"/>
+    <div class="lang-list" id="lang-list"></div>
   </div>
 </div>
 
@@ -731,7 +865,7 @@ body {
 <div class="emoji-picker-overlay" id="emoji-overlay" onclick="closeEmojiPicker()"></div>
 <div class="emoji-picker-panel" id="emoji-picker-panel">
   <div class="emoji-picker-header">
-    <span class="emoji-picker-title">Scegli Emoji</span>
+    <span class="emoji-picker-title" id="lbl-emoji-picker-title">Scegli Emoji</span>
     <button class="emoji-picker-close" onclick="closeEmojiPicker()">✕</button>
   </div>
   <div class="emoji-search-wrap">
@@ -802,12 +936,375 @@ const CURRENCIES = [
   {code:'ETH',symbol:'Ξ',name:'Ethereum'},
 ];
 
+// ===================== LANGUAGES =====================
+const LANGUAGES = [
+  {code:'it', name:'Italiano', flag:'🇮🇹'},
+  {code:'en', name:'English', flag:'🇬🇧'},
+  {code:'es', name:'Español', flag:'🇪🇸'},
+  {code:'fr', name:'Français', flag:'🇫🇷'},
+  {code:'de', name:'Deutsch', flag:'🇩🇪'},
+  {code:'pt', name:'Português', flag:'🇵🇹'},
+  {code:'ru', name:'Русский', flag:'🇷🇺'},
+  {code:'zh', name:'中文', flag:'🇨🇳'},
+  {code:'ja', name:'日本語', flag:'🇯🇵'},
+  {code:'ko', name:'한국어', flag:'🇰🇷'},
+  {code:'ar', name:'العربية', flag:'🇸🇦'},
+  {code:'hi', name:'हिन्दी', flag:'🇮🇳'},
+  {code:'tr', name:'Türkçe', flag:'🇹🇷'},
+  {code:'pl', name:'Polski', flag:'🇵🇱'},
+  {code:'nl', name:'Nederlands', flag:'🇳🇱'},
+  {code:'sv', name:'Svenska', flag:'🇸🇪'},
+  {code:'da', name:'Dansk', flag:'🇩🇰'},
+  {code:'no', name:'Norsk', flag:'🇳🇴'},
+  {code:'fi', name:'Suomi', flag:'🇫🇮'},
+  {code:'cs', name:'Čeština', flag:'🇨🇿'},
+  {code:'ro', name:'Română', flag:'🇷🇴'},
+  {code:'hu', name:'Magyar', flag:'🇭🇺'},
+  {code:'el', name:'Ελληνικά', flag:'🇬🇷'},
+  {code:'uk', name:'Українська', flag:'🇺🇦'},
+  {code:'id', name:'Bahasa Indonesia', flag:'🇮🇩'},
+  {code:'vi', name:'Tiếng Việt', flag:'🇻🇳'},
+  {code:'th', name:'ภาษาไทย', flag:'🇹🇭'},
+];
+
+// ===================== TRANSLATIONS =====================
+const TRANSLATIONS = {
+  it: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Patrimonio Totale',
+    today: 'Oggi', week: 'Settimana', month: 'Mese', year: 'Anno', total: 'Totale',
+    income: 'Entrata', expense: 'Spesa', transfer: 'Sposta',
+    yourAccounts: 'I tuoi conti', recentTx: 'Transazioni recenti',
+    trend: 'Andamento',
+    trendMonthly: 'Mensile', trendQuarterly: 'Trimestrale', trendSemiannual: 'Semestrale', trendYearly: 'Annuale', trendAllTime: 'Totale',
+    navHome: 'Home', navMovements: 'Movimenti', navCategories: 'Categorie', navCharts: 'Grafici', navSettings: 'Impostazioni',
+    movements: 'Movimenti', allAccounts: 'Tutti i conti', all: 'Tutti', incomes: 'Entrate', expenses: 'Spese', transfers: 'Trasferimenti', allMonths: 'Tutti i mesi',
+    yourCategories: 'Le tue categorie', newCategory: '＋ Nuova',
+    exportPDF: '📤 Esporta report PDF',
+    incVsExp: 'Entrate vs Spese', monthlyComparison: 'Confronto mensile',
+    expByCat: 'Spese per Categoria', currentMonth: 'Mese corrente',
+    accDistribution: 'Distribuzione Conti', topCats: 'Top Categorie', cumulativeExp: 'Spese cumulative',
+    settings: 'Impostazioni', general: 'Generale',
+    defaultCurrency: 'Valuta predefinita', currencySub: 'Usata per il patrimonio totale',
+    language: 'Lingua', languageSub: "Lingua dell'interfaccia",
+    dataSection: 'Dati', exportData: 'Esporta dati PDF', exportSub: 'Genera report stampabile',
+    newTx: 'Nuova Transazione', editTx: 'Modifica Transazione',
+    description: 'Descrizione', amount: 'Importo', date: 'Data',
+    account: 'Conto', destAccount: 'Conto Destinazione', categories: 'Categoria', notes: 'Note (opzionale)',
+    recurrence: 'Ricorrenza', recurNone: 'Nessuna (singola)', recurDaily: 'Giornaliera', recurWeekly: 'Settimanale', recurMonthly: 'Mensile', recurYearly: 'Annuale', recurCustom: 'Personalizzata',
+    recurEnd: 'Data fine ricorrenza', customRecur: 'Ricorrenza personalizzata',
+    every: 'Ogni', unit: 'Unità', days: 'Giorni', weeks: 'Settimane', months: 'Mesi',
+    hour: 'Ora', minute: 'Minuto',
+    photo: 'Foto (scontrino, ecc.)', tapToAddPhoto: 'Tocca per aggiungere foto',
+    save: '💾 Salva', saveChanges: '💾 Salva Modifiche',
+    newCat: '🏷️ Nuova Categoria', editCat: '✏️ Modifica Categoria',
+    catName: 'Nome', catColor: 'Colore', catIcon: 'Icona', tapChoose: 'Tocca per scegliere',
+    createCat: 'Crea Categoria',
+    newAccount: '➕ Nuovo Conto', editAccount: '✏️ Modifica Conto',
+    accName: 'Nome Conto', accColor: 'Colore', accEmoji: 'Emoji', accCurrency: 'Valuta',
+    includeTotal: 'Includi nel patrimonio totale', addAccount: 'Aggiungi Conto', deleteAccount: '🗑 Elimina Conto',
+    exportTitle: '📤 Esporta PDF', choosePeriod: 'Scegli il periodo da esportare:',
+    expToday: '📅 Oggi', expWeek: '📅 Questa settimana', expMonth: '📅 Questo mese', expYear: "📅 Quest'anno", expAll: '📅 Storico completo',
+    chooseLang: 'Scegli Lingua', searchLang: 'Cerca lingua...',
+    searchEmoji: 'Cerca emoji...', chooseEmoji: 'Scegli Emoji',
+    netBalance: 'Saldo netto', incomeMonth: 'Entrate mese', expenseMonth: 'Spese mese',
+    noTx: 'Nessuna transazione in questo periodo.<br>Aggiungine una!', noTxPage: 'Nessuna transazione', noExpenses: 'Nessuna spesa', firstCat: 'Crea la tua prima categoria!',
+    descRequired: 'Inserisci una descrizione', amountInvalid: 'Importo non valido', dateRequired: 'Seleziona una data', diffAccounts: 'I conti devono essere diversi', nameRequired: 'Inserisci un nome',
+    saved: 'Salvato ✓', edited: 'Modificato ✓', deleted: 'Eliminato',
+    accUpdated: 'aggiornato ✓', accAdded: 'aggiunto ✓', accDeleted: 'eliminato',
+    catUpdated: 'aggiornata ✓', catCreated: 'creata ✓',
+    confirmDeleteTx: 'Eliminare questa transazione?', confirmDeleteAcc: 'Eliminare',
+    addNewAccount: 'Nuovo Conto',
+    categories2: 'Categorie',
+    periodToday: 'Oggi', periodWeek: 'Questa settimana', periodMonth: 'Questo mese', periodYear: "Quest'anno", periodAll: 'Tutto',
+    incLabel: 'Entrate –', expLabel: 'Spese –',
+    last6m: 'Ultimi 6 mesi',
+    reportLabel: 'Report:', reportIncome: 'Entrate', reportExpenses: 'Spese', reportNet: 'Saldo netto', reportTx: 'Transazioni',
+    generatedBy: 'Generato da FinanceHub',
+    excluded: '· escluso',
+  },
+  en: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Total Wealth',
+    today: 'Today', week: 'Week', month: 'Month', year: 'Year', total: 'Total',
+    income: 'Income', expense: 'Expense', transfer: 'Transfer',
+    yourAccounts: 'Your accounts', recentTx: 'Recent transactions',
+    trend: 'Trend',
+    trendMonthly: 'Monthly', trendQuarterly: 'Quarterly', trendSemiannual: 'Semiannual', trendYearly: 'Yearly', trendAllTime: 'All Time',
+    navHome: 'Home', navMovements: 'Movements', navCategories: 'Categories', navCharts: 'Charts', navSettings: 'Settings',
+    movements: 'Movements', allAccounts: 'All accounts', all: 'All', incomes: 'Income', expenses: 'Expenses', transfers: 'Transfers', allMonths: 'All months',
+    yourCategories: 'Your categories', newCategory: '＋ New',
+    exportPDF: '📤 Export PDF report',
+    incVsExp: 'Income vs Expenses', monthlyComparison: 'Monthly comparison',
+    expByCat: 'Expenses by Category', currentMonth: 'Current month',
+    accDistribution: 'Account Distribution', topCats: 'Top Categories', cumulativeExp: 'Cumulative expenses',
+    settings: 'Settings', general: 'General',
+    defaultCurrency: 'Default currency', currencySub: 'Used for total wealth',
+    language: 'Language', languageSub: 'Interface language',
+    dataSection: 'Data', exportData: 'Export PDF data', exportSub: 'Generate printable report',
+    newTx: 'New Transaction', editTx: 'Edit Transaction',
+    description: 'Description', amount: 'Amount', date: 'Date',
+    account: 'Account', destAccount: 'Destination Account', categories: 'Category', notes: 'Notes (optional)',
+    recurrence: 'Recurrence', recurNone: 'None (one-time)', recurDaily: 'Daily', recurWeekly: 'Weekly', recurMonthly: 'Monthly', recurYearly: 'Yearly', recurCustom: 'Custom',
+    recurEnd: 'Recurrence end date', customRecur: 'Custom recurrence',
+    every: 'Every', unit: 'Unit', days: 'Days', weeks: 'Weeks', months: 'Months',
+    hour: 'Hour', minute: 'Minute',
+    photo: 'Photo (receipt, etc.)', tapToAddPhoto: 'Tap to add photo',
+    save: '💾 Save', saveChanges: '💾 Save Changes',
+    newCat: '🏷️ New Category', editCat: '✏️ Edit Category',
+    catName: 'Name', catColor: 'Color', catIcon: 'Icon', tapChoose: 'Tap to choose',
+    createCat: 'Create Category',
+    newAccount: '➕ New Account', editAccount: '✏️ Edit Account',
+    accName: 'Account Name', accColor: 'Color', accEmoji: 'Emoji', accCurrency: 'Currency',
+    includeTotal: 'Include in total wealth', addAccount: 'Add Account', deleteAccount: '🗑 Delete Account',
+    exportTitle: '📤 Export PDF', choosePeriod: 'Choose the period to export:',
+    expToday: '📅 Today', expWeek: '📅 This week', expMonth: '📅 This month', expYear: '📅 This year', expAll: '📅 Full history',
+    chooseLang: 'Choose Language', searchLang: 'Search language...',
+    searchEmoji: 'Search emoji...', chooseEmoji: 'Choose Emoji',
+    netBalance: 'Net balance', incomeMonth: 'Monthly income', expenseMonth: 'Monthly expenses',
+    noTx: 'No transactions in this period.<br>Add one!', noTxPage: 'No transactions', noExpenses: 'No expenses', firstCat: 'Create your first category!',
+    descRequired: 'Enter a description', amountInvalid: 'Invalid amount', dateRequired: 'Select a date', diffAccounts: 'Accounts must be different', nameRequired: 'Enter a name',
+    saved: 'Saved ✓', edited: 'Edited ✓', deleted: 'Deleted',
+    accUpdated: 'updated ✓', accAdded: 'added ✓', accDeleted: 'deleted',
+    catUpdated: 'updated ✓', catCreated: 'created ✓',
+    confirmDeleteTx: 'Delete this transaction?', confirmDeleteAcc: 'Delete',
+    addNewAccount: 'New Account',
+    categories2: 'Categories',
+    periodToday: 'Today', periodWeek: 'This week', periodMonth: 'This month', periodYear: 'This year', periodAll: 'All time',
+    incLabel: 'Income –', expLabel: 'Expenses –',
+    last6m: 'Last 6 months',
+    reportLabel: 'Report:', reportIncome: 'Income', reportExpenses: 'Expenses', reportNet: 'Net balance', reportTx: 'Transactions',
+    generatedBy: 'Generated by FinanceHub',
+    excluded: '· excluded',
+  },
+  es: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Patrimonio Total',
+    today: 'Hoy', week: 'Semana', month: 'Mes', year: 'Año', total: 'Total',
+    income: 'Ingreso', expense: 'Gasto', transfer: 'Transferir',
+    yourAccounts: 'Tus cuentas', recentTx: 'Transacciones recientes',
+    trend: 'Tendencia',
+    trendMonthly: 'Mensual', trendQuarterly: 'Trimestral', trendSemiannual: 'Semestral', trendYearly: 'Anual', trendAllTime: 'Total',
+    navHome: 'Inicio', navMovements: 'Movimientos', navCategories: 'Categorías', navCharts: 'Gráficos', navSettings: 'Ajustes',
+    movements: 'Movimientos', allAccounts: 'Todas las cuentas', all: 'Todos', incomes: 'Ingresos', expenses: 'Gastos', transfers: 'Transferencias', allMonths: 'Todos los meses',
+    yourCategories: 'Tus categorías', newCategory: '＋ Nueva',
+    exportPDF: '📤 Exportar informe PDF',
+    incVsExp: 'Ingresos vs Gastos', monthlyComparison: 'Comparación mensual',
+    expByCat: 'Gastos por Categoría', currentMonth: 'Mes actual',
+    accDistribution: 'Distribución de Cuentas', topCats: 'Top Categorías', cumulativeExp: 'Gastos acumulados',
+    settings: 'Ajustes', general: 'General',
+    defaultCurrency: 'Moneda predeterminada', currencySub: 'Usada para el patrimonio total',
+    language: 'Idioma', languageSub: 'Idioma de la interfaz',
+    dataSection: 'Datos', exportData: 'Exportar datos PDF', exportSub: 'Generar informe imprimible',
+    newTx: 'Nueva Transacción', editTx: 'Editar Transacción',
+    description: 'Descripción', amount: 'Importe', date: 'Fecha',
+    account: 'Cuenta', destAccount: 'Cuenta de destino', categories: 'Categoría', notes: 'Notas (opcional)',
+    recurrence: 'Recurrencia', recurNone: 'Ninguna (única)', recurDaily: 'Diaria', recurWeekly: 'Semanal', recurMonthly: 'Mensual', recurYearly: 'Anual', recurCustom: 'Personalizada',
+    recurEnd: 'Fecha fin de recurrencia', customRecur: 'Recurrencia personalizada',
+    every: 'Cada', unit: 'Unidad', days: 'Días', weeks: 'Semanas', months: 'Meses',
+    hour: 'Hora', minute: 'Minuto',
+    photo: 'Foto (recibo, etc.)', tapToAddPhoto: 'Toca para añadir foto',
+    save: '💾 Guardar', saveChanges: '💾 Guardar Cambios',
+    newCat: '🏷️ Nueva Categoría', editCat: '✏️ Editar Categoría',
+    catName: 'Nombre', catColor: 'Color', catIcon: 'Icono', tapChoose: 'Toca para elegir',
+    createCat: 'Crear Categoría',
+    newAccount: '➕ Nueva Cuenta', editAccount: '✏️ Editar Cuenta',
+    accName: 'Nombre de Cuenta', accColor: 'Color', accEmoji: 'Emoji', accCurrency: 'Moneda',
+    includeTotal: 'Incluir en el patrimonio total', addAccount: 'Añadir Cuenta', deleteAccount: '🗑 Eliminar Cuenta',
+    exportTitle: '📤 Exportar PDF', choosePeriod: 'Elige el período a exportar:',
+    expToday: '📅 Hoy', expWeek: '📅 Esta semana', expMonth: '📅 Este mes', expYear: '📅 Este año', expAll: '📅 Historial completo',
+    chooseLang: 'Elegir Idioma', searchLang: 'Buscar idioma...',
+    searchEmoji: 'Buscar emoji...', chooseEmoji: 'Elegir Emoji',
+    netBalance: 'Saldo neto', incomeMonth: 'Ingresos del mes', expenseMonth: 'Gastos del mes',
+    noTx: 'Sin transacciones en este período.<br>¡Añade una!', noTxPage: 'Sin transacciones', noExpenses: 'Sin gastos', firstCat: '¡Crea tu primera categoría!',
+    descRequired: 'Introduce una descripción', amountInvalid: 'Importe no válido', dateRequired: 'Selecciona una fecha', diffAccounts: 'Las cuentas deben ser diferentes', nameRequired: 'Introduce un nombre',
+    saved: 'Guardado ✓', edited: 'Editado ✓', deleted: 'Eliminado',
+    accUpdated: 'actualizado ✓', accAdded: 'añadido ✓', accDeleted: 'eliminado',
+    catUpdated: 'actualizada ✓', catCreated: 'creada ✓',
+    confirmDeleteTx: '¿Eliminar esta transacción?', confirmDeleteAcc: 'Eliminar',
+    addNewAccount: 'Nueva Cuenta',
+    categories2: 'Categorías',
+    periodToday: 'Hoy', periodWeek: 'Esta semana', periodMonth: 'Este mes', periodYear: 'Este año', periodAll: 'Todo',
+    incLabel: 'Ingresos –', expLabel: 'Gastos –',
+    last6m: 'Últimos 6 meses',
+    reportLabel: 'Informe:', reportIncome: 'Ingresos', reportExpenses: 'Gastos', reportNet: 'Saldo neto', reportTx: 'Transacciones',
+    generatedBy: 'Generado por FinanceHub',
+    excluded: '· excluido',
+  },
+  fr: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Patrimoine Total',
+    today: "Aujourd'hui", week: 'Semaine', month: 'Mois', year: 'Année', total: 'Total',
+    income: 'Revenu', expense: 'Dépense', transfer: 'Virement',
+    yourAccounts: 'Vos comptes', recentTx: 'Transactions récentes',
+    trend: 'Tendance',
+    trendMonthly: 'Mensuel', trendQuarterly: 'Trimestriel', trendSemiannual: 'Semestriel', trendYearly: 'Annuel', trendAllTime: 'Total',
+    navHome: 'Accueil', navMovements: 'Mouvements', navCategories: 'Catégories', navCharts: 'Graphiques', navSettings: 'Réglages',
+    movements: 'Mouvements', allAccounts: 'Tous les comptes', all: 'Tous', incomes: 'Revenus', expenses: 'Dépenses', transfers: 'Virements', allMonths: 'Tous les mois',
+    yourCategories: 'Vos catégories', newCategory: '＋ Nouveau',
+    exportPDF: '📤 Exporter rapport PDF',
+    incVsExp: 'Revenus vs Dépenses', monthlyComparison: 'Comparaison mensuelle',
+    expByCat: 'Dépenses par Catégorie', currentMonth: 'Mois en cours',
+    accDistribution: 'Répartition des Comptes', topCats: 'Top Catégories', cumulativeExp: 'Dépenses cumulées',
+    settings: 'Réglages', general: 'Général',
+    defaultCurrency: 'Devise par défaut', currencySub: 'Utilisée pour le patrimoine total',
+    language: 'Langue', languageSub: "Langue de l'interface",
+    dataSection: 'Données', exportData: 'Exporter données PDF', exportSub: 'Générer rapport imprimable',
+    newTx: 'Nouvelle Transaction', editTx: 'Modifier Transaction',
+    description: 'Description', amount: 'Montant', date: 'Date',
+    account: 'Compte', destAccount: 'Compte destinataire', categories: 'Catégorie', notes: 'Notes (facultatif)',
+    recurrence: 'Récurrence', recurNone: 'Aucune (unique)', recurDaily: 'Quotidienne', recurWeekly: 'Hebdomadaire', recurMonthly: 'Mensuelle', recurYearly: 'Annuelle', recurCustom: 'Personnalisée',
+    recurEnd: 'Date fin de récurrence', customRecur: 'Récurrence personnalisée',
+    every: 'Tous les', unit: 'Unité', days: 'Jours', weeks: 'Semaines', months: 'Mois',
+    hour: 'Heure', minute: 'Minute',
+    photo: 'Photo (reçu, etc.)', tapToAddPhoto: 'Appuyez pour ajouter une photo',
+    save: '💾 Enregistrer', saveChanges: '💾 Sauvegarder',
+    newCat: '🏷️ Nouvelle Catégorie', editCat: '✏️ Modifier Catégorie',
+    catName: 'Nom', catColor: 'Couleur', catIcon: 'Icône', tapChoose: 'Appuyez pour choisir',
+    createCat: 'Créer Catégorie',
+    newAccount: '➕ Nouveau Compte', editAccount: '✏️ Modifier Compte',
+    accName: 'Nom du Compte', accColor: 'Couleur', accEmoji: 'Emoji', accCurrency: 'Devise',
+    includeTotal: 'Inclure dans le patrimoine total', addAccount: 'Ajouter Compte', deleteAccount: '🗑 Supprimer Compte',
+    exportTitle: '📤 Exporter PDF', choosePeriod: 'Choisir la période à exporter :',
+    expToday: "📅 Aujourd'hui", expWeek: '📅 Cette semaine', expMonth: '📅 Ce mois', expYear: '📅 Cette année', expAll: '📅 Historique complet',
+    chooseLang: 'Choisir Langue', searchLang: 'Rechercher une langue...',
+    searchEmoji: 'Rechercher emoji...', chooseEmoji: 'Choisir Emoji',
+    netBalance: 'Solde net', incomeMonth: 'Revenus du mois', expenseMonth: 'Dépenses du mois',
+    noTx: 'Aucune transaction dans cette période.<br>Ajoutez-en une !', noTxPage: 'Aucune transaction', noExpenses: 'Aucune dépense', firstCat: 'Créez votre première catégorie !',
+    descRequired: 'Entrez une description', amountInvalid: 'Montant invalide', dateRequired: 'Sélectionnez une date', diffAccounts: 'Les comptes doivent être différents', nameRequired: 'Entrez un nom',
+    saved: 'Enregistré ✓', edited: 'Modifié ✓', deleted: 'Supprimé',
+    accUpdated: 'mis à jour ✓', accAdded: 'ajouté ✓', accDeleted: 'supprimé',
+    catUpdated: 'mise à jour ✓', catCreated: 'créée ✓',
+    confirmDeleteTx: 'Supprimer cette transaction ?', confirmDeleteAcc: 'Supprimer',
+    addNewAccount: 'Nouveau Compte',
+    categories2: 'Catégories',
+    periodToday: "Aujourd'hui", periodWeek: 'Cette semaine', periodMonth: 'Ce mois', periodYear: 'Cette année', periodAll: 'Tout',
+    incLabel: 'Revenus –', expLabel: 'Dépenses –',
+    last6m: '6 derniers mois',
+    reportLabel: 'Rapport :', reportIncome: 'Revenus', reportExpenses: 'Dépenses', reportNet: 'Solde net', reportTx: 'Transactions',
+    generatedBy: 'Généré par FinanceHub',
+    excluded: '· exclu',
+  },
+  de: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Gesamtvermögen',
+    today: 'Heute', week: 'Woche', month: 'Monat', year: 'Jahr', total: 'Gesamt',
+    income: 'Einnahme', expense: 'Ausgabe', transfer: 'Überweisung',
+    yourAccounts: 'Ihre Konten', recentTx: 'Letzte Transaktionen',
+    trend: 'Verlauf',
+    trendMonthly: 'Monatlich', trendQuarterly: 'Vierteljährlich', trendSemiannual: 'Halbjährlich', trendYearly: 'Jährlich', trendAllTime: 'Gesamt',
+    navHome: 'Startseite', navMovements: 'Buchungen', navCategories: 'Kategorien', navCharts: 'Diagramme', navSettings: 'Einstellungen',
+    movements: 'Buchungen', allAccounts: 'Alle Konten', all: 'Alle', incomes: 'Einnahmen', expenses: 'Ausgaben', transfers: 'Überweisungen', allMonths: 'Alle Monate',
+    yourCategories: 'Ihre Kategorien', newCategory: '＋ Neu',
+    exportPDF: '📤 PDF-Bericht exportieren',
+    incVsExp: 'Einnahmen vs Ausgaben', monthlyComparison: 'Monatlicher Vergleich',
+    expByCat: 'Ausgaben nach Kategorie', currentMonth: 'Aktueller Monat',
+    accDistribution: 'Kontenverteilung', topCats: 'Top-Kategorien', cumulativeExp: 'Kumulierte Ausgaben',
+    settings: 'Einstellungen', general: 'Allgemein',
+    defaultCurrency: 'Standardwährung', currencySub: 'Für das Gesamtvermögen verwendet',
+    language: 'Sprache', languageSub: 'Oberflächensprache',
+    dataSection: 'Daten', exportData: 'PDF-Daten exportieren', exportSub: 'Druckbaren Bericht erstellen',
+    newTx: 'Neue Transaktion', editTx: 'Transaktion bearbeiten',
+    description: 'Beschreibung', amount: 'Betrag', date: 'Datum',
+    account: 'Konto', destAccount: 'Zielkonto', categories: 'Kategorie', notes: 'Notizen (optional)',
+    recurrence: 'Wiederholung', recurNone: 'Keine (einmalig)', recurDaily: 'Täglich', recurWeekly: 'Wöchentlich', recurMonthly: 'Monatlich', recurYearly: 'Jährlich', recurCustom: 'Benutzerdefiniert',
+    recurEnd: 'Ende der Wiederholung', customRecur: 'Benutzerdefinierte Wiederholung',
+    every: 'Alle', unit: 'Einheit', days: 'Tage', weeks: 'Wochen', months: 'Monate',
+    hour: 'Stunde', minute: 'Minute',
+    photo: 'Foto (Quittung, etc.)', tapToAddPhoto: 'Tippen um Foto hinzuzufügen',
+    save: '💾 Speichern', saveChanges: '💾 Änderungen speichern',
+    newCat: '🏷️ Neue Kategorie', editCat: '✏️ Kategorie bearbeiten',
+    catName: 'Name', catColor: 'Farbe', catIcon: 'Symbol', tapChoose: 'Tippen zum Auswählen',
+    createCat: 'Kategorie erstellen',
+    newAccount: '➕ Neues Konto', editAccount: '✏️ Konto bearbeiten',
+    accName: 'Kontoname', accColor: 'Farbe', accEmoji: 'Emoji', accCurrency: 'Währung',
+    includeTotal: 'Im Gesamtvermögen einbeziehen', addAccount: 'Konto hinzufügen', deleteAccount: '🗑 Konto löschen',
+    exportTitle: '📤 PDF exportieren', choosePeriod: 'Zeitraum zum Exportieren wählen:',
+    expToday: '📅 Heute', expWeek: '📅 Diese Woche', expMonth: '📅 Diesen Monat', expYear: '📅 Dieses Jahr', expAll: '📅 Gesamter Verlauf',
+    chooseLang: 'Sprache wählen', searchLang: 'Sprache suchen...',
+    searchEmoji: 'Emoji suchen...', chooseEmoji: 'Emoji wählen',
+    netBalance: 'Nettosaldo', incomeMonth: 'Monatliche Einnahmen', expenseMonth: 'Monatliche Ausgaben',
+    noTx: 'Keine Transaktionen in diesem Zeitraum.<br>Fügen Sie eine hinzu!', noTxPage: 'Keine Transaktionen', noExpenses: 'Keine Ausgaben', firstCat: 'Erstellen Sie Ihre erste Kategorie!',
+    descRequired: 'Beschreibung eingeben', amountInvalid: 'Ungültiger Betrag', dateRequired: 'Datum auswählen', diffAccounts: 'Konten müssen unterschiedlich sein', nameRequired: 'Name eingeben',
+    saved: 'Gespeichert ✓', edited: 'Bearbeitet ✓', deleted: 'Gelöscht',
+    accUpdated: 'aktualisiert ✓', accAdded: 'hinzugefügt ✓', accDeleted: 'gelöscht',
+    catUpdated: 'aktualisiert ✓', catCreated: 'erstellt ✓',
+    confirmDeleteTx: 'Diese Transaktion löschen?', confirmDeleteAcc: 'Löschen',
+    addNewAccount: 'Neues Konto',
+    categories2: 'Kategorien',
+    periodToday: 'Heute', periodWeek: 'Diese Woche', periodMonth: 'Diesen Monat', periodYear: 'Dieses Jahr', periodAll: 'Alles',
+    incLabel: 'Einnahmen –', expLabel: 'Ausgaben –',
+    last6m: 'Letzte 6 Monate',
+    reportLabel: 'Bericht:', reportIncome: 'Einnahmen', reportExpenses: 'Ausgaben', reportNet: 'Nettosaldo', reportTx: 'Transaktionen',
+    generatedBy: 'Erstellt von FinanceHub',
+    excluded: '· ausgeschlossen',
+  },
+  pt: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Património Total',
+    today: 'Hoje', week: 'Semana', month: 'Mês', year: 'Ano', total: 'Total',
+    income: 'Receita', expense: 'Despesa', transfer: 'Transferência',
+    yourAccounts: 'As suas contas', recentTx: 'Transações recentes',
+    trend: 'Tendência',
+    trendMonthly: 'Mensal', trendQuarterly: 'Trimestral', trendSemiannual: 'Semestral', trendYearly: 'Anual', trendAllTime: 'Total',
+    navHome: 'Início', navMovements: 'Movimentos', navCategories: 'Categorias', navCharts: 'Gráficos', navSettings: 'Definições',
+    movements: 'Movimentos', allAccounts: 'Todas as contas', all: 'Todos', incomes: 'Receitas', expenses: 'Despesas', transfers: 'Transferências', allMonths: 'Todos os meses',
+    yourCategories: 'As suas categorias', newCategory: '＋ Nova',
+    exportPDF: '📤 Exportar relatório PDF',
+    incVsExp: 'Receitas vs Despesas', monthlyComparison: 'Comparação mensal',
+    expByCat: 'Despesas por Categoria', currentMonth: 'Mês atual',
+    accDistribution: 'Distribuição de Contas', topCats: 'Top Categorias', cumulativeExp: 'Despesas acumuladas',
+    settings: 'Definições', general: 'Geral',
+    defaultCurrency: 'Moeda predefinida', currencySub: 'Usada para o património total',
+    language: 'Idioma', languageSub: 'Idioma da interface',
+    dataSection: 'Dados', exportData: 'Exportar dados PDF', exportSub: 'Gerar relatório imprimível',
+    newTx: 'Nova Transação', editTx: 'Editar Transação',
+    description: 'Descrição', amount: 'Valor', date: 'Data',
+    account: 'Conta', destAccount: 'Conta de destino', categories: 'Categoria', notes: 'Notas (opcional)',
+    recurrence: 'Recorrência', recurNone: 'Nenhuma (única)', recurDaily: 'Diária', recurWeekly: 'Semanal', recurMonthly: 'Mensal', recurYearly: 'Anual', recurCustom: 'Personalizada',
+    recurEnd: 'Data fim de recorrência', customRecur: 'Recorrência personalizada',
+    every: 'Cada', unit: 'Unidade', days: 'Dias', weeks: 'Semanas', months: 'Meses',
+    hour: 'Hora', minute: 'Minuto',
+    photo: 'Foto (recibo, etc.)', tapToAddPhoto: 'Toque para adicionar foto',
+    save: '💾 Guardar', saveChanges: '💾 Guardar Alterações',
+    newCat: '🏷️ Nova Categoria', editCat: '✏️ Editar Categoria',
+    catName: 'Nome', catColor: 'Cor', catIcon: 'Ícone', tapChoose: 'Toque para escolher',
+    createCat: 'Criar Categoria',
+    newAccount: '➕ Nova Conta', editAccount: '✏️ Editar Conta',
+    accName: 'Nome da Conta', accColor: 'Cor', accEmoji: 'Emoji', accCurrency: 'Moeda',
+    includeTotal: 'Incluir no património total', addAccount: 'Adicionar Conta', deleteAccount: '🗑 Eliminar Conta',
+    exportTitle: '📤 Exportar PDF', choosePeriod: 'Escolha o período a exportar:',
+    expToday: '📅 Hoje', expWeek: '📅 Esta semana', expMonth: '📅 Este mês', expYear: '📅 Este ano', expAll: '📅 Histórico completo',
+    chooseLang: 'Escolher Idioma', searchLang: 'Procurar idioma...',
+    searchEmoji: 'Procurar emoji...', chooseEmoji: 'Escolher Emoji',
+    netBalance: 'Saldo líquido', incomeMonth: 'Receitas do mês', expenseMonth: 'Despesas do mês',
+    noTx: 'Sem transações neste período.<br>Adicione uma!', noTxPage: 'Sem transações', noExpenses: 'Sem despesas', firstCat: 'Crie a sua primeira categoria!',
+    descRequired: 'Introduza uma descrição', amountInvalid: 'Valor inválido', dateRequired: 'Selecione uma data', diffAccounts: 'As contas devem ser diferentes', nameRequired: 'Introduza um nome',
+    saved: 'Guardado ✓', edited: 'Editado ✓', deleted: 'Eliminado',
+    accUpdated: 'atualizado ✓', accAdded: 'adicionado ✓', accDeleted: 'eliminado',
+    catUpdated: 'atualizada ✓', catCreated: 'criada ✓',
+    confirmDeleteTx: 'Eliminar esta transação?', confirmDeleteAcc: 'Eliminar',
+    addNewAccount: 'Nova Conta',
+    categories2: 'Categorias',
+    periodToday: 'Hoje', periodWeek: 'Esta semana', periodMonth: 'Este mês', periodYear: 'Este ano', periodAll: 'Tudo',
+    incLabel: 'Receitas –', expLabel: 'Despesas –',
+    last6m: 'Últimos 6 meses',
+    reportLabel: 'Relatório:', reportIncome: 'Receitas', reportExpenses: 'Despesas', reportNet: 'Saldo líquido', reportTx: 'Transações',
+    generatedBy: 'Gerado por FinanceHub',
+    excluded: '· excluído',
+  },
+};
+// Fallback for unsupported languages
+function getLang(){ return settings.language || 'it'; }
+function t(key){ const l=getLang(); const tr=TRANSLATIONS[l]||TRANSLATIONS['it']; return tr[key]!==undefined?tr[key]:(TRANSLATIONS['it'][key]||key); }
+
 // ===================== DATA =====================
 let transactions = JSON.parse(localStorage.getItem('fh_tx') || '[]');
 let categories = JSON.parse(localStorage.getItem('fh_cats') || '[]');
 let accounts = JSON.parse(localStorage.getItem('fh_accounts') || 'null');
-let settings = JSON.parse(localStorage.getItem('fh_settings') || '{"currency":"EUR"}');
+let settings = JSON.parse(localStorage.getItem('fh_settings') || '{"currency":"EUR","language":"it"}');
 let currentPeriod = 'monthly';
+let currentTrendPeriod = 'quarterly';
 
 if (!accounts) {
   accounts = [
@@ -821,9 +1318,7 @@ if (!accounts) {
 }
 
 // Migrate old accounts
-accounts = accounts.map(a => ({
-  currency: 'EUR', includeInTotal: true, ...a
-}));
+accounts = accounts.map(a => ({ currency: 'EUR', includeInTotal: true, ...a }));
 
 // Migrate old transactions
 transactions = transactions.map(t => {
@@ -835,6 +1330,8 @@ transactions = transactions.map(t => {
   if (!t.photo) t.photo = '';
   return t;
 });
+
+if (!settings.language) settings.language = 'it';
 
 const GRADIENT_PRESETS = [
   '#4f8ef7','#22d48a','#f25270','#a78bfa','#fb923c','#22d3ee','#fbbf24','#ec4899',
@@ -857,7 +1354,6 @@ const ALL_COLORS = [
 let currentTxType = 'expense';
 let chartRefs = {};
 let emojiPickerTarget = null;
-let currentColorTarget = null; // 'cat' or 'acc'
 
 // ===================== EMOJI DATA =====================
 const EMOJI_CATEGORIES = [
@@ -881,9 +1377,13 @@ document.addEventListener('DOMContentLoaded', () => {
   populateCurrencySelects();
   document.getElementById('settings-currency').value = settings.currency || 'EUR';
   document.getElementById('tx-recurring').addEventListener('change', function(){
-    document.getElementById('recur-end-group').classList.toggle('no-display', this.value==='none');
+    const v = this.value;
+    document.getElementById('recur-end-group').classList.toggle('no-display', v==='none'||v==='custom');
+    document.getElementById('recur-custom-group').classList.toggle('no-display', v!=='custom');
   });
   if (!categories.length) seedCategories(); else { processRecurring(); updateAll(); }
+  applyTranslations();
+  renderLangList('');
 });
 
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
@@ -916,9 +1416,178 @@ function getCurrencySymbol(code){
   const c = CURRENCIES.find(c=>c.code===code);
   return c ? c.symbol : code;
 }
+function getDefaultSymbol(){ return getCurrencySymbol(settings.currency || 'EUR'); }
 
-function getDefaultSymbol(){
-  return getCurrencySymbol(settings.currency || 'EUR');
+// ===================== TRANSLATIONS APPLY =====================
+function applyTranslations(){
+  // Header buttons
+  document.getElementById('hdr-btn-income').textContent = '＋ '+t('income');
+  document.getElementById('hdr-btn-expense').textContent = '− '+t('expense');
+  // Dashboard FABs
+  document.getElementById('dash-btn-income').textContent = '📈 '+t('income');
+  document.getElementById('dash-btn-expense').textContent = '📉 '+t('expense');
+  document.getElementById('dash-btn-transfer').textContent = '⇄ '+t('transfer');
+  // Hero
+  document.getElementById('hero-label-total').textContent = t('totalWealth');
+  document.getElementById('hero-net-label').textContent = t('netBalance');
+  // Period tabs
+  document.getElementById('ptab-daily').textContent = t('today');
+  document.getElementById('ptab-weekly').textContent = t('week');
+  document.getElementById('ptab-monthly').textContent = t('month');
+  document.getElementById('ptab-yearly').textContent = t('year');
+  document.getElementById('ptab-total').textContent = t('total');
+  // Trend tabs
+  document.getElementById('ttab-monthly').textContent = t('trendMonthly');
+  document.getElementById('ttab-quarterly').textContent = t('trendQuarterly');
+  document.getElementById('ttab-semiannual').textContent = t('trendSemiannual');
+  document.getElementById('ttab-yearly').textContent = t('trendYearly');
+  document.getElementById('ttab-alltime').textContent = t('trendAllTime');
+  // Section labels
+  document.getElementById('lbl-accounts').textContent = t('yourAccounts');
+  document.getElementById('lbl-trend').textContent = t('trend');
+  document.getElementById('lbl-recent-tx').textContent = t('recentTx');
+  // Transaction type tabs
+  document.getElementById('tab-income').textContent = '📈 '+t('income');
+  document.getElementById('tab-expense').textContent = '📉 '+t('expense');
+  document.getElementById('tab-transfer').textContent = '⇄ '+t('transfer');
+  // Form labels
+  document.getElementById('lbl-description').textContent = t('description');
+  document.getElementById('lbl-amount').textContent = t('amount');
+  document.getElementById('lbl-date').textContent = t('date');
+  document.getElementById('account-label').textContent = t('account');
+  document.getElementById('lbl-dest-account').textContent = t('destAccount');
+  document.getElementById('lbl-category').textContent = t('categories');
+  document.getElementById('lbl-notes').textContent = t('notes');
+  document.getElementById('lbl-recurrence').textContent = t('recurrence');
+  document.getElementById('lbl-recur-end').textContent = t('recurEnd');
+  document.getElementById('lbl-custom-recur').textContent = t('customRecur');
+  document.getElementById('lbl-every').textContent = t('every');
+  document.getElementById('lbl-unit').textContent = t('unit');
+  document.getElementById('lbl-time-hour').textContent = t('hour');
+  document.getElementById('lbl-time-min').textContent = t('minute');
+  document.getElementById('lbl-photo').textContent = t('photo');
+  document.getElementById('lbl-photo-tap').textContent = t('tapToAddPhoto');
+  document.getElementById('tx-save-btn').textContent = t('save');
+  // Recurring options
+  const recurSel = document.getElementById('tx-recurring');
+  recurSel.options[0].text = t('recurNone');
+  recurSel.options[1].text = t('recurDaily');
+  recurSel.options[2].text = t('recurWeekly');
+  recurSel.options[3].text = t('recurMonthly');
+  recurSel.options[4].text = t('recurYearly');
+  recurSel.options[5].text = t('recurCustom');
+  // Custom recur units
+  const unitSel = document.getElementById('tx-recur-unit');
+  unitSel.options[0].text = t('days');
+  unitSel.options[1].text = t('weeks');
+  unitSel.options[2].text = t('months');
+  // Cat modal
+  document.getElementById('lbl-cat-name').textContent = t('catName');
+  document.getElementById('lbl-cat-color').textContent = t('catColor');
+  document.getElementById('lbl-cat-icon').textContent = t('catIcon');
+  document.getElementById('lbl-tap-choose').textContent = t('tapChoose');
+  document.getElementById('cat-save-btn').textContent = t('createCat');
+  document.getElementById('btn-new-cat').textContent = '＋ '+t('catName');
+  document.getElementById('lbl-your-categories').textContent = t('yourCategories');
+  // Acc modal
+  document.getElementById('lbl-acc-name').textContent = t('accName');
+  document.getElementById('lbl-acc-color').textContent = t('accColor');
+  document.getElementById('lbl-acc-emoji').textContent = t('accEmoji');
+  document.getElementById('lbl-acc-currency').textContent = t('accCurrency');
+  document.getElementById('lbl-include-total').textContent = t('includeTotal');
+  document.getElementById('lbl-tap-choose-acc').textContent = t('tapChoose');
+  document.getElementById('acc-save-btn').textContent = t('addAccount');
+  document.getElementById('acc-delete-btn').textContent = t('deleteAccount');
+  // Charts
+  document.getElementById('btn-export-pdf').textContent = t('exportPDF');
+  document.getElementById('lbl-inc-vs-exp').textContent = t('incVsExp');
+  document.getElementById('lbl-monthly-comparison').textContent = t('monthlyComparison');
+  document.getElementById('lbl-exp-by-cat').textContent = t('expByCat');
+  document.getElementById('lbl-current-month').textContent = t('currentMonth');
+  document.getElementById('lbl-acc-distribution').textContent = t('accDistribution');
+  document.getElementById('lbl-top-cats').textContent = t('topCats');
+  document.getElementById('lbl-cumulative-exp').textContent = t('cumulativeExp');
+  // Settings
+  document.getElementById('lbl-general').textContent = t('general');
+  document.getElementById('lbl-default-currency').textContent = t('defaultCurrency');
+  document.getElementById('lbl-currency-sub').textContent = t('currencySub');
+  document.getElementById('lbl-language').textContent = t('language');
+  document.getElementById('lbl-language-sub').textContent = t('languageSub');
+  document.getElementById('lbl-data-section').textContent = t('dataSection');
+  document.getElementById('lbl-export-data').textContent = t('exportData');
+  document.getElementById('lbl-export-sub').textContent = t('exportSub');
+  // Export modal
+  document.getElementById('export-modal-title').innerHTML = t('exportTitle')+' <button class="modal-close" onclick="closeModal2(\'export-modal\')">✕</button>';
+  document.getElementById('lbl-choose-period').textContent = t('choosePeriod');
+  document.getElementById('exp-btn-daily').textContent = t('expToday');
+  document.getElementById('exp-btn-weekly').textContent = t('expWeek');
+  document.getElementById('exp-btn-monthly').textContent = t('expMonth');
+  document.getElementById('exp-btn-yearly').textContent = t('expYear');
+  document.getElementById('exp-btn-total').textContent = t('expAll');
+  // Lang modal
+  document.getElementById('lbl-lang-modal-title').textContent = t('chooseLang');
+  document.getElementById('lang-search').placeholder = t('searchLang');
+  // Emoji picker
+  document.getElementById('lbl-emoji-picker-title').textContent = t('chooseEmoji');
+  document.getElementById('emoji-search-input').placeholder = t('searchEmoji');
+  // Nav labels
+  document.getElementById('nav-lbl-home').textContent = t('navHome');
+  document.getElementById('nav-lbl-movements').textContent = t('navMovements');
+  document.getElementById('nav-lbl-categories').textContent = t('navCategories');
+  document.getElementById('nav-lbl-charts').textContent = t('navCharts');
+  document.getElementById('nav-lbl-settings').textContent = t('navSettings');
+  // Period labels in stats
+  const periodLabelMap = {daily:t('periodToday'),weekly:t('periodWeek'),monthly:t('periodMonth'),yearly:t('periodYear'),total:t('periodAll')};
+  const pl = periodLabelMap[currentPeriod]||'';
+  document.getElementById('period-label-inc').textContent = t('incLabel')+' '+pl;
+  document.getElementById('period-label-exp').textContent = t('expLabel')+' '+pl;
+  // Filter chips
+  const fAccount = document.getElementById('f-account');
+  if(fAccount.options[0]) fAccount.options[0].text = t('allAccounts');
+  const fType = document.getElementById('f-type');
+  if(fType.options[0]) fType.options[0].text = t('all');
+  if(fType.options[1]) fType.options[1].text = t('incomes');
+  if(fType.options[2]) fType.options[2].text = t('expenses');
+  if(fType.options[3]) fType.options[3].text = t('transfers');
+  const fMonth = document.getElementById('f-month');
+  if(fMonth.options[0]) fMonth.options[0].text = t('allMonths');
+  const fCat = document.getElementById('f-cat');
+  if(fCat.options[0]) fCat.options[0].text = t('categories2');
+  // current lang display
+  const lang = LANGUAGES.find(l=>l.code===getLang());
+  if(lang) document.getElementById('lbl-current-lang').textContent = lang.flag+' '+lang.name;
+}
+
+// ===================== LANGUAGE MODAL =====================
+function openLangModal(){
+  renderLangList('');
+  document.getElementById('lang-search').value='';
+  document.getElementById('lang-modal').classList.add('active');
+}
+function filterLangs(q){
+  renderLangList(q.toLowerCase());
+}
+function renderLangList(q){
+  const list = document.getElementById('lang-list');
+  const cur = getLang();
+  const filtered = LANGUAGES.filter(l=>
+    l.name.toLowerCase().includes(q) || l.code.toLowerCase().includes(q)
+  );
+  list.innerHTML = filtered.map(l=>`
+    <div class="lang-item${l.code===cur?' selected':''}" onclick="selectLanguage('${l.code}')">
+      <span class="lang-flag">${l.flag}</span>
+      <span class="lang-name">${l.name}</span>
+      ${l.code===cur?'<span class="lang-check">✓</span>':''}
+    </div>
+  `).join('');
+}
+function selectLanguage(code){
+  settings.language = code;
+  saveData();
+  closeModal2('lang-modal');
+  applyTranslations();
+  updateAll();
+  toast(t('saved'),'success');
 }
 
 // ===================== RECURRING =====================
@@ -927,29 +1596,36 @@ function processRecurring(){
   const today = now.toISOString().split('T')[0];
   let changed = false;
   const toAdd = [];
-  transactions.forEach(t => {
-    if (!t.recurring || t.recurring === 'none') return;
-    if (!t.recurringMaster) return; // only master generates
-    if (t.lastGenerated === today) return;
-    const endDate = t.recurEnd ? new Date(t.recurEnd) : null;
+  transactions.forEach(tx => {
+    if (!tx.recurring || tx.recurring === 'none') return;
+    if (!tx.recurringMaster) return;
+    if (tx.lastGenerated === today) return;
+    const endDate = tx.recurEnd ? new Date(tx.recurEnd) : null;
     if (endDate && now > endDate) return;
-    const last = new Date(t.lastGenerated || t.date);
+    const last = new Date(tx.lastGenerated || tx.date);
     let next = new Date(last);
     let generated = false;
     while (true) {
-      if (t.recurring === 'daily') next.setDate(next.getDate()+1);
-      else if (t.recurring === 'weekly') next.setDate(next.getDate()+7);
-      else if (t.recurring === 'monthly') next.setMonth(next.getMonth()+1);
-      else if (t.recurring === 'yearly') next.setFullYear(next.getFullYear()+1);
+      if (tx.recurring === 'daily') next.setDate(next.getDate()+1);
+      else if (tx.recurring === 'weekly') next.setDate(next.getDate()+7);
+      else if (tx.recurring === 'monthly') next.setMonth(next.getMonth()+1);
+      else if (tx.recurring === 'yearly') next.setFullYear(next.getFullYear()+1);
+      else if (tx.recurring === 'custom') {
+        const every = tx.recurEvery||1;
+        const unit = tx.recurUnit||'days';
+        if(unit==='days') next.setDate(next.getDate()+every);
+        else if(unit==='weeks') next.setDate(next.getDate()+every*7);
+        else if(unit==='months') next.setMonth(next.getMonth()+every);
+      }
       const nextStr = next.toISOString().split('T')[0];
       if (nextStr > today) break;
       if (endDate && next > endDate) break;
-      const child = {...t, id:uid(), date:nextStr, recurringMaster:false, lastGenerated:undefined};
+      const child = {...tx, id:uid(), date:nextStr, recurringMaster:false, lastGenerated:undefined};
       toAdd.push(child);
       generated = true;
       last.setTime(next.getTime());
     }
-    if (generated) { t.lastGenerated = last.toISOString().split('T')[0]; changed = true; }
+    if (generated) { tx.lastGenerated = last.toISOString().split('T')[0]; changed = true; }
   });
   if (toAdd.length) { transactions = [...toAdd, ...transactions]; changed = true; }
   if (changed) saveData();
@@ -959,10 +1635,10 @@ function processRecurring(){
 function getAccById(id){ return accounts.find(a=>a.id===id); }
 function getBalance(accId){
   let b=0;
-  transactions.forEach(t=>{
-    if(t.type==='income'&&t.account===accId) b+=t.amount;
-    if(t.type==='expense'&&t.account===accId) b-=t.amount;
-    if(t.type==='transfer'){if(t.fromAccount===accId)b-=t.amount;if(t.toAccount===accId)b+=t.amount;}
+  transactions.forEach(tx=>{
+    if(tx.type==='income'&&tx.account===accId) b+=tx.amount;
+    if(tx.type==='expense'&&tx.account===accId) b-=tx.amount;
+    if(tx.type==='transfer'){if(tx.fromAccount===accId)b-=tx.amount;if(tx.toAccount===accId)b+=tx.amount;}
   });
   return b;
 }
@@ -979,15 +1655,21 @@ function getCatById(id){ return categories.find(c=>c.id===id); }
 // ===================== PERIOD =====================
 function setPeriod(p){
   currentPeriod = p;
-  document.querySelectorAll('.period-tab').forEach((el,i)=>{
-    const periods=['daily','weekly','monthly','yearly','total'];
-    el.classList.toggle('active', periods[i]===p);
-  });
+  document.querySelectorAll('.period-tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('ptab-'+p).classList.add('active');
   updateStats();
   renderRecent();
-  const labels = {daily:'Oggi',weekly:'Questa settimana',monthly:'Questo mese',yearly:'Quest\'anno',total:'Tutto'};
-  document.getElementById('period-label-inc').textContent = 'Entrate – '+labels[p];
-  document.getElementById('period-label-exp').textContent = 'Spese – '+labels[p];
+  const periodLabelMap = {daily:t('periodToday'),weekly:t('periodWeek'),monthly:t('periodMonth'),yearly:t('periodYear'),total:t('periodAll')};
+  const pl = periodLabelMap[p]||'';
+  document.getElementById('period-label-inc').textContent = t('incLabel')+' '+pl;
+  document.getElementById('period-label-exp').textContent = t('expLabel')+' '+pl;
+}
+
+function setTrendPeriod(p){
+  currentTrendPeriod = p;
+  document.querySelectorAll('.trend-tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('ttab-'+p).classList.add('active');
+  renderDashLineChart();
 }
 
 function getPeriodRange(){
@@ -1012,9 +1694,9 @@ function getPeriodRange(){
   return {from, to};
 }
 
-function inPeriod(t){
+function inPeriod(tx){
   const {from,to} = getPeriodRange();
-  const d = new Date(t.date);
+  const d = new Date(tx.date);
   return d >= from && d <= to;
 }
 
@@ -1031,9 +1713,9 @@ function updateBalances(){
 
 function updateStats(){
   let inc=0,exp=0;
-  transactions.filter(t=>inPeriod(t)).forEach(t=>{
-    if(t.type==='income') inc+=t.amount;
-    if(t.type==='expense') exp+=t.amount;
+  transactions.filter(tx=>inPeriod(tx)).forEach(tx=>{
+    if(tx.type==='income') inc+=tx.amount;
+    if(tx.type==='expense') exp+=tx.amount;
   });
   document.getElementById('hero-inc').textContent=fmt(inc);
   document.getElementById('hero-exp').textContent=fmt(exp);
@@ -1046,22 +1728,22 @@ function updateStats(){
 function updateFilters(){
   const fcat=document.getElementById('f-cat');
   const txcat=document.getElementById('tx-category');
-  fcat.innerHTML='<option value="all">Categorie</option>';
-  txcat.innerHTML='<option value="">Nessuna</option>';
+  fcat.innerHTML=`<option value="all">${t('categories2')}</option>`;
+  txcat.innerHTML=`<option value="">Nessuna</option>`;
   categories.forEach(c=>{
     fcat.innerHTML+=`<option value="${c.id}">${c.emoji} ${c.name}</option>`;
     txcat.innerHTML+=`<option value="${c.id}">${c.emoji} ${c.name}</option>`;
   });
   const fmonth=document.getElementById('f-month');
   const months=new Set();
-  transactions.forEach(t=>{const d=new Date(t.date);months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);});
-  fmonth.innerHTML='<option value="all">Tutti i mesi</option>';
+  transactions.forEach(tx=>{const d=new Date(tx.date);months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);});
+  fmonth.innerHTML=`<option value="all">${t('allMonths')}</option>`;
   [...months].sort().reverse().forEach(m=>{
     const[y,mo]=m.split('-');
     fmonth.innerHTML+=`<option value="${m}">${new Date(y,mo-1,1).toLocaleDateString('it-IT',{month:'long',year:'numeric'})}</option>`;
   });
   const fAcc=document.getElementById('f-account');
-  fAcc.innerHTML='<option value="all">Tutti i conti</option>';
+  fAcc.innerHTML=`<option value="all">${t('allAccounts')}</option>`;
   accounts.forEach(a=>{ fAcc.innerHTML+=`<option value="${a.id}">${a.emoji} ${a.name}</option>`; });
   ['tx-account','tx-to-account'].forEach(id=>{
     const sel=document.getElementById(id); if(!sel) return;
@@ -1069,6 +1751,11 @@ function updateFilters(){
     accounts.forEach(a=>{ sel.innerHTML+=`<option value="${a.id}">${a.emoji} ${a.name}</option>`; });
     if(accounts.find(a=>a.id===prev)) sel.value=prev;
   });
+  const fType=document.getElementById('f-type');
+  fType.options[0].text = t('all');
+  fType.options[1].text = t('incomes');
+  fType.options[2].text = t('expenses');
+  fType.options[3].text = t('transfers');
 }
 
 // ===================== CURRENCY SELECTS =====================
@@ -1094,12 +1781,12 @@ function renderAccounts(){
       <div class="acc-chip-icon">${a.emoji}</div>
       <div class="acc-chip-name">${a.name}</div>
       <div class="acc-chip-bal" style="color:${a.color}">${currSym}${Math.abs(bal).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-      <div class="acc-chip-currency">${a.currency||'EUR'}${notInTotal?' · escluso':''}</div>
+      <div class="acc-chip-currency">${a.currency||'EUR'}${notInTotal?' '+t('excluded'):''}</div>
     </div>`;
   });
   html+=`<div class="acc-chip-add" onclick="openAccModal(null)">
     <div class="acc-chip-add-icon">➕</div>
-    <div class="acc-chip-add-label">Nuovo Conto</div>
+    <div class="acc-chip-add-label">${t('addNewAccount')}</div>
   </div>`;
   scroll.innerHTML = html;
 }
@@ -1114,24 +1801,24 @@ function openAccModal(accId){
   document.getElementById('acc-edit-id').value=accId||'';
   if(accId){
     const a=getAccById(accId); if(!a) return;
-    titleEl.innerHTML=`✏️ Modifica Conto <button class="modal-close" onclick="closeAccModal()">✕</button>`;
+    titleEl.innerHTML=`${t('editAccount')} <button class="modal-close" onclick="closeAccModal()">✕</button>`;
     document.getElementById('acc-name-input').value=a.name;
     setColorPickerValue('acc',a.color);
     document.getElementById('acc-emoji-input').value=a.emoji;
     document.getElementById('acc-emoji-preview').textContent=a.emoji;
     document.getElementById('acc-currency-select').value=a.currency||'EUR';
     document.getElementById('acc-include-total').checked=a.includeInTotal!==false;
-    saveBtn.textContent='💾 Salva Modifiche';
+    saveBtn.textContent=t('saveChanges');
     delBtn.classList.remove('no-display');
   } else {
-    titleEl.innerHTML=`➕ Nuovo Conto <button class="modal-close" onclick="closeAccModal()">✕</button>`;
+    titleEl.innerHTML=`${t('newAccount')} <button class="modal-close" onclick="closeAccModal()">✕</button>`;
     document.getElementById('acc-name-input').value='';
     setColorPickerValue('acc','#4f8ef7');
     document.getElementById('acc-emoji-input').value='🏦';
     document.getElementById('acc-emoji-preview').textContent='🏦';
     document.getElementById('acc-currency-select').value=settings.currency||'EUR';
     document.getElementById('acc-include-total').checked=true;
-    saveBtn.textContent='Aggiungi Conto';
+    saveBtn.textContent=t('addAccount');
     delBtn.classList.add('no-display');
   }
   modal.classList.add('active');
@@ -1144,7 +1831,7 @@ function saveAccount(){
   const currency=document.getElementById('acc-currency-select').value;
   const includeInTotal=document.getElementById('acc-include-total').checked;
   const editId=document.getElementById('acc-edit-id').value;
-  if(!name){ toast('Inserisci un nome','error'); return; }
+  if(!name){ toast(t('nameRequired'),'error'); return; }
   if(editId){
     const a=getAccById(editId);
     if(a){ a.name=name; a.color=color; a.emoji=emoji; a.currency=currency; a.includeInTotal=includeInTotal; }
@@ -1152,15 +1839,15 @@ function saveAccount(){
     accounts.push({id:'acc_'+uid(),name,emoji,color,currency,includeInTotal});
   }
   saveData(); closeAccModal(); updateAll();
-  toast(editId?`"${name}" aggiornato ✓`:`"${name}" aggiunto ✓`,'success');
+  toast(editId?`"${name}" ${t('accUpdated')}`:`"${name}" ${t('accAdded')}`,'success');
 }
 function deleteAccount(){
   const editId=document.getElementById('acc-edit-id').value;
   const a=getAccById(editId); if(!a) return;
-  if(!confirm(`Eliminare "${a.name}"?`)) return;
+  if(!confirm(`${t('confirmDeleteAcc')} "${a.name}"?`)) return;
   accounts=accounts.filter(x=>x.id!==editId);
   saveData(); closeAccModal(); updateAll();
-  toast(`"${a.name}" eliminato`,'info');
+  toast(`"${a.name}" ${t('accDeleted')}`,'info');
 }
 
 // ===================== PAGE NAV =====================
@@ -1190,19 +1877,27 @@ function openModal(type, editId){
   document.getElementById('tx-photo-preview-wrap').classList.add('no-display');
   document.getElementById('tx-photo-upload-area').classList.remove('no-display');
   if(isEdit){
-    const t=transactions.find(x=>x.id===editId); if(!t) return;
-    document.getElementById('tx-desc').value=t.desc;
-    document.getElementById('tx-amount').value=t.amount;
-    document.getElementById('tx-date').value=t.date;
-    document.getElementById('tx-notes').value=t.notes||'';
-    document.getElementById('tx-recurring').value=t.recurring||'none';
-    document.getElementById('tx-recur-end').value=t.recurEnd||'';
-    document.getElementById('recur-end-group').classList.toggle('no-display',(t.recurring||'none')==='none');
-    if(t.photo){ document.getElementById('tx-photo-data').value=t.photo; document.getElementById('tx-photo-preview').src=t.photo; document.getElementById('tx-photo-preview-wrap').classList.remove('no-display'); document.getElementById('tx-photo-upload-area').classList.add('no-display'); }
-    if(t.type==='transfer'){ document.getElementById('tx-account').value=t.fromAccount; document.getElementById('tx-to-account').value=t.toAccount; }
-    else { document.getElementById('tx-account').value=t.account; document.getElementById('tx-category').value=t.category||''; }
-    document.getElementById('tx-save-btn').textContent='💾 Salva Modifiche';
-    document.getElementById('modal-title-text').textContent='Modifica Transazione';
+    const tx=transactions.find(x=>x.id===editId); if(!tx) return;
+    document.getElementById('tx-desc').value=tx.desc;
+    document.getElementById('tx-amount').value=tx.amount;
+    document.getElementById('tx-date').value=tx.date;
+    document.getElementById('tx-notes').value=tx.notes||'';
+    document.getElementById('tx-recurring').value=tx.recurring||'none';
+    document.getElementById('tx-recur-end').value=tx.recurEnd||'';
+    const v=tx.recurring||'none';
+    document.getElementById('recur-end-group').classList.toggle('no-display',v==='none'||v==='custom');
+    document.getElementById('recur-custom-group').classList.toggle('no-display',v!=='custom');
+    if(v==='custom'){
+      document.getElementById('tx-recur-every').value=tx.recurEvery||1;
+      document.getElementById('tx-recur-unit').value=tx.recurUnit||'days';
+      document.getElementById('tx-recur-hour').value=tx.recurHour||0;
+      document.getElementById('tx-recur-minute').value=tx.recurMinute||0;
+    }
+    if(tx.photo){ document.getElementById('tx-photo-data').value=tx.photo; document.getElementById('tx-photo-preview').src=tx.photo; document.getElementById('tx-photo-preview-wrap').classList.remove('no-display'); document.getElementById('tx-photo-upload-area').classList.add('no-display'); }
+    if(tx.type==='transfer'){ document.getElementById('tx-account').value=tx.fromAccount; document.getElementById('tx-to-account').value=tx.toAccount; }
+    else { document.getElementById('tx-account').value=tx.account; document.getElementById('tx-category').value=tx.category||''; }
+    document.getElementById('tx-save-btn').textContent=t('saveChanges');
+    document.getElementById('modal-title-text').textContent=t('editTx');
   } else {
     document.getElementById('tx-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('tx-desc').value='';
@@ -1210,8 +1905,13 @@ function openModal(type, editId){
     document.getElementById('tx-notes').value='';
     document.getElementById('tx-recurring').value='none';
     document.getElementById('tx-recur-end').value='';
+    document.getElementById('tx-recur-every').value='1';
+    document.getElementById('tx-recur-hour').value='0';
+    document.getElementById('tx-recur-minute').value='0';
     document.getElementById('recur-end-group').classList.add('no-display');
-    document.getElementById('tx-save-btn').textContent='💾 Salva';
+    document.getElementById('recur-custom-group').classList.add('no-display');
+    document.getElementById('tx-save-btn').textContent=t('save');
+    document.getElementById('modal-title-text').textContent=t('newTx');
     setTimeout(()=>document.getElementById('tx-desc').focus(),350);
   }
 }
@@ -1221,7 +1921,7 @@ function handleModalBg(e,id){ if(e.target===document.getElementById(id)) documen
 
 function setTxType(type){
   currentTxType=type;
-  ['income','expense','transfer'].forEach(t=>{ document.getElementById('tab-'+t).className='type-tab'; });
+  ['income','expense','transfer'].forEach(tp=>{ document.getElementById('tab-'+tp).className='type-tab'; });
   document.getElementById('tab-'+type).className='type-tab active-'+type;
   const icons={income:'📈',expense:'📉',transfer:'⇄'};
   document.getElementById('modal-icon').textContent=icons[type];
@@ -1229,7 +1929,7 @@ function setTxType(type){
   const lbl=document.getElementById('account-label');
   const cat=document.getElementById('cat-field');
   if(type==='transfer'){tog.classList.remove('no-display');lbl.textContent='Da';cat.classList.add('no-display');}
-  else{tog.classList.add('no-display');lbl.textContent='Conto';cat.classList.remove('no-display');}
+  else{tog.classList.add('no-display');lbl.textContent=t('account');cat.classList.remove('no-display');}
 }
 
 // ===================== PHOTO =====================
@@ -1269,80 +1969,88 @@ function saveTx(){
   const recurEnd=document.getElementById('tx-recur-end').value;
   const photo=document.getElementById('tx-photo-data').value;
   const editId=document.getElementById('tx-edit-id').value;
-  if(!desc){ toast('Inserisci una descrizione','error'); return; }
-  if(!amount||amount<=0){ toast('Importo non valido','error'); return; }
-  if(!date){ toast('Seleziona una data','error'); return; }
-  if(currentTxType==='transfer'&&account===toAccount){ toast('I conti devono essere diversi','error'); return; }
+  const recurEvery=parseInt(document.getElementById('tx-recur-every').value)||1;
+  const recurUnit=document.getElementById('tx-recur-unit').value||'days';
+  const recurHour=parseInt(document.getElementById('tx-recur-hour').value)||0;
+  const recurMinute=parseInt(document.getElementById('tx-recur-minute').value)||0;
+  if(!desc){ toast(t('descRequired'),'error'); return; }
+  if(!amount||amount<=0){ toast(t('amountInvalid'),'error'); return; }
+  if(!date){ toast(t('dateRequired'),'error'); return; }
+  if(currentTxType==='transfer'&&account===toAccount){ toast(t('diffAccounts'),'error'); return; }
   const tx={
     id:editId||uid(), type:currentTxType, desc, amount, date, account, category, notes,
-    recurring, recurEnd: recurring!=='none'?recurEnd:'',
+    recurring, recurEnd: recurring!=='none'&&recurring!=='custom'?recurEnd:'',
     recurringMaster: !editId && recurring!=='none',
     lastGenerated: !editId && recurring!=='none' ? date : undefined,
+    recurEvery, recurUnit, recurHour, recurMinute,
     photo
   };
   if(currentTxType==='transfer'){tx.fromAccount=account;tx.toAccount=toAccount;delete tx.account;}
-  if(editId){ const idx=transactions.findIndex(t=>t.id===editId); if(idx>-1) transactions[idx]=tx; toast('Modificato ✓','success'); }
-  else { transactions.unshift(tx); toast('Salvato ✓','success'); }
+  if(editId){ const idx=transactions.findIndex(tx2=>tx2.id===editId); if(idx>-1) transactions[idx]=tx; toast(t('edited'),'success'); }
+  else { transactions.unshift(tx); toast(t('saved'),'success'); }
   saveData(); closeModal(); processRecurring(); updateAll();
 }
 
 function deleteTx(id){
-  if(!confirm('Eliminare questa transazione?')) return;
-  transactions=transactions.filter(t=>t.id!==id);
-  saveData(); updateAll(); toast('Eliminato','info');
+  if(!confirm(t('confirmDeleteTx'))) return;
+  transactions=transactions.filter(tx=>tx.id!==id);
+  saveData(); updateAll(); toast(t('deleted'),'info');
 }
 function editTx(id){
-  const t=transactions.find(x=>x.id===id); if(!t) return;
-  updateFilters(); openModal(t.type, id);
+  const tx=transactions.find(x=>x.id===id); if(!tx) return;
+  updateFilters(); openModal(tx.type, id);
 }
 
 // ===================== RENDER TX =====================
-function txIcon(t){
-  if(t.type==='income') return {bg:'var(--green-d)',emoji:'📈'};
-  if(t.type==='transfer') return {bg:'var(--purple-d)',emoji:'⇄'};
-  const cat=getCatById(t.category);
+function txIcon(tx){
+  if(tx.type==='income') return {bg:'var(--green-d)',emoji:'📈'};
+  if(tx.type==='transfer') return {bg:'var(--purple-d)',emoji:'⇄'};
+  const cat=getCatById(tx.category);
   return {bg:cat?cat.color+'22':'var(--red-d)',emoji:cat?cat.emoji:'📉'};
 }
-function txAccountLabel(t){
-  if(t.type==='transfer'){ const from=getAccById(t.fromAccount); const to=getAccById(t.toAccount); return `${from?from.name:t.fromAccount}→${to?to.name:t.toAccount}`; }
-  const a=getAccById(t.account); return a?a.name:(t.account||'');
+function txAccountLabel(tx){
+  if(tx.type==='transfer'){ const from=getAccById(tx.fromAccount); const to=getAccById(tx.toAccount); return `${from?from.name:tx.fromAccount}→${to?to.name:tx.toAccount}`; }
+  const a=getAccById(tx.account); return a?a.name:(tx.account||'');
 }
 
-function renderTxItem(t, withDel=true){
-  const {bg,emoji}=txIcon(t);
-  const acc=txAccountLabel(t);
-  const ac=t.type==='income'?'pos':t.type==='expense'?'neg':'neu';
-  const sign=t.type==='income'?'+':t.type==='expense'?'−':'⇄';
-  const cat=getCatById(t.category);
+function renderTxItem(tx, withDel=true){
+  const {bg,emoji}=txIcon(tx);
+  const acc=txAccountLabel(tx);
+  const ac=tx.type==='income'?'pos':tx.type==='expense'?'neg':'neu';
+  const sign=tx.type==='income'?'+':tx.type==='expense'?'−':'⇄';
+  const cat=getCatById(tx.category);
   const catLabel=cat?`${cat.emoji} ${cat.name}`:'';
-  const d=new Date(t.date).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
-  const recurBadge=t.recurring&&t.recurring!=='none'?`<span class="recur-tag">🔄 ${recurLabel(t.recurring)}</span>`:'';
-  const photoBtn=t.photo?`<img class="tx-photo-thumb" src="${t.photo}" onclick="openLightbox('${t.photo}')" alt="foto"/>`:'' ;
+  const d=new Date(tx.date).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
+  const recurBadge=tx.recurring&&tx.recurring!=='none'?`<span class="recur-tag">🔄 ${recurLabel(tx.recurring)}</span>`:'';
+  const photoBtn=tx.photo?`<img class="tx-photo-thumb" src="${tx.photo}" onclick="openLightbox('${tx.photo}')" alt="foto"/>`:'' ;
   const actions=withDel?`<div class="tx-actions">
     ${photoBtn}
-    <button class="tx-edit-btn" onclick="editTx('${t.id}')">✏️</button>
-    <button class="tx-del-btn" onclick="deleteTx('${t.id}')">🗑</button>
+    <button class="tx-edit-btn" onclick="editTx('${tx.id}')">✏️</button>
+    <button class="tx-del-btn" onclick="deleteTx('${tx.id}')">🗑</button>
   </div>`:photoBtn?`<div class="tx-actions">${photoBtn}</div>`:'';
-  const accObj = t.type!=='transfer' ? getAccById(t.account) : null;
+  const accObj = tx.type!=='transfer' ? getAccById(tx.account) : null;
   const currSym = accObj ? getCurrencySymbol(accObj.currency||'EUR') : getDefaultSymbol();
   return `<div class="tx-item">
     <div class="tx-icon" style="background:${bg}">${emoji}</div>
     <div class="tx-info">
-      <div class="tx-desc">${t.desc}${recurBadge}</div>
+      <div class="tx-desc">${tx.desc}${recurBadge}</div>
       <div class="tx-meta">${d} · ${acc}${catLabel?' · '+catLabel:''}</div>
     </div>
-    <div class="tx-amount ${ac}">${sign}${currSym}${Math.abs(t.amount).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+    <div class="tx-amount ${ac}">${sign}${currSym}${Math.abs(tx.amount).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
     ${actions}
   </div>`;
 }
 
-function recurLabel(r){ return {daily:'giorn.',weekly:'sett.',monthly:'mens.',yearly:'ann.'}[r]||r; }
+function recurLabel(r){
+  if(r==='custom') return 'custom';
+  return {daily:'giorn.',weekly:'sett.',monthly:'mens.',yearly:'ann.'}[r]||r;
+}
 
 function renderRecent(){
   const c=document.getElementById('recent-list');
-  const filtered=transactions.filter(t=>inPeriod(t)).slice(0,8);
-  if(!filtered.length){ c.innerHTML=`<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-text">Nessuna transazione in questo periodo.<br>Aggiungine una!</div></div>`; return; }
-  c.innerHTML=filtered.map(t=>renderTxItem(t)).join('');
+  const filtered=transactions.filter(tx=>inPeriod(tx)).slice(0,8);
+  if(!filtered.length){ c.innerHTML=`<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-text">${t('noTx')}</div></div>`; return; }
+  c.innerHTML=filtered.map(tx=>renderTxItem(tx)).join('');
 }
 
 function renderTxPage(){
@@ -1350,16 +2058,16 @@ function renderTxPage(){
   const tF=document.getElementById('f-type').value;
   const cF=document.getElementById('f-cat').value;
   const mF=document.getElementById('f-month').value;
-  let filtered=transactions.filter(t=>{
-    if(aF!=='all'){ if(t.type==='transfer'){if(t.fromAccount!==aF&&t.toAccount!==aF)return false;}else{if(t.account!==aF)return false;} }
-    if(tF!=='all'&&t.type!==tF) return false;
-    if(cF!=='all'&&t.category!==cF) return false;
-    if(mF!=='all'){const d=new Date(t.date);const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;if(k!==mF)return false;}
+  let filtered=transactions.filter(tx=>{
+    if(aF!=='all'){ if(tx.type==='transfer'){if(tx.fromAccount!==aF&&tx.toAccount!==aF)return false;}else{if(tx.account!==aF)return false;} }
+    if(tF!=='all'&&tx.type!==tF) return false;
+    if(cF!=='all'&&tx.category!==cF) return false;
+    if(mF!=='all'){const d=new Date(tx.date);const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;if(k!==mF)return false;}
     return true;
   });
   const c=document.getElementById('tx-page-list');
-  if(!filtered.length){ c.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Nessuna transazione</div></div>`; return; }
-  c.innerHTML=filtered.map(t=>renderTxItem(t)).join('');
+  if(!filtered.length){ c.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">${t('noTxPage')}</div></div>`; return; }
+  c.innerHTML=filtered.map(tx=>renderTxItem(tx)).join('');
 }
 
 // ===================== CATEGORIES =====================
@@ -1370,19 +2078,19 @@ function openCatModal(editId){
   document.getElementById('cat-edit-id').value=editId||'';
   if(editId){
     const cat=getCatById(editId); if(!cat) return;
-    titleEl.innerHTML=`✏️ Modifica Categoria <button class="modal-close" onclick="closeCatModal()">✕</button>`;
+    titleEl.innerHTML=`${t('editCat')} <button class="modal-close" onclick="closeCatModal()">✕</button>`;
     document.getElementById('cat-name-input').value=cat.name;
     setColorPickerValue('cat',cat.color);
     document.getElementById('cat-emoji-input').value=cat.emoji;
     document.getElementById('cat-emoji-preview').textContent=cat.emoji;
-    saveBtn.textContent='💾 Salva Modifiche';
+    saveBtn.textContent=t('saveChanges');
   } else {
-    titleEl.innerHTML=`🏷️ Nuova Categoria <button class="modal-close" onclick="closeCatModal()">✕</button>`;
+    titleEl.innerHTML=`${t('newCat')} <button class="modal-close" onclick="closeCatModal()">✕</button>`;
     document.getElementById('cat-name-input').value='';
     setColorPickerValue('cat','#4f8ef7');
     document.getElementById('cat-emoji-input').value='🏷️';
     document.getElementById('cat-emoji-preview').textContent='🏷️';
-    saveBtn.textContent='Crea Categoria';
+    saveBtn.textContent=t('createCat');
   }
   modal.classList.add('active');
 }
@@ -1391,11 +2099,8 @@ function closeCatModal(){ document.getElementById('cat-modal').classList.remove(
 // ===================== COLOR PICKER =====================
 function initColorPicker(target){
   const prefix = target==='cat' ? '' : 'acc-';
-  const presetsEl = document.getElementById(prefix+'gradient-presets') || document.getElementById('gradient-presets');
-  const gridEl = document.getElementById(prefix+'color-grid-full') || document.getElementById('color-grid-full');
-  const inputId = target==='cat' ? 'cat-color-input' : 'acc-color-input';
-  const previewId = target==='cat' ? 'selected-color-preview' : 'acc-selected-color-preview';
-  const hexId = target==='cat' ? 'cat-color-hex' : 'acc-color-hex';
+  const presetsEl = document.getElementById(prefix+'gradient-presets');
+  const gridEl = document.getElementById(prefix+'color-grid-full');
 
   if(presetsEl){
     presetsEl.innerHTML = '';
@@ -1428,34 +2133,28 @@ function selectColor(target, color){
   const hex = document.getElementById(hexId);
   if(hex && !color.startsWith('linear')) hex.value = color;
 }
-
-function setColorPickerValue(target, color){
-  selectColor(target, color);
-}
-
-function onHexInput(target, val){
-  if(/^#[0-9a-fA-F]{6}$/.test(val)) selectColor(target, val);
-}
+function setColorPickerValue(target, color){ selectColor(target, color); }
+function onHexInput(target, val){ if(/^#[0-9a-fA-F]{6}$/.test(val)) selectColor(target, val); }
 
 function saveCat(){
   const name=document.getElementById('cat-name-input').value.trim();
   const color=document.getElementById('cat-color-input').value;
   const emoji=document.getElementById('cat-emoji-input').value;
   const editId=document.getElementById('cat-edit-id').value;
-  if(!name){ toast('Inserisci un nome','error'); return; }
-  if(editId){ const cat=getCatById(editId); if(cat){ cat.name=name; cat.color=color; cat.emoji=emoji; } toast(`"${name}" aggiornata ✓`,'success'); }
-  else { categories.push({id:uid(),name,color,emoji}); toast(`"${name}" creata ✓`,'success'); }
+  if(!name){ toast(t('nameRequired'),'error'); return; }
+  if(editId){ const cat=getCatById(editId); if(cat){ cat.name=name; cat.color=color; cat.emoji=emoji; } toast(`"${name}" ${t('catUpdated')}`,'success'); }
+  else { categories.push({id:uid(),name,color,emoji}); toast(`"${name}" ${t('catCreated')}`,'success'); }
   saveData(); closeCatModal(); updateAll();
 }
 
 function renderCatGrid(){
   const g=document.getElementById('cat-grid');
-  if(!categories.length){ g.innerHTML=`<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-text">Crea la tua prima categoria!</div></div>`; return; }
+  if(!categories.length){ g.innerHTML=`<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-text">${t('firstCat')}</div></div>`; return; }
   const now=new Date(),m=now.getMonth(),y=now.getFullYear();
   g.innerHTML=categories.map(cat=>{
-    const all=transactions.filter(t=>t.type==='expense'&&t.category===cat.id);
-    const mTx=all.filter(t=>{const d=new Date(t.date);return d.getMonth()===m&&d.getFullYear()===y;});
-    const mTot=mTx.reduce((s,t)=>s+t.amount,0);
+    const all=transactions.filter(tx=>tx.type==='expense'&&tx.category===cat.id);
+    const mTx=all.filter(tx=>{const d=new Date(tx.date);return d.getMonth()===m&&d.getFullYear()===y;});
+    const mTot=mTx.reduce((s,tx)=>s+tx.amount,0);
     const count=all.length;
     return `<div class="cat-row" onclick="showCatDetail('${cat.id}')">
       <div class="cat-dot" style="background:${cat.color.startsWith('linear')?'#4f8ef7':cat.color}"></div>
@@ -1469,57 +2168,235 @@ function renderCatGrid(){
 
 function showCatDetail(catId){
   const cat=getCatById(catId); if(!cat) return;
-  const catTx=transactions.filter(t=>t.type==='expense'&&t.category===catId);
-  const tot=catTx.reduce((s,t)=>s+t.amount,0);
+  const catTx=transactions.filter(tx=>tx.type==='expense'&&tx.category===catId);
+  const tot=catTx.reduce((s,tx)=>s+tx.amount,0);
   document.getElementById('cat-detail-title').innerHTML=`${cat.emoji} ${cat.name} <small style="font-size:14px;color:var(--t2);font-style:normal">−${fmt(tot)}</small>`;
   const body=document.getElementById('cat-detail-body');
-  if(!catTx.length){ body.innerHTML=`<div class="empty-state"><div class="empty-icon">${cat.emoji}</div><div class="empty-text">Nessuna spesa</div></div>`; }
-  else { body.innerHTML=catTx.slice(0,20).map(t=>renderTxItem(t,false)).join(''); }
+  if(!catTx.length){ body.innerHTML=`<div class="empty-state"><div class="empty-icon">${cat.emoji}</div><div class="empty-text">${t('noExpenses')}</div></div>`; }
+  else { body.innerHTML=catTx.slice(0,20).map(tx=>renderTxItem(tx,false)).join(''); }
   document.getElementById('cat-detail-overlay').classList.add('active');
 }
 
 // ===================== EMOJI PICKER =====================
 function buildEmojiPickerCategories(){
   const row=document.getElementById('emoji-cats-row');
-  let html='<button class="emoji-cat-btn active" onclick="filterEmojiCat(this,\'all\')">Tutti</button>';
+  let html=`<button class="emoji-cat-btn active" onclick="filterEmojiCat(this,'all')">Tutti</button>`;
   EMOJI_CATEGORIES.forEach((cat,i)=>{ html+=`<button class="emoji-cat-btn" onclick="filterEmojiCat(this,'${i}')">${cat.label}</button>`; });
   row.innerHTML=html; renderEmojiGrid(null);
 }
+
 function renderEmojiGrid(catIndex){
   const grid=document.getElementById('emoji-grid-full'); let html='';
-  if(catIndex===null){ EMOJI_CATEGORIES.forEach(cat=>{ html+=`<div class="emoji-section-label">${cat.label}</div>`; cat.emojis.forEach(e=>{ html+=`<div class="emoji-swatch" onclick="selectEmoji('${e}')">${e}</div>`; }); }); }
-  else { EMOJI_CATEGORIES[catIndex].emojis.forEach(e=>{ html+=`<div class="emoji-swatch" onclick="selectEmoji('${e}')">${e}</div>`; }); }
+  if(catIndex===null){
+    EMOJI_CATEGORIES.forEach(cat=>{
+      html+=`<div class="emoji-section-label">${cat.label}</div>`;
+      cat.emojis.forEach(e=>{ html+=`<button class="emoji-swatch" onclick="selectEmoji('${e}')">${e}</button>`; });
+    });
+  } else {
+    EMOJI_CATEGORIES[catIndex].emojis.forEach(e=>{ html+=`<button class="emoji-swatch" onclick="selectEmoji('${e}')">${e}</button>`; });
+  }
   grid.innerHTML=html; highlightSelectedEmoji();
 }
-function filterEmojiCat(btn,idx){ document.querySelectorAll('.emoji-cat-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.getElementById('emoji-search-input').value=''; if(idx==='all') renderEmojiGrid(null); else renderEmojiGrid(parseInt(idx)); }
-function filterEmojis(query){ const grid=document.getElementById('emoji-grid-full'); if(!query.trim()){renderEmojiGrid(null);return;} const all=[]; EMOJI_CATEGORIES.forEach(cat=>all.push(...cat.emojis)); grid.innerHTML=all.filter(e=>e.includes(query)).map(e=>`<div class="emoji-swatch" onclick="selectEmoji('${e}')">${e}</div>`).join(''); }
-function highlightSelectedEmoji(){ if(!emojiPickerTarget) return; const inputId=emojiPickerTarget==='cat'?'cat-emoji-input':'acc-emoji-input'; const current=document.getElementById(inputId).value; document.querySelectorAll('.emoji-swatch').forEach(s=>{ s.classList.toggle('selected',s.textContent===current); }); }
-function openEmojiPicker(target){ emojiPickerTarget=target; document.getElementById('emoji-overlay').classList.add('open'); document.getElementById('emoji-picker-panel').classList.add('open'); document.getElementById('emoji-search-input').value=''; document.querySelectorAll('.emoji-cat-btn').forEach((b,i)=>b.classList.toggle('active',i===0)); renderEmojiGrid(null); }
-function closeEmojiPicker(){ document.getElementById('emoji-overlay').classList.remove('open'); document.getElementById('emoji-picker-panel').classList.remove('open'); emojiPickerTarget=null; }
-function selectEmoji(e){ if(!emojiPickerTarget) return; if(emojiPickerTarget==='cat'){ document.getElementById('cat-emoji-input').value=e; document.getElementById('cat-emoji-preview').textContent=e; } else { document.getElementById('acc-emoji-input').value=e; document.getElementById('acc-emoji-preview').textContent=e; } highlightSelectedEmoji(); closeEmojiPicker(); }
+
+function filterEmojiCat(btn,idx){
+  document.querySelectorAll('.emoji-cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('emoji-search-input').value='';
+  if(idx==='all') renderEmojiGrid(null);
+  else renderEmojiGrid(parseInt(idx));
+}
+
+// FIXED: emoji search now works correctly
+function filterEmojis(query){
+  const grid=document.getElementById('emoji-grid-full');
+  if(!query.trim()){ renderEmojiGrid(null); return; }
+  const q = query.toLowerCase();
+  const all=[];
+  EMOJI_CATEGORIES.forEach(cat=>all.push(...cat.emojis));
+  // Search by description using emoji names
+  const emojiNames = {
+    '😀':'faccia sorridente','😃':'sorriso','😄':'risata','😁':'sogghigno','😂':'lacrime','🥰':'amore','😍':'cuori',
+    '👍':'pollice su','👎':'pollice giù','❤️':'cuore','🔥':'fuoco','⭐':'stella','🎉':'festa','🎊':'coriandoli',
+    '🍕':'pizza','🍔':'hamburger','🍟':'patatine','🍣':'sushi','🍜':'noodle','☕':'caffè','🍵':'tè',
+    '🚗':'auto','✈️':'aereo','🚂':'treno','🚀':'razzo','🏠':'casa','🏦':'banca','🏥':'ospedale',
+    '💰':'soldi','💳':'carta','💵':'banconota','📈':'grafico crescita','📉':'grafico calo','📊':'statistiche',
+    '🎮':'videogiochi','🎵':'musica','🎸':'chitarra','🎹':'pianoforte','🎤':'microfono',
+    '💊':'medicina','🩺':'dottore','🏥':'ospedale','🧴':'lozione','🧼':'sapone',
+    '🌸':'fiore','🌊':'onda','🌈':'arcobaleno','❄️':'neve','🔥':'fuoco',
+    '👕':'maglietta','👗':'vestito','👠':'tacco','👟':'scarpa','🧢':'cappello',
+    '💡':'lampadina','🔋':'batteria','📱':'smartphone','💻':'computer','⌨️':'tastiera',
+    '🐶':'cane','🐱':'gatto','🐸':'rana','🦁':'leone','🐧':'pinguino',
+  };
+  const filtered = all.filter(e => {
+    const name = emojiNames[e] || '';
+    return name.includes(q) || e.includes(query);
+  });
+  // If few results, also show emojis whose codepoint matches
+  let result = filtered.length > 0 ? filtered : all.filter(e => e.includes(query));
+  grid.innerHTML = result.length > 0
+    ? result.map(e=>`<button class="emoji-swatch" onclick="selectEmoji('${e}')">${e}</button>`).join('')
+    : `<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center;grid-column:1/-1">Nessun risultato</div>`;
+  highlightSelectedEmoji();
+}
+
+function highlightSelectedEmoji(){
+  if(!emojiPickerTarget) return;
+  const inputId=emojiPickerTarget==='cat'?'cat-emoji-input':'acc-emoji-input';
+  const current=document.getElementById(inputId).value;
+  document.querySelectorAll('.emoji-swatch').forEach(s=>{ s.classList.toggle('selected',s.textContent===current); });
+}
+
+function openEmojiPicker(target){
+  emojiPickerTarget=target;
+  document.getElementById('emoji-overlay').classList.add('open');
+  document.getElementById('emoji-picker-panel').classList.add('open');
+  document.getElementById('emoji-search-input').value='';
+  document.querySelectorAll('.emoji-cat-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  renderEmojiGrid(null);
+}
+
+function closeEmojiPicker(){
+  document.getElementById('emoji-overlay').classList.remove('open');
+  document.getElementById('emoji-picker-panel').classList.remove('open');
+  emojiPickerTarget=null;
+}
+
+function selectEmoji(e){
+  if(!emojiPickerTarget) return;
+  if(emojiPickerTarget==='cat'){
+    document.getElementById('cat-emoji-input').value=e;
+    document.getElementById('cat-emoji-preview').textContent=e;
+  } else {
+    document.getElementById('acc-emoji-input').value=e;
+    document.getElementById('acc-emoji-preview').textContent=e;
+  }
+  highlightSelectedEmoji();
+  closeEmojiPicker();
+}
+
+// ===================== TREND PERIOD DATA =====================
+function getTrendData(){
+  const now = new Date();
+  let labels=[], incomes=[], expenses=[];
+  
+  if(currentTrendPeriod==='monthly'){
+    // Last 4 weeks, week by week
+    for(let i=3;i>=0;i--){
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay() - i*7);
+      weekStart.setHours(0,0,0,0);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate()+6);
+      weekEnd.setHours(23,59,59);
+      labels.push('W'+(4-i));
+      let inc=0,exp=0;
+      transactions.forEach(tx=>{
+        const d=new Date(tx.date);
+        if(d>=weekStart&&d<=weekEnd){
+          if(tx.type==='income')inc+=tx.amount;
+          if(tx.type==='expense')exp+=tx.amount;
+        }
+      });
+      incomes.push(inc); expenses.push(exp);
+    }
+  } else if(currentTrendPeriod==='quarterly'){
+    // Last 3 months
+    for(let i=2;i>=0;i--){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      const m=d.getMonth(),y=d.getFullYear();
+      labels.push(d.toLocaleDateString('it-IT',{month:'short'}));
+      let inc=0,exp=0;
+      transactions.forEach(tx=>{const td=new Date(tx.date);if(td.getMonth()===m&&td.getFullYear()===y){if(tx.type==='income')inc+=tx.amount;if(tx.type==='expense')exp+=tx.amount;}});
+      incomes.push(inc); expenses.push(exp);
+    }
+  } else if(currentTrendPeriod==='semiannual'){
+    // Last 6 months
+    for(let i=5;i>=0;i--){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      const m=d.getMonth(),y=d.getFullYear();
+      labels.push(d.toLocaleDateString('it-IT',{month:'short'}));
+      let inc=0,exp=0;
+      transactions.forEach(tx=>{const td=new Date(tx.date);if(td.getMonth()===m&&td.getFullYear()===y){if(tx.type==='income')inc+=tx.amount;if(tx.type==='expense')exp+=tx.amount;}});
+      incomes.push(inc); expenses.push(exp);
+    }
+  } else if(currentTrendPeriod==='yearly'){
+    // Last 12 months
+    for(let i=11;i>=0;i--){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      const m=d.getMonth(),y=d.getFullYear();
+      labels.push(d.toLocaleDateString('it-IT',{month:'short'})+"'"+(y%100));
+      let inc=0,exp=0;
+      transactions.forEach(tx=>{const td=new Date(tx.date);if(td.getMonth()===m&&td.getFullYear()===y){if(tx.type==='income')inc+=tx.amount;if(tx.type==='expense')exp+=tx.amount;}});
+      incomes.push(inc); expenses.push(exp);
+    }
+  } else if(currentTrendPeriod==='alltime'){
+    // All months with data
+    const monthSet = new Set();
+    transactions.forEach(tx=>{
+      const d=new Date(tx.date);
+      monthSet.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+    });
+    const sortedMonths = [...monthSet].sort();
+    if(sortedMonths.length===0){
+      // No data, show last 6 months
+      for(let i=5;i>=0;i--){
+        const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+        labels.push(d.toLocaleDateString('it-IT',{month:'short'}));
+        incomes.push(0); expenses.push(0);
+      }
+    } else {
+      sortedMonths.forEach(mk=>{
+        const[y,mo]=mk.split('-').map(Number);
+        const d=new Date(y,mo-1,1);
+        labels.push(d.toLocaleDateString('it-IT',{month:'short'})+"'"+(y%100));
+        let inc=0,exp=0;
+        transactions.forEach(tx=>{const td=new Date(tx.date);if(td.getMonth()===mo-1&&td.getFullYear()===y){if(tx.type==='income')inc+=tx.amount;if(tx.type==='expense')exp+=tx.amount;}});
+        incomes.push(inc); expenses.push(exp);
+      });
+    }
+  }
+
+  const subLabels = {
+    monthly: 'Ultime 4 settimane',
+    quarterly: 'Ultimi 3 mesi',
+    semiannual: 'Ultimi 6 mesi',
+    yearly: 'Ultimi 12 mesi',
+    alltime: 'Dati storici completi',
+  };
+  document.getElementById('chart-sub-label').textContent = subLabels[currentTrendPeriod]||'';
+  return {labels, incomes, expenses};
+}
 
 // ===================== CHARTS =====================
 function destroyChart(k){ if(chartRefs[k]){ chartRefs[k].destroy(); delete chartRefs[k]; } }
+
 function getMonthlyData(n=6){
   const now=new Date(); const labels=[],incomes=[],expenses=[];
-  for(let i=n-1;i>=0;i--){ const d=new Date(now.getFullYear(),now.getMonth()-i,1); const m=d.getMonth(),y=d.getFullYear(); labels.push(d.toLocaleDateString('it-IT',{month:'short'})); let inc=0,exp=0; transactions.forEach(t=>{const td=new Date(t.date);if(td.getMonth()===m&&td.getFullYear()===y){if(t.type==='income')inc+=t.amount;if(t.type==='expense')exp+=t.amount;}}); incomes.push(inc); expenses.push(exp); }
+  for(let i=n-1;i>=0;i--){ const d=new Date(now.getFullYear(),now.getMonth()-i,1); const m=d.getMonth(),y=d.getFullYear(); labels.push(d.toLocaleDateString('it-IT',{month:'short'})); let inc=0,exp=0; transactions.forEach(tx=>{const td=new Date(tx.date);if(td.getMonth()===m&&td.getFullYear()===y){if(tx.type==='income')inc+=tx.amount;if(tx.type==='expense')exp+=tx.amount;}}); incomes.push(inc); expenses.push(exp); }
   return{labels,incomes,expenses};
 }
+
 const scaleOpts={x:{ticks:{color:'#3a4558',font:{size:10,family:'DM Sans'}},grid:{color:'#1c2232'}},y:{ticks:{color:'#3a4558',font:{size:10,family:'DM Sans'}},grid:{color:'#1c2232'}}};
 const legendOpts={labels:{color:'#7b879e',font:{family:'DM Sans',size:11},boxWidth:10,padding:12}};
 
+function renderDashLineChart(){
+  const{labels,incomes,expenses}=getTrendData();
+  destroyChart('dashLine');
+  const dlc=document.getElementById('dashLineChart');
+  if(dlc) chartRefs.dashLine=new Chart(dlc,{type:'line',data:{labels,datasets:[{label:t('incomes'),data:incomes,borderColor:'#22d48a',backgroundColor:'rgba(34,212,138,0.07)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#22d48a'},{label:t('expenses'),data:expenses,borderColor:'#f25270',backgroundColor:'rgba(242,82,112,0.07)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#f25270'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legendOpts},scales:scaleOpts}});
+}
+
 function renderCharts(){
+  renderDashLineChart();
   const{labels,incomes,expenses}=getMonthlyData(6);
-  destroyChart('dashLine'); const dlc=document.getElementById('dashLineChart');
-  if(dlc) chartRefs.dashLine=new Chart(dlc,{type:'line',data:{labels,datasets:[{label:'Entrate',data:incomes,borderColor:'#22d48a',backgroundColor:'rgba(34,212,138,0.07)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#22d48a'},{label:'Spese',data:expenses,borderColor:'#f25270',backgroundColor:'rgba(242,82,112,0.07)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#f25270'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legendOpts},scales:scaleOpts}});
   destroyChart('bar'); const bc=document.getElementById('barChart');
-  if(bc) chartRefs.bar=new Chart(bc,{type:'bar',data:{labels,datasets:[{label:'Entrate',data:incomes,backgroundColor:'rgba(34,212,138,0.6)',borderColor:'#22d48a',borderWidth:1,borderRadius:6},{label:'Spese',data:expenses,backgroundColor:'rgba(242,82,112,0.6)',borderColor:'#f25270',borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legendOpts},scales:scaleOpts}});
+  if(bc) chartRefs.bar=new Chart(bc,{type:'bar',data:{labels,datasets:[{label:t('incomes'),data:incomes,backgroundColor:'rgba(34,212,138,0.6)',borderColor:'#22d48a',borderWidth:1,borderRadius:6},{label:t('expenses'),data:expenses,backgroundColor:'rgba(242,82,112,0.6)',borderColor:'#f25270',borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legendOpts},scales:scaleOpts}});
   destroyChart('pie'); const pc=document.getElementById('pieChart');
-  if(pc){ const now=new Date();const m=now.getMonth(),y=now.getFullYear(); const data=categories.map(cat=>({name:`${cat.emoji} ${cat.name}`,color:cat.color.startsWith('linear')?'#4f8ef7':cat.color,val:transactions.filter(t=>t.type==='expense'&&t.category===cat.id).reduce((s,t)=>{const d=new Date(t.date);return d.getMonth()===m&&d.getFullYear()===y?s+t.amount:s},0)})).filter(c=>c.val>0); if(data.length) chartRefs.pie=new Chart(pc,{type:'doughnut',data:{labels:data.map(c=>c.name),datasets:[{data:data.map(c=>c.val),backgroundColor:data.map(c=>c.color+'cc'),borderColor:data.map(c=>c.color),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:'#7b879e',font:{family:'DM Sans',size:10},padding:8,boxWidth:8}}}}});  }
+  if(pc){ const now=new Date();const m=now.getMonth(),y=now.getFullYear(); const data=categories.map(cat=>({name:`${cat.emoji} ${cat.name}`,color:cat.color.startsWith('linear')?'#4f8ef7':cat.color,val:transactions.filter(tx=>tx.type==='expense'&&tx.category===cat.id).reduce((s,tx)=>{const d=new Date(tx.date);return d.getMonth()===m&&d.getFullYear()===y?s+tx.amount:s},0)})).filter(c=>c.val>0); if(data.length) chartRefs.pie=new Chart(pc,{type:'doughnut',data:{labels:data.map(c=>c.name),datasets:[{data:data.map(c=>c.val),backgroundColor:data.map(c=>c.color+'cc'),borderColor:data.map(c=>c.color),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:'#7b879e',font:{family:'DM Sans',size:10},padding:8,boxWidth:8}}}}});  }
   destroyChart('accPie'); const ap=document.getElementById('accPieChart');
   if(ap){ const data=accounts.map(a=>({name:`${a.emoji} ${a.name}`,val:Math.max(0,getBalance(a.id)),color:a.color.startsWith('linear')?'#4f8ef7':a.color})).filter(a=>a.val>0); if(data.length) chartRefs.accPie=new Chart(ap,{type:'doughnut',data:{labels:data.map(a=>a.name),datasets:[{data:data.map(a=>a.val),backgroundColor:data.map(a=>a.color+'bb'),borderColor:data.map(a=>a.color),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'bottom',labels:{color:'#7b879e',font:{family:'DM Sans',size:10},padding:8,boxWidth:8}}}}});  }
   destroyChart('catBar'); const cb=document.getElementById('catBarChart');
-  if(cb){ const data=categories.map(cat=>({name:`${cat.emoji} ${cat.name}`,color:cat.color.startsWith('linear')?'#4f8ef7':cat.color,val:transactions.filter(t=>t.type==='expense'&&t.category===cat.id).reduce((s,t)=>s+t.amount,0)})).filter(c=>c.val>0).sort((a,b)=>b.val-a.val).slice(0,6); if(data.length) chartRefs.catBar=new Chart(cb,{type:'bar',data:{labels:data.map(c=>c.name),datasets:[{label:'Spese',data:data.map(c=>c.val),backgroundColor:data.map(c=>c.color+'aa'),borderColor:data.map(c=>c.color),borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#3a4558',font:{size:10,family:'DM Sans'}},grid:{color:'#1c2232'}},y:{ticks:{color:'#7b879e',font:{size:10,family:'DM Sans'}},grid:{color:'#1c2232'}}}}});  }
+  if(cb){ const data=categories.map(cat=>({name:`${cat.emoji} ${cat.name}`,color:cat.color.startsWith('linear')?'#4f8ef7':cat.color,val:transactions.filter(tx=>tx.type==='expense'&&tx.category===cat.id).reduce((s,tx)=>s+tx.amount,0)})).filter(c=>c.val>0).sort((a,b)=>b.val-a.val).slice(0,6); if(data.length) chartRefs.catBar=new Chart(cb,{type:'bar',data:{labels:data.map(c=>c.name),datasets:[{label:t('expenses'),data:data.map(c=>c.val),backgroundColor:data.map(c=>c.color+'aa'),borderColor:data.map(c=>c.color),borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#3a4558',font:{size:10,family:'DM Sans'}},grid:{color:'#1c2232'}},y:{ticks:{color:'#7b879e',font:{size:10,family:'DM Sans'}},grid:{color:'#1c2232'}}}}});  }
 }
 
 // ===================== EXPORT PDF =====================
@@ -1528,32 +2405,33 @@ function openExportModal(){ document.getElementById('export-modal').classList.ad
 function getPeriodTransactions(period){
   const now = new Date();
   let from, to, label;
-  if(period==='daily'){ from=new Date(now.getFullYear(),now.getMonth(),now.getDate()); to=new Date(from.getTime()+86400000-1); label='Oggi - '+from.toLocaleDateString('it-IT'); }
-  else if(period==='weekly'){ const day=now.getDay(); from=new Date(now); from.setDate(now.getDate()-day); from.setHours(0,0,0,0); to=new Date(from); to.setDate(from.getDate()+6); to.setHours(23,59,59); label='Settimana '+from.toLocaleDateString('it-IT')+' – '+to.toLocaleDateString('it-IT'); }
+  if(period==='daily'){ from=new Date(now.getFullYear(),now.getMonth(),now.getDate()); to=new Date(from.getTime()+86400000-1); label=t('expToday').replace('📅 ','')+' - '+from.toLocaleDateString('it-IT'); }
+  else if(period==='weekly'){ const day=now.getDay(); from=new Date(now); from.setDate(now.getDate()-day); from.setHours(0,0,0,0); to=new Date(from); to.setDate(from.getDate()+6); to.setHours(23,59,59); label=from.toLocaleDateString('it-IT')+' – '+to.toLocaleDateString('it-IT'); }
   else if(period==='monthly'){ from=new Date(now.getFullYear(),now.getMonth(),1); to=new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59); label=from.toLocaleDateString('it-IT',{month:'long',year:'numeric'}); }
-  else if(period==='yearly'){ from=new Date(now.getFullYear(),0,1); to=new Date(now.getFullYear(),11,31,23,59,59); label='Anno '+now.getFullYear(); }
-  else { from=new Date(0); to=new Date(9999,0,1); label='Storico completo'; }
-  return { txs: transactions.filter(t=>{ const d=new Date(t.date); return d>=from&&d<=to; }), label };
+  else if(period==='yearly'){ from=new Date(now.getFullYear(),0,1); to=new Date(now.getFullYear(),11,31,23,59,59); label=now.getFullYear(); }
+  else { from=new Date(0); to=new Date(9999,0,1); label=t('expAll').replace('📅 ',''); }
+  return { txs: transactions.filter(tx=>{ const d=new Date(tx.date); return d>=from&&d<=to; }), label };
 }
 
 function exportPDF(period){
+  closeModal2('export-modal'); // FIX: close modal first so user can return to app
   const {txs, label} = getPeriodTransactions(period);
   const sym = getDefaultSymbol();
   let inc=0, exp=0;
-  txs.forEach(t=>{ if(t.type==='income')inc+=t.amount; if(t.type==='expense')exp+=t.amount; });
+  txs.forEach(tx=>{ if(tx.type==='income')inc+=tx.amount; if(tx.type==='expense')exp+=tx.amount; });
   const net=inc-exp;
 
-  const rows = txs.map(t=>{
-    const cat=getCatById(t.category);
-    const acc=txAccountLabel(t);
-    const sign=t.type==='income'?'+':t.type==='expense'?'−':'⇄';
-    const color=t.type==='income'?'#22d48a':t.type==='expense'?'#f25270':'#a78bfa';
+  const rows = txs.map(tx=>{
+    const cat=getCatById(tx.category);
+    const acc=txAccountLabel(tx);
+    const sign=tx.type==='income'?'+':tx.type==='expense'?'−':'⇄';
+    const color=tx.type==='income'?'#22d48a':tx.type==='expense'?'#f25270':'#a78bfa';
     return `<tr>
-      <td>${new Date(t.date).toLocaleDateString('it-IT')}</td>
-      <td>${t.desc}</td>
+      <td>${new Date(tx.date).toLocaleDateString('it-IT')}</td>
+      <td>${tx.desc}</td>
       <td>${cat?cat.emoji+' '+cat.name:''}</td>
       <td>${acc}</td>
-      <td style="color:${color};font-weight:700;text-align:right">${sign}${sym}${Math.abs(t.amount).toLocaleString('it-IT',{minimumFractionDigits:2})}</td>
+      <td style="color:${color};font-weight:700;text-align:right">${sign}${sym}${Math.abs(tx.amount).toLocaleString('it-IT',{minimumFractionDigits:2})}</td>
     </tr>`;
   }).join('');
 
@@ -1562,7 +2440,7 @@ function exportPDF(period){
     body{font-family:system-ui,sans-serif;background:#fff;color:#111;padding:32px;font-size:13px;}
     h1{font-size:24px;margin:0 0 4px;letter-spacing:-0.5px;}
     .period{color:#666;margin-bottom:20px;font-size:13px;}
-    .stats{display:flex;gap:24px;margin-bottom:24px;}
+    .stats{display:flex;gap:24px;margin-bottom:24px;flex-wrap:wrap;}
     .stat{background:#f5f5f5;padding:14px 20px;border-radius:12px;min-width:120px;}
     .stat-label{font-size:10px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:0.6px;}
     .stat-val{font-size:20px;font-weight:800;margin-top:4px;}
@@ -1573,37 +2451,36 @@ function exportPDF(period){
     .footer{margin-top:32px;font-size:11px;color:#aaa;text-align:center;}
   </style></head><body>
   <h1>📊 FinanceHub</h1>
-  <div class="period">Report: ${label}</div>
+  <div class="period">${t('reportLabel')} ${label}</div>
   <div class="stats">
-    <div class="stat"><div class="stat-label">Entrate</div><div class="stat-val" style="color:#22d48a">+${sym}${inc.toLocaleString('it-IT',{minimumFractionDigits:2})}</div></div>
-    <div class="stat"><div class="stat-label">Spese</div><div class="stat-val" style="color:#f25270">−${sym}${exp.toLocaleString('it-IT',{minimumFractionDigits:2})}</div></div>
-    <div class="stat"><div class="stat-label">Saldo netto</div><div class="stat-val" style="color:${net>=0?'#22d48a':'#f25270'}">${net>=0?'+':'−'}${sym}${Math.abs(net).toLocaleString('it-IT',{minimumFractionDigits:2})}</div></div>
-    <div class="stat"><div class="stat-label">Transazioni</div><div class="stat-val">${txs.length}</div></div>
+    <div class="stat"><div class="stat-label">${t('reportIncome')}</div><div class="stat-val" style="color:#22d48a">+${sym}${inc.toLocaleString('it-IT',{minimumFractionDigits:2})}</div></div>
+    <div class="stat"><div class="stat-label">${t('reportExpenses')}</div><div class="stat-val" style="color:#f25270">−${sym}${exp.toLocaleString('it-IT',{minimumFractionDigits:2})}</div></div>
+    <div class="stat"><div class="stat-label">${t('reportNet')}</div><div class="stat-val" style="color:${net>=0?'#22d48a':'#f25270'}">${net>=0?'+':'−'}${sym}${Math.abs(net).toLocaleString('it-IT',{minimumFractionDigits:2})}</div></div>
+    <div class="stat"><div class="stat-label">${t('reportTx')}</div><div class="stat-val">${txs.length}</div></div>
   </div>
   <table><thead><tr><th>Data</th><th>Descrizione</th><th>Categoria</th><th>Conto</th><th style="text-align:right">Importo</th></tr></thead>
-  <tbody>${rows||'<tr><td colspan="5" style="text-align:center;color:#aaa;padding:32px">Nessuna transazione nel periodo</td></tr>'}</tbody></table>
-  <div class="footer">Generato da FinanceHub • ${new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  <tbody>${rows||`<tr><td colspan="5" style="text-align:center;color:#aaa;padding:32px">Nessuna transazione nel periodo</td></tr>`}</tbody></table>
+  <div class="footer">${t('generatedBy')} • ${new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}</div>
   </body></html>`;
 
-  const w = window.open('','_blank');
-  w.document.write(html);
-  w.document.close();
-  setTimeout(()=>w.print(), 500);
-  closeModal2('export-modal');
+  // FIX: Open in new tab without blocking app navigation
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 3000);
 }
-
-// ===================== SETTINGS SHORTCUT =====================
-// Long press on header title to open settings
-document.addEventListener('DOMContentLoaded', ()=>{
-  const title = document.querySelector('.header-title');
-  if(title){ let t; title.addEventListener('touchstart',()=>{ t=setTimeout(()=>{ populateCurrencySelects(); document.getElementById('settings-currency').value=settings.currency||'EUR'; document.getElementById('settings-modal').classList.add('active'); },700); }); title.addEventListener('touchend',()=>clearTimeout(t)); }
-});
 
 // ===================== TOAST =====================
 function toast(msg,type='info'){
-  const t=document.createElement('div'); t.className=`toast ${type}`; t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateY(6px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); },2500);
+  const t2=document.createElement('div'); t2.className=`toast ${type}`; t2.textContent=msg;
+  document.body.appendChild(t2);
+  setTimeout(()=>{ t2.style.opacity='0'; t2.style.transform='translateY(6px)'; t2.style.transition='all 0.3s'; setTimeout(()=>t2.remove(),300); },2500);
 }
 
 if ('serviceWorker' in navigator) {
