@@ -1704,8 +1704,14 @@ function syncToCloud(immediate){
       .then(()=>{
         const el = document.getElementById('profile-sync-status');
         if(el) el.textContent='Sincronizzato ✓';
+        localStorage.setItem('fh_last_cloud_sync', Date.now().toString());
       })
-      .catch(e=>{ console.warn('Sync error',e); });
+      .catch(e=>{
+        console.warn('Sync error',e);
+        const el = document.getElementById('profile-sync-status');
+        if(el) el.textContent='⚠️ Errore sync: ' + (e.message||e.code||'sconosciuto');
+        toast('Errore sincronizzazione: ' + (e.message||e.code||'controlla la connessione'), 'error');
+      });
   };
   if(immediate){ doSync(); }
   else { syncTimeout = setTimeout(doSync, 1500); }
@@ -1723,18 +1729,37 @@ function syncFromCloud(){
   if(!fbUser || !fbDb) return;
   fbDb.ref('users/'+fbUser.uid+'/data').once('value').then(snap=>{
     const data = snap.val();
-    if(!data) { syncToCloud(); return; }
+    if(!data) { syncToCloud(true); return; }
+
+    // Compare timestamps: use whichever dataset is more recent
+    const cloudTime    = data.updatedAt || 0;
+    const localSyncTime = parseInt(localStorage.getItem('fh_last_cloud_sync') || '0');
+    const localModTime  = parseInt(localStorage.getItem('fh_last_local_mod')  || '0');
+
+    // If local has unsaved changes newer than last cloud sync, push local up
+    if(localModTime > localSyncTime && localModTime > cloudTime){
+      console.log('Local data is newer — pushing local to cloud');
+      syncToCloud(true);
+      toast('Dati locali più recenti — sincronizzati ✓','success');
+      return;
+    }
+
+    // Otherwise cloud wins
     transactions = data.transactions || [];
-    categories = data.categories || [];
-    accounts = data.accounts || [];
-    if(data.settings) settings = {...settings, ...data.settings};
-    if(data.profile) userProfile = {...userProfile, ...data.profile};
+    categories   = data.categories   || [];
+    accounts     = data.accounts     || [];
+    if(data.settings) settings    = {...settings,    ...data.settings};
+    if(data.profile)  userProfile = {...userProfile, ...data.profile};
     saveLocal();
+    localStorage.setItem('fh_last_cloud_sync', Date.now().toString());
     updateAll();
     applyTranslations();
     updateProfileDisplay();
     toast('Dati sincronizzati ✓','success');
-  }).catch(e=>{ console.warn('Sync from cloud error',e); });
+  }).catch(e=>{
+    console.warn('Sync from cloud error',e);
+    toast('Impossibile leggere il cloud: ' + (e.message||e.code||'controlla la connessione'), 'error');
+  });
 }
 
 function loginWithGoogle(){
@@ -1807,7 +1832,12 @@ function saveLocal(){
   localStorage.setItem('fh_profile',JSON.stringify(userProfile));
 }
 
+function markLocalModified(){
+  localStorage.setItem('fh_last_local_mod', Date.now().toString());
+}
+
 function saveData(){
+  markLocalModified();
   saveLocal();
   syncToCloud();
 }
