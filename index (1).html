@@ -1,0 +1,3300 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FinanceHub">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>FinanceHub</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07090f;
+  --bg1: #0d1017;
+  --bg2: #131720;
+  --bg3: #192030;
+  --border: #1c2232;
+  --border2: #242e42;
+  --blue: #4f8ef7;
+  --blue-d: rgba(79,142,247,0.13);
+  --green: #22d48a;
+  --green-d: rgba(34,212,138,0.13);
+  --red: #f25270;
+  --red-d: rgba(242,82,112,0.13);
+  --purple: #a78bfa;
+  --purple-d: rgba(167,139,250,0.13);
+  --orange: #fb923c;
+  --cyan: #22d3ee;
+  --yellow: #fbbf24;
+  --t1: #eef2ff;
+  --t2: #7b879e;
+  --t3: #3a4558;
+  --font: 'DM Sans', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --r: 18px;
+  --rs: 12px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; height: 100dvh; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--t1);
+  font-family: var(--font);
+  font-size: 15px;
+  overscroll-behavior: none;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* LAYOUT */
+.app { display: flex; flex-direction: column; height: 100dvh; max-height: 100dvh; overflow: hidden; }
+
+.header {
+  background: rgba(7,9,15,0.97);
+  padding: calc(var(--safe-top) + 12px) 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; z-index: 50;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+}
+.header-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+  user-select: none;
+}
+.header-title .logo-finance { color: var(--t1); }
+.header-title .logo-hub {
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header-title .logo-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  display: inline-block;
+  margin-bottom: 2px;
+}
+.header-right { display: flex; gap: 8px; }
+
+.content {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+  min-height: 0; padding-bottom: calc(64px + var(--safe-bottom));
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  flex-shrink: 0;
+  height: calc(62px + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: rgba(13,16,23,0.97); backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px); border-top: 1px solid var(--border);
+  display: flex; z-index: 50; align-items: stretch;
+}
+.nav-tab {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; cursor: pointer; transition: color 0.2s;
+  color: var(--t3); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.3px; text-transform: uppercase;
+  padding: 8px 0;
+}
+.nav-tab.active { color: var(--blue); }
+.nav-tab-icon { font-size: 20px; line-height: 1; }
+
+/* PAGES */
+.page { display: none; animation: fadeUp 0.22s ease; }
+.page.active { display: block; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+/* ---- DASHBOARD ---- */
+.dash-hero {
+  margin: 14px 16px;
+  background: linear-gradient(135deg, #0c1830 0%, #0f1825 50%, #090f20 100%);
+  border: 1px solid rgba(79,142,247,0.18); border-radius: 22px;
+  padding: 22px; position: relative; overflow: hidden;
+}
+.dash-hero::before {
+  content: '';
+  position: absolute; top: -50px; right: -50px;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(79,142,247,0.1) 0%, transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+.hero-label { font-size: 10px; font-weight: 600; color: var(--t2); text-transform: uppercase; letter-spacing: 1.2px; }
+.hero-amount {
+  font-family: var(--font-display);
+  font-size: 44px; font-weight: 700; letter-spacing: -1.5px;
+  margin: 4px 0 16px; line-height: 1;
+}
+.hero-amount small { font-size: 26px; opacity: 0.7; font-weight: 500; }
+.hero-stats { display: flex; gap: 0; }
+.hero-stat { flex: 1; }
+.hero-stat + .hero-stat { border-left: 1px solid var(--border2); padding-left: 14px; margin-left: 14px; }
+.hero-stat-label { font-size: 9.5px; color: var(--t2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; }
+.hero-stat-val { font-size: 15px; font-weight: 700; margin-top: 3px; letter-spacing: -0.3px; }
+
+/* PERIOD SELECTOR */
+.period-tabs {
+  display: flex; gap: 6px; padding: 10px 16px 6px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.period-tabs::-webkit-scrollbar { display: none; }
+.period-tab {
+  flex-shrink: 0; padding: 6px 14px;
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: 20px; font-family: var(--font); font-size: 11.5px;
+  font-weight: 600; color: var(--t2); cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+}
+.period-tab.active { background: var(--blue-d); border-color: var(--blue); color: var(--blue); }
+
+/* FAB */
+.fab-row { display: flex; gap: 8px; padding: 0 16px 14px; }
+.fab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 13px 8px; border-radius: 14px; border: none;
+  font-family: var(--font); font-size: 12.5px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s; letter-spacing: 0.1px;
+}
+.fab:active { transform: scale(0.96); opacity: 0.85; }
+.fab-income { background: var(--green-d); color: var(--green); border: 1px solid rgba(34,212,138,0.22); }
+.fab-expense { background: var(--red-d); color: var(--red); border: 1px solid rgba(242,82,112,0.22); }
+.fab-transfer { background: var(--purple-d); color: var(--purple); border: 1px solid rgba(167,139,250,0.22); }
+
+/* ACCOUNTS SCROLL */
+.section-title { font-size: 10px; font-weight: 700; color: var(--t2); text-transform: uppercase; letter-spacing: 1.2px; padding: 4px 20px 10px; }
+.accounts-scroll {
+  display: flex; gap: 10px; padding: 0 16px 4px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.accounts-scroll::-webkit-scrollbar { display: none; }
+.acc-chip {
+  flex-shrink: 0; width: 140px;
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: 16px; padding: 13px; cursor: pointer;
+  transition: all 0.2s; position: relative;
+}
+.acc-chip:active { transform: scale(0.97); opacity: 0.85; }
+.acc-chip-name { font-size: 12px; font-weight: 700; color: var(--t1); letter-spacing: -0.2px; margin-top: 4px; }
+.acc-chip-bal { font-size: 18px; font-weight: 800; margin-top: 4px; letter-spacing: -0.5px; }
+.acc-chip-icon { font-size: 22px; margin-bottom: 2px; }
+.acc-chip-currency { font-size: 9px; font-weight: 600; color: var(--t2); text-transform: uppercase; letter-spacing: 0.8px; }
+.acc-chip-edit { position: absolute; top: 8px; right: 8px; background: none; border: none; color: var(--t3); font-size: 12px; cursor: pointer; padding: 2px; opacity: 0; transition: opacity 0.2s; }
+.acc-chip:hover .acc-chip-edit { opacity: 1; }
+.acc-chip-add {
+  flex-shrink: 0; width: 92px; background: var(--bg1);
+  border: 1px dashed var(--border2); border-radius: 16px;
+  padding: 13px; cursor: pointer; transition: all 0.2s;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; color: var(--t2);
+}
+.acc-chip-add:active { transform: scale(0.97); }
+.acc-chip-add-icon { font-size: 22px; opacity: 0.5; }
+.acc-chip-add-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px; text-align: center; }
+
+/* CHART CARD */
+.chart-card { margin: 16px; background: var(--bg1); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; }
+.chart-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.chart-card-title { font-size: 13px; font-weight: 700; letter-spacing: -0.1px; }
+.chart-card-sub { font-size: 10.5px; color: var(--t2); margin-top: 2px; }
+.chart-wrap { height: 180px; position: relative; }
+.chart-wrap.pie { height: 200px; }
+
+/* TREND TABS inside chart card */
+.trend-tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+.trend-tab {
+  padding: 5px 11px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 16px; font-family: var(--font); font-size: 10.5px;
+  font-weight: 600; color: var(--t2); cursor: pointer; transition: all 0.2s;
+}
+.trend-tab.active { background: var(--blue-d); border-color: var(--blue); color: var(--blue); }
+
+/* RECENT TX */
+.recent-section { margin: 0 16px 16px; }
+.tx-item { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--border); position: relative; }
+.tx-item:last-child { border-bottom: none; }
+.tx-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.tx-info { flex: 1; min-width: 0; }
+.tx-desc { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.1px; }
+.tx-meta { font-size: 10.5px; color: var(--t2); margin-top: 2px; }
+.tx-amount { font-size: 14.5px; font-weight: 700; flex-shrink: 0; letter-spacing: -0.3px; }
+.tx-amount.pos { color: var(--green); }
+.tx-amount.neg { color: var(--red); }
+.tx-amount.neu { color: var(--purple); }
+.tx-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.tx-del-btn, .tx-edit-btn { background: none; border: none; font-size: 15px; cursor: pointer; padding: 6px; border-radius: 8px; }
+.tx-del-btn { color: var(--t3); }
+.tx-del-btn:active { background: var(--red-d); color: var(--red); }
+.tx-edit-btn { color: var(--t3); }
+.tx-edit-btn:active { background: var(--blue-d); color: var(--blue); }
+.tx-recurring-badge { font-size: 8px; background: var(--purple-d); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); border-radius: 6px; padding: 1px 5px; font-weight: 700; letter-spacing: 0.3px; margin-top: 3px; display: inline-block; }
+
+/* ---- TX PHOTO ---- */
+.tx-photo-thumb { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; cursor: pointer; border: 1px solid var(--border2); flex-shrink: 0; }
+
+/* ---- TRANSACTIONS PAGE ---- */
+.filter-row {
+  display: flex; gap: 8px; padding: 12px 16px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  justify-content: center;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.filter-chip { flex-shrink: 0; padding: 7px 13px; background: var(--bg1); border: 1px solid var(--border); border-radius: 20px; font-family: var(--font); font-size: 11.5px; font-weight: 600; color: var(--t2); cursor: pointer; outline: none; -webkit-appearance: none; text-align: center; text-align-last: center; }
+.filter-chip option { background: var(--bg2); }
+.tx-list { padding: 0 16px 16px; }
+.empty-state { text-align: center; padding: 48px 20px; color: var(--t3); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+.empty-text { font-size: 14px; font-weight: 500; }
+
+/* ---- CATEGORIES ---- */
+.cat-grid { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.cat-row { display: flex; align-items: center; background: var(--bg1); border: 1px solid var(--border); border-radius: var(--r); padding: 13px 16px; cursor: pointer; transition: all 0.15s; gap: 12px; }
+.cat-row:active { background: var(--bg2); }
+.cat-emoji { font-size: 22px; flex-shrink: 0; }
+.cat-info { flex: 1; min-width: 0; }
+.cat-name { font-size: 13.5px; font-weight: 600; letter-spacing: -0.1px; }
+.cat-count { font-size: 10.5px; color: var(--t2); margin-top: 1px; }
+.cat-amount { font-size: 14.5px; font-weight: 700; color: var(--red); flex-shrink: 0; letter-spacing: -0.3px; }
+.cat-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+/* ---- CHARTS PAGE ---- */
+.charts-grid { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+
+/* EXPORT BUTTON */
+.export-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 14px 16px 0; padding: 13px; background: var(--bg1);
+  border: 1px solid var(--border2); border-radius: var(--r);
+  font-family: var(--font); font-size: 13px; font-weight: 700;
+  color: var(--blue); cursor: pointer; transition: all 0.15s;
+}
+.export-btn:active { background: var(--blue-d); }
+
+/* MODALS */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 200; align-items: flex-end; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--bg1); border: 1px solid var(--border2); border-radius: 28px 28px 0 0; padding: 12px 20px calc(24px + var(--safe-bottom)); width: 100%; max-height: 92vh; overflow-y: auto; animation: slideUp 0.28s cubic-bezier(0.34,1.4,0.64,1); }
+@keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+.modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 18px; }
+.modal-title { font-family: var(--font-display); font-size: 21px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
+.modal-close { margin-left: auto; background: var(--bg3); border: none; color: var(--t2); width: 30px; height: 30px; border-radius: 50%; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+.type-tabs { display: flex; gap: 6px; margin-bottom: 18px; background: var(--bg); border-radius: 14px; padding: 4px; }
+.type-tab { flex: 1; padding: 9px 4px; border: none; border-radius: 10px; background: transparent; color: var(--t2); font-family: var(--font); font-size: 11.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; letter-spacing: 0.1px; }
+.type-tab.active-income { background: var(--green-d); color: var(--green); }
+.type-tab.active-expense { background: var(--red-d); color: var(--red); }
+.type-tab.active-transfer { background: var(--purple-d); color: var(--purple); }
+
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 10.5px; font-weight: 700; color: var(--t2); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+.form-input, .form-select { width: 100%; padding: 14px 16px; background: var(--bg); border: 1px solid var(--border2); border-radius: var(--r); color: var(--t1); font-family: var(--font); font-size: 15px; font-weight: 500; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+.form-input:focus, .form-select:focus { border-color: var(--blue); }
+.form-select option { background: var(--bg1); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.no-display { display: none !important; }
+
+.save-btn { width: 100%; padding: 16px; background: var(--blue); color: #fff; border: none; border-radius: var(--r); font-family: var(--font); font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 6px; letter-spacing: 0.1px; }
+.save-btn:active { transform: scale(0.98); background: #3a7de8; }
+
+/* GRADIENT COLOR PICKER */
+.color-picker-wrap { display: flex; flex-direction: column; gap: 10px; }
+.gradient-presets { display: flex; gap: 8px; flex-wrap: wrap; }
+.gradient-swatch { width: 34px; height: 34px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.18s; flex-shrink: 0; }
+.gradient-swatch.selected { border-color: #fff; transform: scale(1.2); box-shadow: 0 0 0 3px rgba(255,255,255,0.2); }
+.color-grid-full { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+.color-hex-input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border2); border-radius: 12px; color: var(--t1); font-family: var(--font); font-size: 14px; outline: none; }
+.color-hex-input:focus { border-color: var(--blue); }
+.selected-color-preview { width: 100%; height: 40px; border-radius: 12px; transition: all 0.2s; border: 1px solid var(--border2); }
+
+/* EMOJI PICKER */
+.emoji-picker-wrap { position: relative; }
+.emoji-trigger { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border2); border-radius: var(--r); color: var(--t1); font-family: var(--font); font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: border-color 0.2s; }
+.emoji-trigger:focus { border-color: var(--blue); outline: none; }
+.emoji-trigger-preview { font-size: 24px; line-height: 1; }
+.emoji-trigger-label { font-size: 13px; color: var(--t2); font-weight: 500; }
+.emoji-trigger-arrow { margin-left: auto; color: var(--t3); font-size: 12px; }
+.emoji-picker-panel { display: none; position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg1); border: 1px solid var(--border2); border-radius: 28px 28px 0 0; z-index: 400; max-height: 60vh; flex-direction: column; animation: slideUp 0.28s cubic-bezier(0.34,1.4,0.64,1); padding-bottom: var(--safe-bottom); }
+.emoji-picker-panel.open { display: flex; }
+.emoji-picker-header { padding: 14px 18px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.emoji-picker-title { font-size: 13px; font-weight: 700; color: var(--t2); text-transform: uppercase; letter-spacing: 0.8px; }
+.emoji-picker-close { background: var(--bg3); border: none; color: var(--t2); width: 28px; height: 28px; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.emoji-search-wrap { padding: 10px 16px; flex-shrink: 0; }
+.emoji-search { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border2); border-radius: 12px; color: var(--t1); font-family: var(--font); font-size: 14px; outline: none; }
+.emoji-search:focus { border-color: var(--blue); }
+.emoji-cats-row { display: flex; gap: 6px; padding: 0 16px 10px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
+.emoji-cats-row::-webkit-scrollbar { display: none; }
+.emoji-cat-btn { flex-shrink: 0; padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--t2); cursor: pointer; white-space: nowrap; transition: all 0.15s; font-family: var(--font); }
+.emoji-cat-btn.active { background: var(--blue-d); border-color: var(--blue); color: var(--blue); }
+.emoji-grid-scroll { flex: 1; overflow-y: auto; padding: 0 16px 16px; }
+.emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+.emoji-swatch { aspect-ratio: 1; border-radius: 10px; cursor: pointer; border: 1.5px solid transparent; background: transparent; display: flex; align-items: center; justify-content: center; font-size: 22px; transition: all 0.12s; }
+.emoji-swatch:active { background: var(--bg2); transform: scale(0.92); }
+.emoji-swatch.selected { border-color: var(--blue); background: var(--blue-d); }
+.emoji-section-label { font-size: 10px; font-weight: 700; color: var(--t3); text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 0 6px; grid-column: 1/-1; }
+.emoji-picker-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 399; }
+.emoji-picker-overlay.open { display: block; }
+
+/* CAT DETAIL SHEET */
+.cat-detail-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 300; align-items: flex-end; }
+.cat-detail-overlay.active { display: flex; }
+.cat-detail-sheet { background: var(--bg1); border: 1px solid var(--border2); border-radius: 28px 28px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; padding: 12px 20px calc(20px + var(--safe-bottom)); animation: slideUp 0.28s cubic-bezier(0.34,1.4,0.64,1); }
+
+/* ACCOUNT EDIT MODAL */
+.acc-edit-modal { background: var(--bg1); border: 1px solid var(--border2); border-radius: 28px 28px 0 0; padding: 12px 20px calc(24px + var(--safe-bottom)); width: 100%; max-height: 92vh; overflow-y: auto; animation: slideUp 0.28s cubic-bezier(0.34,1.4,0.64,1); }
+
+/* PHOTO UPLOAD */
+.photo-upload-area { width: 100%; padding: 18px; background: var(--bg); border: 1.5px dashed var(--border2); border-radius: var(--r); display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; }
+.photo-upload-area:hover { border-color: var(--blue); }
+.photo-upload-icon { font-size: 28px; opacity: 0.5; }
+.photo-upload-label { font-size: 12px; color: var(--t2); font-weight: 500; }
+.photo-preview-wrap { position: relative; width: 80px; }
+.photo-preview-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border2); }
+.photo-preview-del { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; background: var(--red); border: none; border-radius: 50%; color: white; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* TOAST */
+.toast { position: fixed; bottom: calc(74px + var(--safe-bottom)); left: 16px; right: 16px; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r); padding: 13px 16px; font-size: 13.5px; font-weight: 600; z-index: 999; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); animation: toastIn 0.3s ease; letter-spacing: -0.1px; }
+@keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error { border-left: 3px solid var(--red); }
+.toast.info { border-left: 3px solid var(--blue); }
+
+/* SEGMENTED */
+.seg { display: flex; background: var(--bg); border-radius: 12px; padding: 3px; }
+.seg-btn { flex:1; padding:6px; background:transparent; border:none; border-radius:9px; color:var(--t2); font-family:var(--font); font-size:11.5px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.seg-btn.active { background:var(--bg2); color:var(--t1); }
+
+/* Cat edit btn */
+.cat-row-actions { display: flex; gap: 4px; }
+.cat-action-btn { background: none; border: none; font-size: 14px; cursor: pointer; padding: 6px; border-radius: 8px; color: var(--t3); }
+.cat-action-btn:active { background: var(--bg2); }
+
+/* Danger btn */
+.danger-btn { width: 100%; padding: 14px; background: var(--red-d); color: var(--red); border: 1px solid rgba(242,82,112,0.22); border-radius: var(--r); font-family: var(--font); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 8px; }
+.danger-btn:active { opacity: 0.8; }
+
+/* RECURRING BADGE in list */
+.recur-tag { font-size: 8.5px; background: var(--purple-d); color: var(--purple); border: 1px solid rgba(167,139,250,0.25); border-radius: 6px; padding: 2px 5px; font-weight: 700; display: inline-block; margin-left: 4px; vertical-align: middle; }
+
+/* IMAGE LIGHTBOX */
+.lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 1000; align-items: center; justify-content: center; }
+.lightbox.active { display: flex; }
+.lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 16px; }
+.lightbox-close { position: absolute; top: 20px; right: 20px; background: var(--bg3); border: none; color: var(--t1); width: 38px; height: 38px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* EXPORT MODAL */
+.export-modal-body { padding: 0; }
+.export-period-btn { width: 100%; padding: 15px 16px; background: var(--bg); border: 1px solid var(--border2); border-radius: var(--r); color: var(--t1); font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; transition: all 0.15s; }
+.export-period-btn:active { background: var(--blue-d); border-color: var(--blue); }
+
+/* CURRENCY SYMBOL in hero */
+.currency-badge { font-size: 9px; font-weight: 700; color: var(--t2); text-transform: uppercase; letter-spacing: 0.8px; background: var(--bg3); padding: 2px 6px; border-radius: 6px; display: inline-block; margin-left: 6px; vertical-align: middle; }
+
+/* ---- SETTINGS PAGE ---- */
+.settings-section { padding: 0 16px; margin-bottom: 20px; }
+.settings-section-title { font-size: 10px; font-weight: 700; color: var(--t2); text-transform: uppercase; letter-spacing: 1.2px; padding: 16px 0 10px; }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 15px 16px; margin-bottom: 8px;
+  cursor: pointer; transition: all 0.15s; gap: 12px;
+}
+.settings-row:active { background: var(--bg2); }
+.settings-row-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.settings-row-icon { font-size: 20px; width: 36px; height: 36px; border-radius: 10px; background: var(--bg3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.settings-row-label { font-size: 14px; font-weight: 600; }
+.settings-row-sub { font-size: 11px; color: var(--t2); margin-top: 2px; }
+.settings-row-value { font-size: 12px; color: var(--t2); font-weight: 600; flex-shrink: 0; }
+.settings-row-arrow { color: var(--t3); font-size: 12px; flex-shrink: 0; }
+.settings-inline-select { background: transparent; border: none; color: var(--t2); font-family: var(--font); font-size: 12px; font-weight: 600; outline: none; cursor: pointer; -webkit-appearance: none; text-align: right; max-width: 140px; }
+.settings-inline-select option { background: var(--bg1); }
+
+/* Language modal search */
+.lang-search { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border2); border-radius: var(--r); color: var(--t1); font-family: var(--font); font-size: 14px; outline: none; margin-bottom: 12px; }
+.lang-search:focus { border-color: var(--blue); }
+.lang-list { max-height: 50vh; overflow-y: auto; }
+.lang-item { display: flex; align-items: center; gap: 12px; padding: 13px 4px; border-bottom: 1px solid var(--border); cursor: pointer; transition: all 0.15s; }
+.lang-item:last-child { border-bottom: none; }
+.lang-item:active { background: var(--blue-d); border-radius: 10px; }
+.lang-item.selected { color: var(--blue); }
+.lang-flag { font-size: 22px; flex-shrink: 0; }
+.lang-name { font-size: 14px; font-weight: 600; flex: 1; }
+.lang-check { color: var(--blue); font-size: 16px; }
+/* Profile icon in settings */
+.settings-row-icon img { width:36px;height:36px;border-radius:50%;object-fit:cover; }
+
+/* ===== IMAGE EDITOR MODAL ===== */
+#img-editor-overlay {
+  display:none; position:fixed; inset:0; z-index:2000;
+  background:rgba(0,0,0,0.92); flex-direction:column;
+  align-items:center; justify-content:center; gap:0;
+}
+#img-editor-overlay.active { display:flex; }
+#img-editor-canvas-wrap {
+  width:100%; flex:1; display:flex; align-items:center; justify-content:center;
+  overflow:hidden; position:relative; min-height:0;
+}
+#img-editor-canvas { max-width:96vw; max-height:54vh; display:block; }
+.img-editor-toolbar {
+  width:100%; background:var(--bg1); border-top:1px solid var(--border);
+  padding:10px 12px calc(12px + var(--safe-bottom)); display:flex; flex-direction:column; gap:8px;
+  flex-shrink:0;
+}
+.img-editor-btns { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+.img-editor-btn {
+  background:var(--bg2); border:1px solid var(--border2); color:var(--t1);
+  border-radius:10px; padding:9px 13px; font-size:12.5px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.15s;
+  font-family:var(--font);
+}
+.img-editor-btn:active { background:var(--bg3); transform:scale(0.96); }
+.img-editor-btn.primary { background:var(--blue-d); border-color:var(--blue); color:var(--blue); }
+.img-editor-btn.danger  { background:var(--red-d);  border-color:var(--red);  color:var(--red); }
+.img-editor-title { text-align:center; font-size:12px; font-weight:700; color:var(--t2); text-transform:uppercase; letter-spacing:0.8px; padding-bottom:2px; }
+#crop-rect {
+  position:absolute; border:2px solid #fff; box-shadow:0 0 0 9999px rgba(0,0,0,0.5);
+  cursor:move; display:none; pointer-events:none;
+}
+/* ===== PROFILE PHOTO MENU ===== */
+#profile-photo-menu {
+  display:none; position:fixed; inset:0; z-index:1800;
+  align-items:flex-end; justify-content:center; background:rgba(0,0,0,0.5);
+}
+#profile-photo-menu.active { display:flex; }
+.profile-photo-menu-sheet {
+  width:100%; max-width:480px; background:var(--bg1);
+  border-radius:20px 20px 0 0; padding:16px 16px calc(16px + var(--safe-bottom));
+  display:flex; flex-direction:column; gap:8px;
+}
+.menu-handle { width:36px; height:4px; background:var(--border2); border-radius:2px; margin:0 auto 10px; }
+.photo-menu-btn {
+  display:flex; align-items:center; gap:12px; padding:14px 16px;
+  background:var(--bg2); border:1px solid var(--border); border-radius:var(--r);
+  font-size:14px; font-weight:600; color:var(--t1); cursor:pointer;
+  font-family:var(--font); transition:all 0.15s;
+}
+.photo-menu-btn:active { background:var(--bg3); }
+.photo-menu-btn.danger { color:var(--red); }
+.photo-menu-cancel { padding:13px; text-align:center; font-size:14px; font-weight:700; color:var(--t2); cursor:pointer; border-radius:var(--r); background:var(--bg2); border:1px solid var(--border); font-family:var(--font); margin-top:2px; }
+</style>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-title">
+      <span class="logo-finance">Finance</span><span class="logo-hub">Hub</span>
+    </div>
+    <div class="header-right">
+      <button class="fab fab-income" style="flex:none;padding:9px 13px;font-size:11.5px;" onclick="openModal('income')" id="hdr-btn-income">＋ Entrata</button>
+      <button class="fab fab-expense" style="flex:none;padding:9px 13px;font-size:11.5px;" onclick="openModal('expense')" id="hdr-btn-expense">− Spesa</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="main-content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="dash-hero">
+        <div class="hero-label" id="hero-label-total">Patrimonio Totale</div>
+        <div class="hero-amount"><small id="hero-currency-symbol">€</small><span id="hero-total">0,00</span></div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-label" id="period-label-inc">Entrate mese</div>
+            <div class="hero-stat-val" style="color:var(--green)" id="hero-inc">€0</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-label" id="period-label-exp">Spese mese</div>
+            <div class="hero-stat-val" style="color:var(--red)" id="hero-exp">€0</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-label" id="hero-net-label">Saldo netto</div>
+            <div class="hero-stat-val" id="hero-net">€0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Period selector -->
+      <div class="period-tabs" id="period-tabs">
+        <div class="period-tab" id="ptab-daily" onclick="setPeriod('daily')">Oggi</div>
+        <div class="period-tab" id="ptab-weekly" onclick="setPeriod('weekly')">Settimana</div>
+        <div class="period-tab active" id="ptab-monthly" onclick="setPeriod('monthly')">Mese</div>
+        <div class="period-tab" id="ptab-yearly" onclick="setPeriod('yearly')">Anno</div>
+        <div class="period-tab" id="ptab-total" onclick="setPeriod('total')">Totale</div>
+      </div>
+
+      <div class="fab-row">
+        <button class="fab fab-income" onclick="openModal('income')" id="dash-btn-income">📈 Entrata</button>
+        <button class="fab fab-expense" onclick="openModal('expense')" id="dash-btn-expense">📉 Spesa</button>
+        <button class="fab fab-transfer" onclick="openModal('transfer')" id="dash-btn-transfer">⇄ Sposta</button>
+      </div>
+
+      <div class="section-title" id="lbl-accounts">I tuoi conti</div>
+      <div class="accounts-scroll" id="acc-scroll"></div>
+
+      <div class="chart-card" style="margin-top:14px">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title" id="lbl-trend">Andamento</div>
+            <div class="chart-card-sub" id="chart-sub-label">Ultimi 6 mesi</div>
+          </div>
+        </div>
+        <!-- Trend period tabs -->
+        <div class="trend-tabs" id="trend-tabs">
+          <div class="trend-tab" onclick="setTrendPeriod('monthly')" id="ttab-monthly">Mensile</div>
+          <div class="trend-tab active" onclick="setTrendPeriod('quarterly')" id="ttab-quarterly">Trimestrale</div>
+          <div class="trend-tab" onclick="setTrendPeriod('semiannual')" id="ttab-semiannual">Semestrale</div>
+          <div class="trend-tab" onclick="setTrendPeriod('yearly')" id="ttab-yearly">Annuale</div>
+          <div class="trend-tab" onclick="setTrendPeriod('alltime')" id="ttab-alltime">Totale</div>
+        </div>
+        <div class="chart-wrap"><canvas id="dashLineChart"></canvas></div>
+      </div>
+
+      <div class="section-title" style="margin-top:14px" id="lbl-recent-tx">Transazioni recenti</div>
+      <div class="recent-section" id="recent-list"></div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="page" id="page-transactions">
+      <div class="filter-row">
+        <select class="filter-chip" id="f-account" onchange="renderTxPage()">
+          <option value="all">Tutti i conti</option>
+        </select>
+        <select class="filter-chip" id="f-type" onchange="renderTxPage()">
+          <option value="all">Tutti</option>
+          <option value="income">Entrate</option>
+          <option value="expense">Spese</option>
+          <option value="transfer">Trasferimenti</option>
+        </select>
+        <select class="filter-chip" id="f-cat" onchange="renderTxPage()">
+          <option value="all">Categorie</option>
+        </select>
+        <select class="filter-chip" id="f-month" onchange="renderTxPage()">
+          <option value="all">Tutti i mesi</option>
+        </select>
+      </div>
+      <div class="tx-list" id="tx-page-list"></div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="page" id="page-categories">
+      <div style="padding:16px 16px 8px;display:flex;align-items:center;justify-content:space-between">
+        <div class="section-title" style="padding:0" id="lbl-your-categories">Le tue categorie</div>
+        <button class="fab fab-income" style="flex:none;padding:8px 13px;font-size:11.5px;" onclick="openCatModal()" id="btn-new-cat">＋ Nuova</button>
+      </div>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="page" id="page-charts">
+      <button class="export-btn" onclick="openExportModal()" id="btn-export-pdf">📤 Esporta report PDF</button>
+      <div class="charts-grid" style="margin-top:14px">
+        <div class="chart-card">
+          <div class="chart-card-header"><div><div class="chart-card-title" id="lbl-inc-vs-exp">Entrate vs Spese</div><div class="chart-card-sub" id="lbl-monthly-comparison">Confronto mensile</div></div></div>
+          <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><div><div class="chart-card-title" id="lbl-exp-by-cat">Spese per Categoria</div><div class="chart-card-sub" id="lbl-current-month">Mese corrente</div></div></div>
+          <div class="chart-wrap pie"><canvas id="pieChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><div><div class="chart-card-title" id="lbl-acc-distribution">Distribuzione Conti</div></div></div>
+          <div class="chart-wrap pie"><canvas id="accPieChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><div><div class="chart-card-title" id="lbl-top-cats">Top Categorie</div><div class="chart-card-sub" id="lbl-cumulative-exp">Spese cumulative</div></div></div>
+          <div class="chart-wrap" style="height:200px"><canvas id="catBarChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="settings-section">
+        <div class="settings-section-title" id="lbl-general">Generale</div>
+
+        <!-- Profile -->
+        <div class="settings-row" onclick="openProfileModal()">
+          <div class="settings-row-left">
+            <div class="settings-row-icon" id="settings-profile-icon">👤</div>
+            <div>
+              <div class="settings-row-label" id="lbl-profile">Profilo</div>
+              <div class="settings-row-sub" id="lbl-profile-sub">Nome, foto e account</div>
+            </div>
+          </div>
+          <div class="settings-row-value" id="lbl-profile-name">Ospite</div>
+          <div class="settings-row-arrow">›</div>
+        </div>
+
+        <!-- Default currency -->
+        <div class="settings-row" onclick="document.getElementById('settings-currency').focus()">
+          <div class="settings-row-left">
+            <div class="settings-row-icon">💱</div>
+            <div>
+              <div class="settings-row-label" id="lbl-default-currency">Valuta predefinita</div>
+              <div class="settings-row-sub" id="lbl-currency-sub">Usata per il patrimonio totale</div>
+            </div>
+          </div>
+          <select class="settings-inline-select" id="settings-currency" onchange="saveSettings()"></select>
+        </div>
+
+        <!-- Language -->
+        <div class="settings-row" onclick="openLangModal()">
+          <div class="settings-row-left">
+            <div class="settings-row-icon">🌍</div>
+            <div>
+              <div class="settings-row-label" id="lbl-language">Lingua</div>
+              <div class="settings-row-sub" id="lbl-language-sub">Lingua dell'interfaccia</div>
+            </div>
+          </div>
+          <div class="settings-row-value" id="lbl-current-lang">Italiano</div>
+          <div class="settings-row-arrow">›</div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title" id="lbl-data-section">Dati</div>
+        <div class="settings-row" onclick="openExportModal()">
+          <div class="settings-row-left">
+            <div class="settings-row-icon">📤</div>
+            <div>
+              <div class="settings-row-label" id="lbl-export-data">Esporta dati PDF</div>
+              <div class="settings-row-sub" id="lbl-export-sub">Genera report stampabile</div>
+            </div>
+          </div>
+          <div class="settings-row-arrow">›</div>
+        </div>
+      </div>
+
+      <div style="padding:0 16px;margin-top:8px">
+        <div style="text-align:center;font-size:11px;color:var(--t3);padding:16px 0">FinanceHub · v2.0</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-tab active" id="nav-dashboard" onclick="showPage('dashboard')"><div class="nav-tab-icon">📊</div><span id="nav-lbl-home">Home</span></div>
+    <div class="nav-tab" id="nav-transactions" onclick="showPage('transactions')"><div class="nav-tab-icon">📋</div><span id="nav-lbl-movements">Movimenti</span></div>
+    <div class="nav-tab" id="nav-categories" onclick="showPage('categories')"><div class="nav-tab-icon">🏷️</div><span id="nav-lbl-categories">Categorie</span></div>
+    <div class="nav-tab" id="nav-charts" onclick="showPage('charts')"><div class="nav-tab-icon">📈</div><span id="nav-lbl-charts">Grafici</span></div>
+    <div class="nav-tab" id="nav-settings" onclick="showPage('settings')"><div class="nav-tab-icon">⚙️</div><span id="nav-lbl-settings">Impostazioni</span></div>
+  </nav>
+
+</div>
+
+<!-- TX MODAL -->
+<div class="modal-overlay" id="tx-modal" onclick="handleModalBg(event,'tx-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      <span id="modal-icon">💸</span>
+      <span id="modal-title-text">Nuova Transazione</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="type-tabs">
+      <button class="type-tab" onclick="setTxType('income')" id="tab-income">📈 Entrata</button>
+      <button class="type-tab" onclick="setTxType('expense')" id="tab-expense">📉 Spesa</button>
+      <button class="type-tab" onclick="setTxType('transfer')" id="tab-transfer">⇄ Sposta</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-description">Descrizione</label>
+      <input class="form-input" type="text" id="tx-desc" placeholder="Es. Supermercato..." autocomplete="off"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" id="lbl-amount">Importo</label>
+        <input class="form-input" type="number" id="tx-amount" placeholder="0,00" min="0.01" step="0.01" inputmode="decimal"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="lbl-date">Data</label>
+        <input class="form-input" type="date" id="tx-date"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" id="lbl-tx-hour">Ora</label>
+        <input class="form-input" type="number" id="tx-hour" placeholder="0" min="0" max="23" value="0" inputmode="numeric"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="lbl-tx-minute">Minuto</label>
+        <input class="form-input" type="number" id="tx-minute" placeholder="0" min="0" max="59" value="0" inputmode="numeric"/>
+      </div>
+    </div>
+    <div class="form-group" id="from-account-group">
+      <label class="form-label" id="account-label">Conto</label>
+      <select class="form-select" id="tx-account"></select>
+    </div>
+    <div class="form-group no-display" id="to-account-group">
+      <label class="form-label" id="lbl-dest-account">Conto Destinazione</label>
+      <select class="form-select" id="tx-to-account"></select>
+    </div>
+    <div class="form-group" id="cat-field">
+      <label class="form-label" id="lbl-category">Categoria</label>
+      <select class="form-select" id="tx-category"><option value="">Nessuna</option></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-notes">Note (opzionale)</label>
+      <input class="form-input" type="text" id="tx-notes" placeholder="Note..." autocomplete="off"/>
+    </div>
+    <!-- RECURRING -->
+    <div class="form-group">
+      <label class="form-label" id="lbl-recurrence">Ricorrenza</label>
+      <select class="form-select" id="tx-recurring">
+        <option value="none">Nessuna (singola)</option>
+        <option value="daily">Giornaliera</option>
+        <option value="weekly">Settimanale</option>
+        <option value="monthly">Mensile</option>
+        <option value="yearly">Annuale</option>
+        <option value="custom">Personalizzata</option>
+      </select>
+    </div>
+    <div class="form-group no-display" id="recur-end-group">
+      <label class="form-label" id="lbl-recur-end">Data fine ricorrenza</label>
+      <input class="form-input" type="date" id="tx-recur-end"/>
+    </div>
+    <!-- CUSTOM RECURRENCE -->
+    <div class="form-group no-display" id="recur-custom-group">
+      <label class="form-label" id="lbl-custom-recur">Ricorrenza personalizzata</label>
+      <div class="form-row" style="margin-bottom:10px">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" id="lbl-every">Ogni</label>
+          <input class="form-input" type="number" id="tx-recur-every" placeholder="1" min="1" value="1" inputmode="numeric"/>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" id="lbl-unit">Unità</label>
+          <select class="form-select" id="tx-recur-unit">
+            <option value="days">Giorni</option>
+            <option value="weeks">Settimane</option>
+            <option value="months">Mesi</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" id="lbl-time-hour">Ora</label>
+          <input class="form-input" type="number" id="tx-recur-hour" placeholder="0" min="0" max="23" value="0" inputmode="numeric"/>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" id="lbl-time-min">Minuto</label>
+          <input class="form-input" type="number" id="tx-recur-minute" placeholder="0" min="0" max="59" value="0" inputmode="numeric"/>
+        </div>
+      </div>
+    </div>
+    <!-- PHOTO -->
+    <div class="form-group" id="tx-photo-group">
+      <label class="form-label" id="lbl-photo">Foto (scontrino, ecc.)</label>
+      <div id="tx-photo-preview-wrap" class="no-display">
+        <div class="photo-preview-wrap">
+          <img id="tx-photo-preview" class="photo-preview-img" src="" alt="preview" onclick="reeditorTxPhoto()"/>
+          <button class="photo-preview-del" style="left:8px;right:auto" onclick="reeditorTxPhoto()">✏️</button>
+          <button class="photo-preview-del" onclick="removePhoto()">✕</button>
+        </div>
+      </div>
+      <div class="photo-upload-area" id="tx-photo-upload-area" onclick="document.getElementById('tx-photo-file').click()">
+        <div class="photo-upload-icon">📷</div>
+        <div class="photo-upload-label" id="lbl-photo-tap">Tocca per aggiungere foto</div>
+      </div>
+      <input type="file" id="tx-photo-file" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)"/>
+    </div>
+    <input type="hidden" id="tx-edit-id" value=""/>
+    <input type="hidden" id="tx-photo-data" value=""/>
+    <button class="save-btn" id="tx-save-btn" onclick="saveTx()">💾 Salva</button>
+  </div>
+</div>
+
+<!-- CAT MODAL -->
+<div class="modal-overlay" id="cat-modal" onclick="handleModalBg(event,'cat-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="cat-modal-title">🏷️ Nuova Categoria
+      <button class="modal-close" onclick="closeCatModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-cat-name">Nome</label>
+      <input class="form-input" type="text" id="cat-name-input" placeholder="Es. Alimentari..." autocomplete="off"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-cat-color">Colore</label>
+      <div class="color-picker-wrap">
+        <div id="selected-color-preview" class="selected-color-preview" style="background:#4f8ef7"></div>
+        <div class="gradient-presets" id="gradient-presets"></div>
+        <div class="color-grid-full" id="color-grid-full"></div>
+        <input class="color-hex-input" type="text" id="cat-color-hex" placeholder="#4f8ef7" value="#4f8ef7" oninput="onHexInput('cat',this.value)"/>
+      </div>
+      <input type="hidden" id="cat-color-input" value="#4f8ef7"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-cat-icon">Icona</label>
+      <div class="emoji-picker-wrap">
+        <button class="emoji-trigger" id="cat-emoji-trigger" onclick="openEmojiPicker('cat')" type="button">
+          <span class="emoji-trigger-preview" id="cat-emoji-preview">🏷️</span>
+          <span class="emoji-trigger-label" id="lbl-tap-choose">Tocca per scegliere</span>
+          <span class="emoji-trigger-arrow">▼</span>
+        </button>
+      </div>
+      <input type="hidden" id="cat-emoji-input" value="🏷️"/>
+    </div>
+    <input type="hidden" id="cat-edit-id" value=""/>
+    <button class="save-btn" id="cat-save-btn" onclick="saveCat()">Crea Categoria</button>
+  </div>
+</div>
+
+<!-- CAT DETAIL -->
+<div class="cat-detail-overlay" id="cat-detail-overlay" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="cat-detail-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="cat-detail-title">Categoria</div>
+    <div id="cat-detail-body"></div>
+  </div>
+</div>
+
+<!-- ACCOUNT ADD/EDIT MODAL -->
+<div class="modal-overlay" id="acc-modal" onclick="handleModalBg(event,'acc-modal')">
+  <div class="acc-edit-modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="acc-modal-title">➕ Nuovo Conto
+      <button class="modal-close" onclick="closeAccModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-acc-name">Nome Conto</label>
+      <input class="form-input" type="text" id="acc-name-input" placeholder="Es. N26, PostePay..." autocomplete="off"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-acc-color">Colore</label>
+      <div class="color-picker-wrap">
+        <div id="acc-selected-color-preview" class="selected-color-preview" style="background:#4f8ef7"></div>
+        <div class="gradient-presets" id="acc-gradient-presets"></div>
+        <div class="color-grid-full" id="acc-color-grid-full"></div>
+        <input class="color-hex-input" type="text" id="acc-color-hex" placeholder="#4f8ef7" value="#4f8ef7" oninput="onHexInput('acc',this.value)"/>
+      </div>
+      <input type="hidden" id="acc-color-input" value="#4f8ef7"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-acc-emoji">Emoji</label>
+      <div class="emoji-picker-wrap">
+        <button class="emoji-trigger" id="acc-emoji-trigger" onclick="openEmojiPicker('acc')" type="button">
+          <span class="emoji-trigger-preview" id="acc-emoji-preview">🏦</span>
+          <span class="emoji-trigger-label" id="lbl-tap-choose-acc">Tocca per scegliere</span>
+          <span class="emoji-trigger-arrow">▼</span>
+        </button>
+      </div>
+      <input type="hidden" id="acc-emoji-input" value="🏦"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-acc-currency">Valuta</label>
+      <select class="form-select" id="acc-currency-select"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">
+        <input type="checkbox" id="acc-include-total" checked style="margin-right:8px;width:auto;"/>
+        <span id="lbl-include-total">Includi nel patrimonio totale</span>
+      </label>
+    </div>
+    <input type="hidden" id="acc-edit-id" value=""/>
+    <button class="save-btn" id="acc-save-btn" onclick="saveAccount()">Aggiungi Conto</button>
+    <button class="danger-btn no-display" id="acc-delete-btn" onclick="deleteAccount()">🗑 Elimina Conto</button>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="export-modal" onclick="handleModalBg(event,'export-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="export-modal-title">📤 Esporta PDF <button class="modal-close" onclick="closeModal2('export-modal')">✕</button></div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:16px" id="lbl-choose-period">Scegli il periodo da esportare:</div>
+    <button class="export-period-btn" onclick="exportPDF('daily')" id="exp-btn-daily">📅 Oggi</button>
+    <button class="export-period-btn" onclick="exportPDF('weekly')" id="exp-btn-weekly">📅 Questa settimana</button>
+    <button class="export-period-btn" onclick="exportPDF('monthly')" id="exp-btn-monthly">📅 Questo mese</button>
+    <button class="export-period-btn" onclick="exportPDF('yearly')" id="exp-btn-yearly">📅 Quest'anno</button>
+    <button class="export-period-btn" onclick="exportPDF('total')" id="exp-btn-total">📅 Storico completo</button>
+  </div>
+</div>
+
+<!-- LANGUAGE MODAL -->
+<div class="modal-overlay" id="lang-modal" onclick="handleModalBg(event,'lang-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🌍 <span id="lbl-lang-modal-title">Scegli Lingua</span> <button class="modal-close" onclick="closeModal2('lang-modal')">✕</button></div>
+    <input class="lang-search" id="lang-search" placeholder="Cerca lingua..." oninput="filterLangs(this.value)" autocomplete="off"/>
+    <div class="lang-list" id="lang-list"></div>
+  </div>
+</div>
+
+<!-- EMOJI PICKER PANEL (shared) -->
+<div class="emoji-picker-overlay" id="emoji-overlay" onclick="closeEmojiPicker()"></div>
+<div class="emoji-picker-panel" id="emoji-picker-panel">
+  <div class="emoji-picker-header">
+    <span class="emoji-picker-title" id="lbl-emoji-picker-title">Scegli Emoji</span>
+    <button class="emoji-picker-close" onclick="closeEmojiPicker()">✕</button>
+  </div>
+  <div class="emoji-search-wrap">
+    <input class="emoji-search" id="emoji-search-input" placeholder="Cerca emoji..." oninput="filterEmojis(this.value)" autocomplete="off"/>
+  </div>
+  <div class="emoji-cats-row" id="emoji-cats-row"></div>
+  <div class="emoji-grid-scroll">
+    <div class="emoji-grid" id="emoji-grid-full"></div>
+  </div>
+</div>
+
+
+<!-- IMAGE EDITOR OVERLAY -->
+<div id="img-editor-overlay">
+  <div id="img-editor-canvas-wrap">
+    <canvas id="img-editor-canvas"></canvas>
+    <div id="crop-rect"></div>
+  </div>
+  <div class="img-editor-toolbar">
+    <div class="img-editor-title" id="img-editor-title">✂️ Modifica Foto</div>
+    <div class="img-editor-btns">
+      <button class="img-editor-btn" onclick="imgEditorRotate(-90)">↺ Ruota SX</button>
+      <button class="img-editor-btn" onclick="imgEditorRotate(90)">↻ Ruota DX</button>
+      <button class="img-editor-btn" onclick="imgEditorFlip('h')">⇄ Specchia H</button>
+      <button class="img-editor-btn" onclick="imgEditorFlip('v')">↕ Specchia V</button>
+    </div>
+    <div class="img-editor-btns">
+      <button class="img-editor-btn" id="crop-toggle-btn" onclick="imgEditorToggleCrop()">✂️ Ritaglia</button>
+      <button class="img-editor-btn primary" onclick="imgEditorConfirm()">✅ Conferma</button>
+      <button class="img-editor-btn danger" onclick="imgEditorCancel()">✕ Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE PHOTO MENU -->
+<div id="profile-photo-menu" onclick="if(event.target===this)closeProfilePhotoMenu()">
+  <div class="profile-photo-menu-sheet">
+    <div class="menu-handle"></div>
+    <button class="photo-menu-btn" onclick="closeProfilePhotoMenu();openLightboxProfile()">🔍 Visualizza foto attuale</button>
+    <button class="photo-menu-btn" onclick="closeProfilePhotoMenu();document.getElementById('profile-photo-file').click()">📷 Cambia foto</button>
+    <button class="photo-menu-btn danger" id="profile-photo-remove-btn" onclick="closeProfilePhotoMenu();removeProfilePhoto()">🗑 Rimuovi foto</button>
+    <div class="photo-menu-cancel" onclick="closeProfilePhotoMenu()">Annulla</div>
+  </div>
+</div>
+
+<!-- LIGHTBOX PROFILO -->
+<div class="lightbox" id="lightbox-profile" onclick="document.getElementById('lightbox-profile').classList.remove('active')">
+  <button class="lightbox-close">✕</button>
+  <img id="lightbox-profile-img" src="" alt="foto profilo" style="border-radius:50%;max-width:88vw;max-height:88vw;object-fit:cover"/>
+</div>
+
+<!-- RESET PASSWORD MODAL -->
+<div class="modal-overlay" id="reset-pwd-modal" onclick="handleModalBg(event,'reset-pwd-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔑 Recupera Password
+      <button class="modal-close" onclick="closeModal2('reset-pwd-modal')">✕</button>
+    </div>
+    <div style="font-size:13px;color:var(--t2);margin-bottom:16px">Inserisci la tua email: ti invieremo un link per reimpostare la password.</div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" type="email" id="reset-email" placeholder="mario@email.com" autocomplete="email"/>
+    </div>
+    <button class="save-btn" style="background:var(--orange)" onclick="sendPasswordReset()">📧 Invia email di recupero</button>
+  </div>
+</div>
+<!-- IMAGE LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="document.getElementById('lightbox').classList.remove('active')">
+  <button class="lightbox-close">✕</button>
+  <img id="lightbox-img" src="" alt="receipt"/>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="profile-modal" onclick="handleModalBg(event,'profile-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      👤 <span id="lbl-profile-modal-title">Profilo</span>
+      <button class="modal-close" onclick="closeModal2('profile-modal')">✕</button>
+    </div>
+    <!-- Photo -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:20px">
+      <div id="profile-photo-wrap" style="position:relative;width:88px;height:88px;cursor:pointer" onclick="openProfilePhotoMenu()">
+        <div id="profile-photo-display" style="width:88px;height:88px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden">
+          <span id="profile-photo-placeholder">👤</span>
+          <img id="profile-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%"/>
+        </div>
+        <div style="position:absolute;bottom:0;right:0;width:26px;height:26px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px">📷</div>
+      </div>
+      <input type="file" id="profile-photo-file" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)"/>
+      <div style="font-size:11px;color:var(--t3)">Tocca per cambiare foto</div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input class="form-input" type="text" id="profile-name" placeholder="Mario" autocomplete="given-name"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cognome</label>
+        <input class="form-input" type="text" id="profile-surname" placeholder="Rossi" autocomplete="family-name"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data di nascita</label>
+      <input class="form-input" type="date" id="profile-birthday"/>
+    </div>
+    <div style="background:var(--bg3);border-radius:var(--r);padding:14px 16px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">☁️ Sincronizzazione Cloud</div>
+      <div id="profile-logged-out">
+        <div style="font-size:12px;color:var(--t2);margin-bottom:12px">Accedi per sincronizzare i dati su tutti i tuoi dispositivi. Puoi usare l'app anche senza account.</div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="profile-email" placeholder="mario@email.com" autocomplete="email"/>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="password" id="profile-password" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <button class="save-btn" style="background:var(--purple);margin-top:0" onclick="profileLogin()">☁️ Accedi / Registrati</button>
+        <div style="text-align:center;margin-top:8px">
+          <span style="font-size:12px;color:var(--blue);cursor:pointer;font-weight:600" onclick="openResetPwd()">🔑 Password dimenticata?</span>
+        </div>
+        <button class="save-btn" style="background:#fff;color:#333;border:1px solid #ddd;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="loginWithGoogle()">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Accedi con Google
+        </button>
+        <div style="font-size:10px;color:var(--t3);text-align:center;margin-top:8px">Prima volta? Verrà creato automaticamente un account. Ti verrà inviata un'email di verifica.</div>
+      </div>
+      <div id="profile-logged-in" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+          <div>
+            <div style="font-size:13px;font-weight:600" id="profile-cloud-email"></div>
+            <div style="font-size:11px;color:var(--t2)" id="profile-sync-status">Sincronizzato ✓</div>
+          </div>
+        </div>
+        <button class="danger-btn" style="margin-top:0" onclick="profileLogout()">Disconnetti</button>
+        <button class="save-btn" style="margin-top:10px;background:var(--blue)" onclick="manualSync()">☁️ Sincronizza ora</button>
+      </div>
+    </div>
+    <button class="save-btn" onclick="saveProfile()">💾 Salva profilo</button>
+  </div>
+</div>
+
+<script>
+// ===================== CURRENCIES =====================
+const CURRENCIES = [
+  {code:'EUR',symbol:'€',name:'Euro'},
+  {code:'USD',symbol:'$',name:'Dollaro US'},
+  {code:'GBP',symbol:'£',name:'Sterlina'},
+  {code:'CHF',symbol:'CHF',name:'Franco Svizzero'},
+  {code:'JPY',symbol:'¥',name:'Yen'},
+  {code:'CNY',symbol:'¥',name:'Yuan cinese'},
+  {code:'CAD',symbol:'CA$',name:'Dollaro canadese'},
+  {code:'AUD',symbol:'A$',name:'Dollaro australiano'},
+  {code:'NZD',symbol:'NZ$',name:'Dollaro neozelandese'},
+  {code:'SEK',symbol:'kr',name:'Corona svedese'},
+  {code:'NOK',symbol:'kr',name:'Corona norvegese'},
+  {code:'DKK',symbol:'kr',name:'Corona danese'},
+  {code:'PLN',symbol:'zł',name:'Złoty polacco'},
+  {code:'CZK',symbol:'Kč',name:'Corona ceca'},
+  {code:'HUF',symbol:'Ft',name:'Fiorino ungherese'},
+  {code:'RON',symbol:'lei',name:'Leu rumeno'},
+  {code:'BGN',symbol:'лв',name:'Lev bulgaro'},
+  {code:'HRK',symbol:'kn',name:'Kuna croata'},
+  {code:'RUB',symbol:'₽',name:'Rublo'},
+  {code:'TRY',symbol:'₺',name:'Lira turca'},
+  {code:'BRL',symbol:'R$',name:'Real brasiliano'},
+  {code:'MXN',symbol:'MX$',name:'Peso messicano'},
+  {code:'ARS',symbol:'$',name:'Peso argentino'},
+  {code:'CLP',symbol:'$',name:'Peso cileno'},
+  {code:'COP',symbol:'$',name:'Peso colombiano'},
+  {code:'INR',symbol:'₹',name:'Rupia indiana'},
+  {code:'KRW',symbol:'₩',name:'Won sudcoreano'},
+  {code:'SGD',symbol:'S$',name:'Dollaro Singapore'},
+  {code:'HKD',symbol:'HK$',name:'Dollaro Hong Kong'},
+  {code:'TWD',symbol:'NT$',name:'Dollaro Taiwan'},
+  {code:'THB',symbol:'฿',name:'Baht'},
+  {code:'IDR',symbol:'Rp',name:'Rupia indonesiana'},
+  {code:'MYR',symbol:'RM',name:'Ringgit'},
+  {code:'PHP',symbol:'₱',name:'Peso filippino'},
+  {code:'VND',symbol:'₫',name:'Dong vietnamita'},
+  {code:'SAR',symbol:'﷼',name:'Riyal saudita'},
+  {code:'AED',symbol:'د.إ',name:'Dirham EAU'},
+  {code:'QAR',symbol:'﷼',name:'Riyal Qatar'},
+  {code:'KWD',symbol:'د.ك',name:'Dinaro kuwaitiano'},
+  {code:'EGP',symbol:'£',name:'Sterlina egiziana'},
+  {code:'ZAR',symbol:'R',name:'Rand sudafricano'},
+  {code:'NGN',symbol:'₦',name:'Naira nigeriana'},
+  {code:'GHS',symbol:'GH₵',name:'Cedi ghanese'},
+  {code:'MAD',symbol:'MAD',name:'Dirham marocchino'},
+  {code:'ILS',symbol:'₪',name:'Shekel'},
+  {code:'UAH',symbol:'₴',name:'Grivnia'},
+  {code:'BTC',symbol:'₿',name:'Bitcoin'},
+  {code:'ETH',symbol:'Ξ',name:'Ethereum'},
+];
+
+// ===================== LANGUAGES =====================
+const LANGUAGES = [
+  {code:'it', name:'Italiano', flag:'🇮🇹'},
+  {code:'en', name:'English', flag:'🇬🇧'},
+  {code:'es', name:'Español', flag:'🇪🇸'},
+  {code:'fr', name:'Français', flag:'🇫🇷'},
+  {code:'de', name:'Deutsch', flag:'🇩🇪'},
+  {code:'pt', name:'Português', flag:'🇵🇹'},
+  {code:'ru', name:'Русский', flag:'🇷🇺'},
+  {code:'zh', name:'中文', flag:'🇨🇳'},
+  {code:'ja', name:'日本語', flag:'🇯🇵'},
+  {code:'ko', name:'한국어', flag:'🇰🇷'},
+  {code:'ar', name:'العربية', flag:'🇸🇦'},
+  {code:'hi', name:'हिन्दी', flag:'🇮🇳'},
+  {code:'tr', name:'Türkçe', flag:'🇹🇷'},
+  {code:'pl', name:'Polski', flag:'🇵🇱'},
+  {code:'nl', name:'Nederlands', flag:'🇳🇱'},
+  {code:'sv', name:'Svenska', flag:'🇸🇪'},
+  {code:'da', name:'Dansk', flag:'🇩🇰'},
+  {code:'no', name:'Norsk', flag:'🇳🇴'},
+  {code:'fi', name:'Suomi', flag:'🇫🇮'},
+  {code:'cs', name:'Čeština', flag:'🇨🇿'},
+  {code:'ro', name:'Română', flag:'🇷🇴'},
+  {code:'hu', name:'Magyar', flag:'🇭🇺'},
+  {code:'el', name:'Ελληνικά', flag:'🇬🇷'},
+  {code:'uk', name:'Українська', flag:'🇺🇦'},
+  {code:'id', name:'Bahasa Indonesia', flag:'🇮🇩'},
+  {code:'vi', name:'Tiếng Việt', flag:'🇻🇳'},
+  {code:'th', name:'ภาษาไทย', flag:'🇹🇭'},
+];
+
+// ===================== TRANSLATIONS =====================
+const TRANSLATIONS = {
+  it: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Patrimonio Totale',
+    today: 'Oggi', week: 'Settimana', month: 'Mese', year: 'Anno', total: 'Totale',
+    income: 'Entrata', expense: 'Spesa', transfer: 'Sposta',
+    yourAccounts: 'I tuoi conti', recentTx: 'Transazioni recenti',
+    trend: 'Andamento',
+    trendMonthly: 'Mensile', trendQuarterly: 'Trimestrale', trendSemiannual: 'Semestrale', trendYearly: 'Annuale', trendAllTime: 'Totale',
+    navHome: 'Home', navMovements: 'Movimenti', navCategories: 'Categorie', navCharts: 'Grafici', navSettings: 'Impostazioni',
+    movements: 'Movimenti', allAccounts: 'Tutti i conti', all: 'Tutti', incomes: 'Entrate', expenses: 'Spese', transfers: 'Trasferimenti', allMonths: 'Tutti i mesi',
+    yourCategories: 'Le tue categorie', newCategory: '＋ Nuova',
+    exportPDF: '📤 Esporta report PDF',
+    incVsExp: 'Entrate vs Spese', monthlyComparison: 'Confronto mensile',
+    expByCat: 'Spese per Categoria', currentMonth: 'Mese corrente',
+    accDistribution: 'Distribuzione Conti', topCats: 'Top Categorie', cumulativeExp: 'Spese cumulative',
+    settings: 'Impostazioni', general: 'Generale',
+    defaultCurrency: 'Valuta predefinita', currencySub: 'Usata per il patrimonio totale',
+    language: 'Lingua', languageSub: "Lingua dell'interfaccia",
+    dataSection: 'Dati', exportData: 'Esporta dati PDF', exportSub: 'Genera report stampabile',
+    newTx: 'Nuova Transazione', editTx: 'Modifica Transazione',
+    description: 'Descrizione', amount: 'Importo', date: 'Data',
+    account: 'Conto', destAccount: 'Conto Destinazione', categories: 'Categoria', notes: 'Note (opzionale)',
+    recurrence: 'Ricorrenza', recurNone: 'Nessuna (singola)', recurDaily: 'Giornaliera', recurWeekly: 'Settimanale', recurMonthly: 'Mensile', recurYearly: 'Annuale', recurCustom: 'Personalizzata',
+    recurEnd: 'Data fine ricorrenza', customRecur: 'Ricorrenza personalizzata',
+    every: 'Ogni', unit: 'Unità', days: 'Giorni', weeks: 'Settimane', months: 'Mesi',
+    hour: 'Ora', minute: 'Minuto',
+    txHour: 'Ora transazione', txMinute: 'Minuto transazione',
+    profile: 'Profilo', profileSub: 'Nome, foto e account',
+    profileName: 'Nome', profileSurname: 'Cognome', profileEmail: 'Email',
+    profilePassword: 'Password', profileBirthday: 'Data di nascita',
+    profilePhoto: 'Foto profilo', profileSave: '💾 Salva profilo',
+    profileLogin: 'Accedi con email', profileLogout: 'Disconnetti',
+    profileGuest: 'Ospite', profileSync: 'Dati sincronizzati ✓',
+    profileSyncError: 'Errore sincronizzazione',
+    profileLoginBtn: 'Accedi / Registrati',
+    profileLogoutConfirm: 'Disconnettersi? I dati locali verranno mantenuti.',
+    convertingCurrency: 'Conversione in corso...',
+    currencyConverted: 'Valuta convertita ✓',
+    currencyConvertError: 'Errore conversione valuta',
+    photo: 'Foto (scontrino, ecc.)', tapToAddPhoto: 'Tocca per aggiungere foto',
+    save: '💾 Salva', saveChanges: '💾 Salva Modifiche',
+    newCat: '🏷️ Nuova Categoria', editCat: '✏️ Modifica Categoria',
+    catName: 'Nome', catColor: 'Colore', catIcon: 'Icona', tapChoose: 'Tocca per scegliere',
+    createCat: 'Crea Categoria',
+    newAccount: '➕ Nuovo Conto', editAccount: '✏️ Modifica Conto',
+    accName: 'Nome Conto', accColor: 'Colore', accEmoji: 'Emoji', accCurrency: 'Valuta',
+    includeTotal: 'Includi nel patrimonio totale', addAccount: 'Aggiungi Conto', deleteAccount: '🗑 Elimina Conto',
+    exportTitle: '📤 Esporta PDF', choosePeriod: 'Scegli il periodo da esportare:',
+    expToday: '📅 Oggi', expWeek: '📅 Questa settimana', expMonth: '📅 Questo mese', expYear: "📅 Quest'anno", expAll: '📅 Storico completo',
+    chooseLang: 'Scegli Lingua', searchLang: 'Cerca lingua...',
+    searchEmoji: 'Cerca emoji...', chooseEmoji: 'Scegli Emoji',
+    netBalance: 'Saldo netto', incomeMonth: 'Entrate mese', expenseMonth: 'Spese mese',
+    noTx: 'Nessuna transazione in questo periodo.<br>Aggiungine una!', noTxPage: 'Nessuna transazione', noExpenses: 'Nessuna spesa', firstCat: 'Crea la tua prima categoria!',
+    descRequired: 'Inserisci una descrizione', amountInvalid: 'Importo non valido', dateRequired: 'Seleziona una data', diffAccounts: 'I conti devono essere diversi', nameRequired: 'Inserisci un nome',
+    saved: 'Salvato ✓', edited: 'Modificato ✓', deleted: 'Eliminato',
+    accUpdated: 'aggiornato ✓', accAdded: 'aggiunto ✓', accDeleted: 'eliminato',
+    catUpdated: 'aggiornata ✓', catCreated: 'creata ✓',
+    confirmDeleteTx: 'Eliminare questa transazione?', confirmDeleteAcc: 'Eliminare',
+    addNewAccount: 'Nuovo Conto',
+    categories2: 'Categorie',
+    periodToday: 'Oggi', periodWeek: 'Questa settimana', periodMonth: 'Questo mese', periodYear: "Quest'anno", periodAll: 'Tutto',
+    incLabel: 'Entrate –', expLabel: 'Spese –',
+    last6m: 'Ultimi 6 mesi',
+    reportLabel: 'Report:', reportIncome: 'Entrate', reportExpenses: 'Spese', reportNet: 'Saldo netto', reportTx: 'Transazioni',
+    generatedBy: 'Generato da FinanceHub',
+    excluded: '· escluso',
+  },
+  en: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Total Wealth',
+    today: 'Today', week: 'Week', month: 'Month', year: 'Year', total: 'Total',
+    income: 'Income', expense: 'Expense', transfer: 'Transfer',
+    yourAccounts: 'Your accounts', recentTx: 'Recent transactions',
+    trend: 'Trend',
+    trendMonthly: 'Monthly', trendQuarterly: 'Quarterly', trendSemiannual: 'Semiannual', trendYearly: 'Yearly', trendAllTime: 'All Time',
+    navHome: 'Home', navMovements: 'Movements', navCategories: 'Categories', navCharts: 'Charts', navSettings: 'Settings',
+    movements: 'Movements', allAccounts: 'All accounts', all: 'All', incomes: 'Income', expenses: 'Expenses', transfers: 'Transfers', allMonths: 'All months',
+    yourCategories: 'Your categories', newCategory: '＋ New',
+    exportPDF: '📤 Export PDF report',
+    incVsExp: 'Income vs Expenses', monthlyComparison: 'Monthly comparison',
+    expByCat: 'Expenses by Category', currentMonth: 'Current month',
+    accDistribution: 'Account Distribution', topCats: 'Top Categories', cumulativeExp: 'Cumulative expenses',
+    settings: 'Settings', general: 'General',
+    defaultCurrency: 'Default currency', currencySub: 'Used for total wealth',
+    language: 'Language', languageSub: 'Interface language',
+    dataSection: 'Data', exportData: 'Export PDF data', exportSub: 'Generate printable report',
+    newTx: 'New Transaction', editTx: 'Edit Transaction',
+    description: 'Description', amount: 'Amount', date: 'Date',
+    account: 'Account', destAccount: 'Destination Account', categories: 'Category', notes: 'Notes (optional)',
+    recurrence: 'Recurrence', recurNone: 'None (one-time)', recurDaily: 'Daily', recurWeekly: 'Weekly', recurMonthly: 'Monthly', recurYearly: 'Yearly', recurCustom: 'Custom',
+    recurEnd: 'Recurrence end date', customRecur: 'Custom recurrence',
+    every: 'Every', unit: 'Unit', days: 'Days', weeks: 'Weeks', months: 'Months',
+    hour: 'Hour', minute: 'Minute',
+    txHour: 'Transaction hour', txMinute: 'Transaction minute',
+    profile: 'Profile', profileSub: 'Name, photo and account',
+    profileName: 'First Name', profileSurname: 'Last Name', profileEmail: 'Email',
+    profilePassword: 'Password', profileBirthday: 'Birthday',
+    profilePhoto: 'Profile Photo', profileSave: '💾 Save profile',
+    profileLogin: 'Sign in with email', profileLogout: 'Sign out',
+    profileGuest: 'Guest', profileSync: 'Data synced ✓',
+    profileSyncError: 'Sync error',
+    profileLoginBtn: 'Sign In / Register',
+    profileLogoutConfirm: 'Sign out? Local data will be kept.',
+    convertingCurrency: 'Converting...',
+    currencyConverted: 'Currency converted ✓',
+    currencyConvertError: 'Currency conversion error',
+    photo: 'Photo (receipt, etc.)', tapToAddPhoto: 'Tap to add photo',
+    save: '💾 Save', saveChanges: '💾 Save Changes',
+    newCat: '🏷️ New Category', editCat: '✏️ Edit Category',
+    catName: 'Name', catColor: 'Color', catIcon: 'Icon', tapChoose: 'Tap to choose',
+    createCat: 'Create Category',
+    newAccount: '➕ New Account', editAccount: '✏️ Edit Account',
+    accName: 'Account Name', accColor: 'Color', accEmoji: 'Emoji', accCurrency: 'Currency',
+    includeTotal: 'Include in total wealth', addAccount: 'Add Account', deleteAccount: '🗑 Delete Account',
+    exportTitle: '📤 Export PDF', choosePeriod: 'Choose the period to export:',
+    expToday: '📅 Today', expWeek: '📅 This week', expMonth: '📅 This month', expYear: '📅 This year', expAll: '📅 Full history',
+    chooseLang: 'Choose Language', searchLang: 'Search language...',
+    searchEmoji: 'Search emoji...', chooseEmoji: 'Choose Emoji',
+    netBalance: 'Net balance', incomeMonth: 'Monthly income', expenseMonth: 'Monthly expenses',
+    noTx: 'No transactions in this period.<br>Add one!', noTxPage: 'No transactions', noExpenses: 'No expenses', firstCat: 'Create your first category!',
+    descRequired: 'Enter a description', amountInvalid: 'Invalid amount', dateRequired: 'Select a date', diffAccounts: 'Accounts must be different', nameRequired: 'Enter a name',
+    saved: 'Saved ✓', edited: 'Edited ✓', deleted: 'Deleted',
+    accUpdated: 'updated ✓', accAdded: 'added ✓', accDeleted: 'deleted',
+    catUpdated: 'updated ✓', catCreated: 'created ✓',
+    confirmDeleteTx: 'Delete this transaction?', confirmDeleteAcc: 'Delete',
+    addNewAccount: 'New Account',
+    categories2: 'Categories',
+    periodToday: 'Today', periodWeek: 'This week', periodMonth: 'This month', periodYear: 'This year', periodAll: 'All time',
+    incLabel: 'Income –', expLabel: 'Expenses –',
+    last6m: 'Last 6 months',
+    reportLabel: 'Report:', reportIncome: 'Income', reportExpenses: 'Expenses', reportNet: 'Net balance', reportTx: 'Transactions',
+    generatedBy: 'Generated by FinanceHub',
+    excluded: '· excluded',
+  },
+  es: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Patrimonio Total',
+    today: 'Hoy', week: 'Semana', month: 'Mes', year: 'Año', total: 'Total',
+    income: 'Ingreso', expense: 'Gasto', transfer: 'Transferir',
+    yourAccounts: 'Tus cuentas', recentTx: 'Transacciones recientes',
+    trend: 'Tendencia',
+    trendMonthly: 'Mensual', trendQuarterly: 'Trimestral', trendSemiannual: 'Semestral', trendYearly: 'Anual', trendAllTime: 'Total',
+    navHome: 'Inicio', navMovements: 'Movimientos', navCategories: 'Categorías', navCharts: 'Gráficos', navSettings: 'Ajustes',
+    movements: 'Movimientos', allAccounts: 'Todas las cuentas', all: 'Todos', incomes: 'Ingresos', expenses: 'Gastos', transfers: 'Transferencias', allMonths: 'Todos los meses',
+    yourCategories: 'Tus categorías', newCategory: '＋ Nueva',
+    exportPDF: '📤 Exportar informe PDF',
+    incVsExp: 'Ingresos vs Gastos', monthlyComparison: 'Comparación mensual',
+    expByCat: 'Gastos por Categoría', currentMonth: 'Mes actual',
+    accDistribution: 'Distribución de Cuentas', topCats: 'Top Categorías', cumulativeExp: 'Gastos acumulados',
+    settings: 'Ajustes', general: 'General',
+    defaultCurrency: 'Moneda predeterminada', currencySub: 'Usada para el patrimonio total',
+    language: 'Idioma', languageSub: 'Idioma de la interfaz',
+    dataSection: 'Datos', exportData: 'Exportar datos PDF', exportSub: 'Generar informe imprimible',
+    newTx: 'Nueva Transacción', editTx: 'Editar Transacción',
+    description: 'Descripción', amount: 'Importe', date: 'Fecha',
+    account: 'Cuenta', destAccount: 'Cuenta de destino', categories: 'Categoría', notes: 'Notas (opcional)',
+    recurrence: 'Recurrencia', recurNone: 'Ninguna (única)', recurDaily: 'Diaria', recurWeekly: 'Semanal', recurMonthly: 'Mensual', recurYearly: 'Anual', recurCustom: 'Personalizada',
+    recurEnd: 'Fecha fin de recurrencia', customRecur: 'Recurrencia personalizada',
+    every: 'Cada', unit: 'Unidad', days: 'Días', weeks: 'Semanas', months: 'Meses',
+    hour: 'Hora', minute: 'Minuto',
+    photo: 'Foto (recibo, etc.)', tapToAddPhoto: 'Toca para añadir foto',
+    save: '💾 Guardar', saveChanges: '💾 Guardar Cambios',
+    newCat: '🏷️ Nueva Categoría', editCat: '✏️ Editar Categoría',
+    catName: 'Nombre', catColor: 'Color', catIcon: 'Icono', tapChoose: 'Toca para elegir',
+    createCat: 'Crear Categoría',
+    newAccount: '➕ Nueva Cuenta', editAccount: '✏️ Editar Cuenta',
+    accName: 'Nombre de Cuenta', accColor: 'Color', accEmoji: 'Emoji', accCurrency: 'Moneda',
+    includeTotal: 'Incluir en el patrimonio total', addAccount: 'Añadir Cuenta', deleteAccount: '🗑 Eliminar Cuenta',
+    exportTitle: '📤 Exportar PDF', choosePeriod: 'Elige el período a exportar:',
+    expToday: '📅 Hoy', expWeek: '📅 Esta semana', expMonth: '📅 Este mes', expYear: '📅 Este año', expAll: '📅 Historial completo',
+    chooseLang: 'Elegir Idioma', searchLang: 'Buscar idioma...',
+    searchEmoji: 'Buscar emoji...', chooseEmoji: 'Elegir Emoji',
+    netBalance: 'Saldo neto', incomeMonth: 'Ingresos del mes', expenseMonth: 'Gastos del mes',
+    noTx: 'Sin transacciones en este período.<br>¡Añade una!', noTxPage: 'Sin transacciones', noExpenses: 'Sin gastos', firstCat: '¡Crea tu primera categoría!',
+    descRequired: 'Introduce una descripción', amountInvalid: 'Importe no válido', dateRequired: 'Selecciona una fecha', diffAccounts: 'Las cuentas deben ser diferentes', nameRequired: 'Introduce un nombre',
+    saved: 'Guardado ✓', edited: 'Editado ✓', deleted: 'Eliminado',
+    accUpdated: 'actualizado ✓', accAdded: 'añadido ✓', accDeleted: 'eliminado',
+    catUpdated: 'actualizada ✓', catCreated: 'creada ✓',
+    confirmDeleteTx: '¿Eliminar esta transacción?', confirmDeleteAcc: 'Eliminar',
+    addNewAccount: 'Nueva Cuenta',
+    categories2: 'Categorías',
+    periodToday: 'Hoy', periodWeek: 'Esta semana', periodMonth: 'Este mes', periodYear: 'Este año', periodAll: 'Todo',
+    incLabel: 'Ingresos –', expLabel: 'Gastos –',
+    last6m: 'Últimos 6 meses',
+    reportLabel: 'Informe:', reportIncome: 'Ingresos', reportExpenses: 'Gastos', reportNet: 'Saldo neto', reportTx: 'Transacciones',
+    generatedBy: 'Generado por FinanceHub',
+    excluded: '· excluido',
+  },
+  fr: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Patrimoine Total',
+    today: "Aujourd'hui", week: 'Semaine', month: 'Mois', year: 'Année', total: 'Total',
+    income: 'Revenu', expense: 'Dépense', transfer: 'Virement',
+    yourAccounts: 'Vos comptes', recentTx: 'Transactions récentes',
+    trend: 'Tendance',
+    trendMonthly: 'Mensuel', trendQuarterly: 'Trimestriel', trendSemiannual: 'Semestriel', trendYearly: 'Annuel', trendAllTime: 'Total',
+    navHome: 'Accueil', navMovements: 'Mouvements', navCategories: 'Catégories', navCharts: 'Graphiques', navSettings: 'Réglages',
+    movements: 'Mouvements', allAccounts: 'Tous les comptes', all: 'Tous', incomes: 'Revenus', expenses: 'Dépenses', transfers: 'Virements', allMonths: 'Tous les mois',
+    yourCategories: 'Vos catégories', newCategory: '＋ Nouveau',
+    exportPDF: '📤 Exporter rapport PDF',
+    incVsExp: 'Revenus vs Dépenses', monthlyComparison: 'Comparaison mensuelle',
+    expByCat: 'Dépenses par Catégorie', currentMonth: 'Mois en cours',
+    accDistribution: 'Répartition des Comptes', topCats: 'Top Catégories', cumulativeExp: 'Dépenses cumulées',
+    settings: 'Réglages', general: 'Général',
+    defaultCurrency: 'Devise par défaut', currencySub: 'Utilisée pour le patrimoine total',
+    language: 'Langue', languageSub: "Langue de l'interface",
+    dataSection: 'Données', exportData: 'Exporter données PDF', exportSub: 'Générer rapport imprimable',
+    newTx: 'Nouvelle Transaction', editTx: 'Modifier Transaction',
+    description: 'Description', amount: 'Montant', date: 'Date',
+    account: 'Compte', destAccount: 'Compte destinataire', categories: 'Catégorie', notes: 'Notes (facultatif)',
+    recurrence: 'Récurrence', recurNone: 'Aucune (unique)', recurDaily: 'Quotidienne', recurWeekly: 'Hebdomadaire', recurMonthly: 'Mensuelle', recurYearly: 'Annuelle', recurCustom: 'Personnalisée',
+    recurEnd: 'Date fin de récurrence', customRecur: 'Récurrence personnalisée',
+    every: 'Tous les', unit: 'Unité', days: 'Jours', weeks: 'Semaines', months: 'Mois',
+    hour: 'Heure', minute: 'Minute',
+    profile: 'Profil', profileSub: 'Nom, photo et compte',
+    profileGuest: 'Invité', profileSync: 'Données synchronisées ✓',
+    profileSyncError: 'Erreur de synchronisation',
+    profileLoginBtn: 'Se connecter / S\'inscrire',
+    profileLogoutConfirm: 'Se déconnecter ? Les données locales seront conservées.',
+    convertingCurrency: 'Conversion en cours...', currencyConverted: 'Devise convertie ✓', currencyConvertError: 'Erreur de conversion',
+    photo: 'Photo (reçu, etc.)', tapToAddPhoto: 'Appuyez pour ajouter une photo',
+    save: '💾 Enregistrer', saveChanges: '💾 Sauvegarder',
+    newCat: '🏷️ Nouvelle Catégorie', editCat: '✏️ Modifier Catégorie',
+    catName: 'Nom', catColor: 'Couleur', catIcon: 'Icône', tapChoose: 'Appuyez pour choisir',
+    createCat: 'Créer Catégorie',
+    newAccount: '➕ Nouveau Compte', editAccount: '✏️ Modifier Compte',
+    accName: 'Nom du Compte', accColor: 'Couleur', accEmoji: 'Emoji', accCurrency: 'Devise',
+    includeTotal: 'Inclure dans le patrimoine total', addAccount: 'Ajouter Compte', deleteAccount: '🗑 Supprimer Compte',
+    exportTitle: '📤 Exporter PDF', choosePeriod: 'Choisir la période à exporter :',
+    expToday: "📅 Aujourd'hui", expWeek: '📅 Cette semaine', expMonth: '📅 Ce mois', expYear: '📅 Cette année', expAll: '📅 Historique complet',
+    chooseLang: 'Choisir Langue', searchLang: 'Rechercher une langue...',
+    searchEmoji: 'Rechercher emoji...', chooseEmoji: 'Choisir Emoji',
+    netBalance: 'Solde net', incomeMonth: 'Revenus du mois', expenseMonth: 'Dépenses du mois',
+    noTx: 'Aucune transaction dans cette période.<br>Ajoutez-en une !', noTxPage: 'Aucune transaction', noExpenses: 'Aucune dépense', firstCat: 'Créez votre première catégorie !',
+    descRequired: 'Entrez une description', amountInvalid: 'Montant invalide', dateRequired: 'Sélectionnez une date', diffAccounts: 'Les comptes doivent être différents', nameRequired: 'Entrez un nom',
+    saved: 'Enregistré ✓', edited: 'Modifié ✓', deleted: 'Supprimé',
+    accUpdated: 'mis à jour ✓', accAdded: 'ajouté ✓', accDeleted: 'supprimé',
+    catUpdated: 'mise à jour ✓', catCreated: 'créée ✓',
+    confirmDeleteTx: 'Supprimer cette transaction ?', confirmDeleteAcc: 'Supprimer',
+    addNewAccount: 'Nouveau Compte',
+    categories2: 'Catégories',
+    periodToday: "Aujourd'hui", periodWeek: 'Cette semaine', periodMonth: 'Ce mois', periodYear: 'Cette année', periodAll: 'Tout',
+    incLabel: 'Revenus –', expLabel: 'Dépenses –',
+    last6m: '6 derniers mois',
+    reportLabel: 'Rapport :', reportIncome: 'Revenus', reportExpenses: 'Dépenses', reportNet: 'Solde net', reportTx: 'Transactions',
+    generatedBy: 'Généré par FinanceHub',
+    excluded: '· exclu',
+  },
+  de: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Gesamtvermögen',
+    today: 'Heute', week: 'Woche', month: 'Monat', year: 'Jahr', total: 'Gesamt',
+    income: 'Einnahme', expense: 'Ausgabe', transfer: 'Überweisung',
+    yourAccounts: 'Ihre Konten', recentTx: 'Letzte Transaktionen',
+    trend: 'Verlauf',
+    trendMonthly: 'Monatlich', trendQuarterly: 'Vierteljährlich', trendSemiannual: 'Halbjährlich', trendYearly: 'Jährlich', trendAllTime: 'Gesamt',
+    navHome: 'Startseite', navMovements: 'Buchungen', navCategories: 'Kategorien', navCharts: 'Diagramme', navSettings: 'Einstellungen',
+    movements: 'Buchungen', allAccounts: 'Alle Konten', all: 'Alle', incomes: 'Einnahmen', expenses: 'Ausgaben', transfers: 'Überweisungen', allMonths: 'Alle Monate',
+    yourCategories: 'Ihre Kategorien', newCategory: '＋ Neu',
+    exportPDF: '📤 PDF-Bericht exportieren',
+    incVsExp: 'Einnahmen vs Ausgaben', monthlyComparison: 'Monatlicher Vergleich',
+    expByCat: 'Ausgaben nach Kategorie', currentMonth: 'Aktueller Monat',
+    accDistribution: 'Kontenverteilung', topCats: 'Top-Kategorien', cumulativeExp: 'Kumulierte Ausgaben',
+    settings: 'Einstellungen', general: 'Allgemein',
+    defaultCurrency: 'Standardwährung', currencySub: 'Für das Gesamtvermögen verwendet',
+    language: 'Sprache', languageSub: 'Oberflächensprache',
+    dataSection: 'Daten', exportData: 'PDF-Daten exportieren', exportSub: 'Druckbaren Bericht erstellen',
+    newTx: 'Neue Transaktion', editTx: 'Transaktion bearbeiten',
+    description: 'Beschreibung', amount: 'Betrag', date: 'Datum',
+    account: 'Konto', destAccount: 'Zielkonto', categories: 'Kategorie', notes: 'Notizen (optional)',
+    recurrence: 'Wiederholung', recurNone: 'Keine (einmalig)', recurDaily: 'Täglich', recurWeekly: 'Wöchentlich', recurMonthly: 'Monatlich', recurYearly: 'Jährlich', recurCustom: 'Benutzerdefiniert',
+    recurEnd: 'Ende der Wiederholung', customRecur: 'Benutzerdefinierte Wiederholung',
+    every: 'Alle', unit: 'Einheit', days: 'Tage', weeks: 'Wochen', months: 'Monate',
+    hour: 'Stunde', minute: 'Minute',
+    profile: 'Profil', profileSub: 'Name, Foto und Konto',
+    profileGuest: 'Gast', profileSync: 'Daten synchronisiert ✓',
+    profileSyncError: 'Synchronisierungsfehler',
+    profileLoginBtn: 'Anmelden / Registrieren',
+    profileLogoutConfirm: 'Abmelden? Lokale Daten werden beibehalten.',
+    convertingCurrency: 'Konvertierung...', currencyConverted: 'Währung konvertiert ✓', currencyConvertError: 'Konvertierungsfehler',
+    photo: 'Foto (Quittung, etc.)', tapToAddPhoto: 'Tippen um Foto hinzuzufügen',
+    save: '💾 Speichern', saveChanges: '💾 Änderungen speichern',
+    newCat: '🏷️ Neue Kategorie', editCat: '✏️ Kategorie bearbeiten',
+    catName: 'Name', catColor: 'Farbe', catIcon: 'Symbol', tapChoose: 'Tippen zum Auswählen',
+    createCat: 'Kategorie erstellen',
+    newAccount: '➕ Neues Konto', editAccount: '✏️ Konto bearbeiten',
+    accName: 'Kontoname', accColor: 'Farbe', accEmoji: 'Emoji', accCurrency: 'Währung',
+    includeTotal: 'Im Gesamtvermögen einbeziehen', addAccount: 'Konto hinzufügen', deleteAccount: '🗑 Konto löschen',
+    exportTitle: '📤 PDF exportieren', choosePeriod: 'Zeitraum zum Exportieren wählen:',
+    expToday: '📅 Heute', expWeek: '📅 Diese Woche', expMonth: '📅 Diesen Monat', expYear: '📅 Dieses Jahr', expAll: '📅 Gesamter Verlauf',
+    chooseLang: 'Sprache wählen', searchLang: 'Sprache suchen...',
+    searchEmoji: 'Emoji suchen...', chooseEmoji: 'Emoji wählen',
+    netBalance: 'Nettosaldo', incomeMonth: 'Monatliche Einnahmen', expenseMonth: 'Monatliche Ausgaben',
+    noTx: 'Keine Transaktionen in diesem Zeitraum.<br>Fügen Sie eine hinzu!', noTxPage: 'Keine Transaktionen', noExpenses: 'Keine Ausgaben', firstCat: 'Erstellen Sie Ihre erste Kategorie!',
+    descRequired: 'Beschreibung eingeben', amountInvalid: 'Ungültiger Betrag', dateRequired: 'Datum auswählen', diffAccounts: 'Konten müssen unterschiedlich sein', nameRequired: 'Name eingeben',
+    saved: 'Gespeichert ✓', edited: 'Bearbeitet ✓', deleted: 'Gelöscht',
+    accUpdated: 'aktualisiert ✓', accAdded: 'hinzugefügt ✓', accDeleted: 'gelöscht',
+    catUpdated: 'aktualisiert ✓', catCreated: 'erstellt ✓',
+    confirmDeleteTx: 'Diese Transaktion löschen?', confirmDeleteAcc: 'Löschen',
+    addNewAccount: 'Neues Konto',
+    categories2: 'Kategorien',
+    periodToday: 'Heute', periodWeek: 'Diese Woche', periodMonth: 'Diesen Monat', periodYear: 'Dieses Jahr', periodAll: 'Alles',
+    incLabel: 'Einnahmen –', expLabel: 'Ausgaben –',
+    last6m: 'Letzte 6 Monate',
+    reportLabel: 'Bericht:', reportIncome: 'Einnahmen', reportExpenses: 'Ausgaben', reportNet: 'Nettosaldo', reportTx: 'Transaktionen',
+    generatedBy: 'Erstellt von FinanceHub',
+    excluded: '· ausgeschlossen',
+  },
+  pt: {
+    appTitle: 'FinanceHub',
+    totalWealth: 'Património Total',
+    today: 'Hoje', week: 'Semana', month: 'Mês', year: 'Ano', total: 'Total',
+    income: 'Receita', expense: 'Despesa', transfer: 'Transferência',
+    yourAccounts: 'As suas contas', recentTx: 'Transações recentes',
+    trend: 'Tendência',
+    trendMonthly: 'Mensal', trendQuarterly: 'Trimestral', trendSemiannual: 'Semestral', trendYearly: 'Anual', trendAllTime: 'Total',
+    navHome: 'Início', navMovements: 'Movimentos', navCategories: 'Categorias', navCharts: 'Gráficos', navSettings: 'Definições',
+    movements: 'Movimentos', allAccounts: 'Todas as contas', all: 'Todos', incomes: 'Receitas', expenses: 'Despesas', transfers: 'Transferências', allMonths: 'Todos os meses',
+    yourCategories: 'As suas categorias', newCategory: '＋ Nova',
+    exportPDF: '📤 Exportar relatório PDF',
+    incVsExp: 'Receitas vs Despesas', monthlyComparison: 'Comparação mensal',
+    expByCat: 'Despesas por Categoria', currentMonth: 'Mês atual',
+    accDistribution: 'Distribuição de Contas', topCats: 'Top Categorias', cumulativeExp: 'Despesas acumuladas',
+    settings: 'Definições', general: 'Geral',
+    defaultCurrency: 'Moeda predefinida', currencySub: 'Usada para o património total',
+    language: 'Idioma', languageSub: 'Idioma da interface',
+    dataSection: 'Dados', exportData: 'Exportar dados PDF', exportSub: 'Gerar relatório imprimível',
+    newTx: 'Nova Transação', editTx: 'Editar Transação',
+    description: 'Descrição', amount: 'Valor', date: 'Data',
+    account: 'Conta', destAccount: 'Conta de destino', categories: 'Categoria', notes: 'Notas (opcional)',
+    recurrence: 'Recorrência', recurNone: 'Nenhuma (única)', recurDaily: 'Diária', recurWeekly: 'Semanal', recurMonthly: 'Mensal', recurYearly: 'Anual', recurCustom: 'Personalizada',
+    recurEnd: 'Data fim de recorrência', customRecur: 'Recorrência personalizada',
+    every: 'Cada', unit: 'Unidade', days: 'Dias', weeks: 'Semanas', months: 'Meses',
+    hour: 'Hora', minute: 'Minuto',
+    photo: 'Foto (recibo, etc.)', tapToAddPhoto: 'Toque para adicionar foto',
+    save: '💾 Guardar', saveChanges: '💾 Guardar Alterações',
+    newCat: '🏷️ Nova Categoria', editCat: '✏️ Editar Categoria',
+    catName: 'Nome', catColor: 'Cor', catIcon: 'Ícone', tapChoose: 'Toque para escolher',
+    createCat: 'Criar Categoria',
+    newAccount: '➕ Nova Conta', editAccount: '✏️ Editar Conta',
+    accName: 'Nome da Conta', accColor: 'Cor', accEmoji: 'Emoji', accCurrency: 'Moeda',
+    includeTotal: 'Incluir no património total', addAccount: 'Adicionar Conta', deleteAccount: '🗑 Eliminar Conta',
+    exportTitle: '📤 Exportar PDF', choosePeriod: 'Escolha o período a exportar:',
+    expToday: '📅 Hoje', expWeek: '📅 Esta semana', expMonth: '📅 Este mês', expYear: '📅 Este ano', expAll: '📅 Histórico completo',
+    chooseLang: 'Escolher Idioma', searchLang: 'Procurar idioma...',
+    searchEmoji: 'Procurar emoji...', chooseEmoji: 'Escolher Emoji',
+    netBalance: 'Saldo líquido', incomeMonth: 'Receitas do mês', expenseMonth: 'Despesas do mês',
+    noTx: 'Sem transações neste período.<br>Adicione uma!', noTxPage: 'Sem transações', noExpenses: 'Sem despesas', firstCat: 'Crie a sua primeira categoria!',
+    descRequired: 'Introduza uma descrição', amountInvalid: 'Valor inválido', dateRequired: 'Selecione uma data', diffAccounts: 'As contas devem ser diferentes', nameRequired: 'Introduza um nome',
+    saved: 'Guardado ✓', edited: 'Editado ✓', deleted: 'Eliminado',
+    accUpdated: 'atualizado ✓', accAdded: 'adicionado ✓', accDeleted: 'eliminado',
+    catUpdated: 'atualizada ✓', catCreated: 'criada ✓',
+    confirmDeleteTx: 'Eliminar esta transação?', confirmDeleteAcc: 'Eliminar',
+    addNewAccount: 'Nova Conta',
+    categories2: 'Categorias',
+    periodToday: 'Hoje', periodWeek: 'Esta semana', periodMonth: 'Este mês', periodYear: 'Este ano', periodAll: 'Tudo',
+    incLabel: 'Receitas –', expLabel: 'Despesas –',
+    last6m: 'Últimos 6 meses',
+    reportLabel: 'Relatório:', reportIncome: 'Receitas', reportExpenses: 'Despesas', reportNet: 'Saldo líquido', reportTx: 'Transações',
+    generatedBy: 'Gerado por FinanceHub',
+    excluded: '· excluído',
+  },
+};
+// Fallback for unsupported languages
+function getLang(){ return settings.language || 'it'; }
+function t(key){ const l=getLang(); const tr=TRANSLATIONS[l]||TRANSLATIONS['it']; return tr[key]!==undefined?tr[key]:(TRANSLATIONS['it'][key]||key); }
+
+// ===================== DATA =====================
+let transactions = JSON.parse(localStorage.getItem('fh_tx') || '[]');
+let categories = JSON.parse(localStorage.getItem('fh_cats') || '[]');
+let accounts = JSON.parse(localStorage.getItem('fh_accounts') || 'null');
+let settings = JSON.parse(localStorage.getItem('fh_settings') || '{"currency":"EUR","language":"it"}');
+let currentPeriod = 'monthly';
+let currentTrendPeriod = 'quarterly';
+
+if (!accounts) {
+  accounts = [
+    {id:'acc_cash', name:'Contanti', emoji:'💵', color:'#fbbf24', currency:'EUR', includeInTotal:true},
+    {id:'acc_isy',  name:'Isybank',  emoji:'💳', color:'#7986cb', currency:'EUR', includeInTotal:true},
+    {id:'acc_buddy',name:'Buddybank',emoji:'💚', color:'#22d48a', currency:'EUR', includeInTotal:true},
+    {id:'acc_rev',  name:'Revolut',  emoji:'🌀', color:'#22d3ee', currency:'EUR', includeInTotal:true},
+    {id:'acc_hype', name:'Hype',     emoji:'🔥', color:'#ef5350', currency:'EUR', includeInTotal:true},
+  ];
+  localStorage.setItem('fh_accounts', JSON.stringify(accounts));
+}
+
+// Migrate old accounts
+accounts = accounts.map(a => ({ currency: 'EUR', includeInTotal: true, ...a }));
+
+// Migrate old transactions
+transactions = transactions.map(t => {
+  const byId = accounts.find(a => a.id === t.account);
+  if (!byId && t.account) { const byName = accounts.find(a=>a.name===t.account); if(byName) t.account=byName.id; }
+  if (t.fromAccount && !accounts.find(a=>a.id===t.fromAccount)) { const byName=accounts.find(a=>a.name===t.fromAccount); if(byName) t.fromAccount=byName.id; }
+  if (t.toAccount && !accounts.find(a=>a.id===t.toAccount)) { const byName=accounts.find(a=>a.name===t.toAccount); if(byName) t.toAccount=byName.id; }
+  if (!t.recurring) t.recurring = 'none';
+  if (!t.photo) t.photo = '';
+  return t;
+});
+
+if (!settings.language) settings.language = 'it';
+
+const GRADIENT_PRESETS = [
+  '#4f8ef7','#22d48a','#f25270','#a78bfa','#fb923c','#22d3ee','#fbbf24','#ec4899',
+  'linear-gradient(135deg,#667eea,#764ba2)','linear-gradient(135deg,#f093fb,#f5576c)',
+  'linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#43e97b,#38f9d7)',
+  'linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#30cfd0,#667eea)',
+  'linear-gradient(135deg,#a18cd1,#fbc2eb)','linear-gradient(135deg,#fda085,#f6d365)',
+];
+
+const ALL_COLORS = [
+  '#ff6b6b','#ff8e53','#feca57','#48dbfb','#ff9ff3','#54a0ff','#5f27cd',
+  '#ee5a24','#f368e0','#0abde3','#10ac84','#2e86de','#c44569','#e15f41',
+  '#4f8ef7','#22d48a','#f25270','#a78bfa','#fb923c','#22d3ee','#fbbf24','#ec4899',
+  '#14b8a6','#a855f7','#22c55e','#ef4444','#f97316','#06b6d4','#8b5cf6','#10b981',
+  '#6366f1','#84cc16','#eab308','#f43f5e','#0ea5e9','#d946ef','#64748b','#475569',
+  '#dc2626','#d97706','#65a30d','#0891b2','#7c3aed','#db2777','#059669','#2563eb',
+  '#ffffff','#e5e7eb','#9ca3af','#6b7280','#374151','#1f2937','#111827','#000000',
+];
+
+let currentTxType = 'expense';
+let chartRefs = {};
+let emojiPickerTarget = null;
+
+// ===================== EMOJI DATA (Catalogo completo Apple) =====================
+const EMOJI_CATEGORIES = [
+  { label: '😀 Faccine', emojis: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🫢','🫣','🤫','🤔','🫡','🤐','🤨','😐','😑','😶','🫥','😏','😒','🙄','😬','🤥','🫠','😌','😔','😪','🤤','😴','🥱','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','💫','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','🫤','😟','🙁','☹️','😮','😯','😲','😳','🥺','🥹','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾'] },
+  { label: '👋 Persone & Gesti', emojis: ['👋','🤚','🖐️','✋','🖖','🫱','🫲','🫳','🫴','🫵','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👍','👎','✊','👊','🤛','🤜','👏','🫶','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦵','🦶','👂','🦻','👃','🫀','🫁','🧠','🦷','🦴','👀','👁️','👅','👄','🫦','🧑','👶','🧒','👦','👧','🧑','👱','👨','🧔','👩','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','💆','💇','🚶','🧍','🧎','🏃','💃','🕺','🕴️','👯','🧖','🧗','🏇','🏂','🏋️','🤼','🤸','🤺','🏊','🤽','🚣','🧘','🛀','🛌','👭','👫','👬','💑','💏','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👩‍👦','👩‍👧','👩‍👧‍👦','👨‍👦','👨‍👧','👨‍👧‍👦','🪢','🧣','🧤','🧥','🥼','👚','👕','👖','🩲','🩳','👗','👘','🥻','🩱','👙','🩴','👠','👡','👢','👞','👟','🥾','🧢','👒','🎩','🎓','⛑️','💄','💍','💎','👜','👛','👝','🎒','🧳','🛍️','🕶️','🥽','🌂','☂️'] },
+  { label: '🐶 Animali', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🐤','🐣','🐥','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🪱','🐛','🦋','🐌','🐞','🐜','🪲','🦟','🦗','🪳','🕷️','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🦣','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🦬','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙','🐐','🦌','🐕','🐩','🦮','🐕‍🦺','🐈','🐈‍⬛','🪶','🐓','🦃','🦤','🦚','🦜','🦢','🕊️','🐇','🦝','🦨','🦡','🦫','🦦','🦥','🐁','🐀','🐿️','🦔','🐾','🐲','🐉','🌵','🎄','🌲','🌳','🌴','🪵','🌱','🌿','☘️','🍀','🎍','🎋','🍃','🍂','🍁','🍄','🐚','🪸','🌾','💐','🌷','🌹','🥀','🌺','🌸','🌼','🌻','🌞','🌝','🌛','🌜','🌚','🌕','🌖','🌗','🌘','🌑','🌒','🌓','🌔','🌙','🌟','⭐','🌠','🌌','🌤️','⛅','🌥️','🌦️','🌧️','⛈️','🌩️','🌨️','❄️','☃️','⛄','🌬️','💨','🌀','🌈','🌂','☂️','☔','☁️','🌊','🌫️'] },
+  { label: '🌺 Natura & Tempo', emojis: ['🌍','🌎','🌏','🌐','🗺️','🧭','🏔️','⛰️','🌋','🗻','🏕️','🏖️','🏜️','🏝️','🏞️','🌅','🌄','🌠','🎇','🎆','🌇','🌆','🏙️','🌃','🌌','🌉','🌁','⛲','🎑','🏟️','🌿','🍃','🍂','🍁','🍄','🌾','💧','💦','🌊','🌈','⚡','❄️','☃️','⛄','🔥','💥','🌟','⭐','💫','✨','🌙','☀️','🌤️','⛅','🌧️','🌩️','🌪️','🌫️','🌬️','🌀','🌈','🌂','☂️','☔','⚡','❄️','🔥','💥','🌿','🌱','🌲','🌳','🌴','🪴','🌵','🎋','🎍','🍀','☘️','🍁','🍂','🍃','🪨','🪵','🌾','💐','🌷','🌹','🥀','🌺','🌸','🌼','🌻','🫧','🪷','🪻'] },
+  { label: '🍕 Cibo & Bevande', emojis: ['🍎','🍐','🍊','🍋','🍋‍🟩','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🫒','🥦','🥬','🥒','🌶️','🫑','🧄','🧅','🥔','🍠','🫚','🧅','🥐','🥯','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕','🌮','🌯','🫔','🥙','🧆','🥚','🍲','🥘','🍛','🍜','🍝','🍠','🍢','🍣','🍤','🍙','🍚','🍘','🍥','🥮','🍡','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🧃','🥛','☕','🫖','🍵','🧋','🍺','🍻','🥂','🍷','🥃','🍸','🍹','🍾','🧉','🍶','🍱','🍘','🫙','🥡','🧊','🫗','🍴','🍽️','🥄','🔪','🫙'] },
+  { label: '✈️ Viaggi & Luoghi', emojis: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🏍️','🛵','🛺','🚲','🛴','🛹','🛼','🚏','🛣️','🛤️','⛽','🚨','🚥','🚦','🛑','🚧','⚓','🛟','⛵','🛶','🚤','🛥️','🛳️','⛴️','🚢','✈️','🛩️','🛫','🛬','🪂','💺','🚁','🚟','🚠','🚡','🛰️','🚀','🛸','🌍','🗺️','🧭','🗼','🗽','🗿','🏰','🏯','🕌','🛕','🕍','⛪','🏛️','⛩️','🏗️','🏢','🏣','🏤','🏥','🏦','🏨','🏪','🏫','🏬','🏭','🏠','🏡','⛺','🛖','🏕️','💒','🏟️','🎠','🎡','🎢','🗺️','🏔️','⛰️','🌋','🏕️','🏖️','🏜️','🏝️','🏞️'] },
+  { label: '⚽ Sport & Attività', emojis: ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🏓','🏸','🏒','🥍','🏑','🏏','🪃','⛳','🎣','🤿','🎽','🎿','🛷','🥌','🛹','🛼','⛸️','🥊','🥋','🎯','🪀','🪁','🎲','🧩','🎮','🕹️','🎰','🎳','🏋️','🤼','🤸','🤺','⛷️','🏊','🤽','🚣','🧘','🚵','🚴','🏇','🤾','🏌️','🏄','🏇','🧗','🏆','🥇','🥈','🥉','🏅','🎖️','🎗️','🎟️','🎫','🎪','🤹','🎭','🎨','🖼️','🎬','🎤','🎧','🎼','🎵','🎶','🎷','🎸','🎹','🎺','🎻','🪕','🥁','🪘','🎙️','📻','📺','🎦','🎬','🎨'] },
+  { label: '💡 Oggetti & Casa', emojis: ['📱','💻','⌨️','🖥️','🖨️','🖱️','💽','💾','💿','📀','📷','📸','📹','🎥','📞','☎️','📟','📠','📺','📻','📡','🔋','🪫','🔌','💡','🔦','🕯️','🧯','🛢️','💈','🪒','🧴','🧷','🧹','🧺','🧻','🚿','🛁','🧼','🪥','🪑','🚪','🛋️','🛏️','🛒','🧺','🪣','🧲','🪜','🧰','🔧','🔩','⚙️','🔨','⚒️','🛠️','⛏️','🪚','🔑','🗝️','🔒','🔓','🪝','🧲','🪜','💎','💰','💳','💵','💴','💶','💷','💸','💹','🏧','🪙','💱','💲','✉️','📧','📦','📫','📬','📮','📯','📢','📣','🔔','🔕','🔇','🔈','🔉','🔊','📢','🔔','🔕','📜','📃','📋','📊','📈','📉','📌','📍','📎','🖇️','✂️','🗃️','🗄️','🗑️','🔍','🔎','🔏','🔐','🔒','🔓'] },
+  { label: '💼 Finanza & Lavoro', emojis: ['💰','💳','💵','💴','💶','💷','💸','💹','📈','📉','📊','🏦','🏧','💱','💲','🪙','💎','🏆','🥇','🥈','🥉','🎖️','🎀','🎁','🛍️','🛒','🧾','🤝','📝','📋','📌','📍','🗂️','💼','🏢','🏬','🏪','📁','📂','🗂️','🗃️','📋','📊','📈','📉','📌','📍','📎','✂️','🖊️','🖋️','✒️','🖌️','🖍️','📝','✏️','📏','📐','🔗','📌','📍','🗓️','📅','📆','🗑️','📧','📨','📩','📤','📥','📦','📫','📪','📬','📭','📮'] },
+  { label: '🎉 Simboli & Festività', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','❤️‍🩹','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🔱','♻️','✅','🔰','🈯','💹','❎','🌐','✳️','❇️','🍀','✔️','🔲','🔳','⬛','⬜','◼️','◻️','◾','◽','▪️','▫️','🟥','🟧','🟨','🟩','🟦','🟪','⚫','⚪','🟫','🎌','🏁','🚩','🏴','🏳️','🎊','🎉','🎈','🎀','🎁','🎗️','🎟️','🎫','🎠','🎡','🎢','🎪','🤹','🎭','🎬','🎤','🎧','🎼'] },
+  { label: '🔢 Numeri & Testo', emojis: ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','🔠','🔡','🔢','🔣','🔤','🅰️','🅱️','🆎','🆑','🅾️','🆘','🆔','🆕','🆓','🆒','🆗','🆙','🆚','🈵','🈹','🈸','🈶','🈚','🈷️','🈴','🈲','💯','🔝','🔙','🔛','🔜','🔚','⬆️','⬇️','⬅️','➡️','↗️','↘️','↙️','↖️','↕️','↔️','↩️','↪️','⤴️','⤵️','🔃','🔄','🔀','🔁','🔂','🔼','🔽','⏩','⏪','⏫','⏬','⏭️','⏮️','⏯️','⏹️','⏸️','⏺️','▶️','⏏️','🎦','🔅','🔆','📶','📳','📴','📵','📞','🔇','🔈','🔉','🔊','📢','📣','🔔','🔕','🃏','🀄'] },
+  { label: '⌚ Orologi & Frecce', emojis: ['🕛','🕧','🕐','🕜','🕑','🕝','🕒','🕞','🕓','🕟','🕔','🕠','🕕','🕡','🕖','🕢','🕗','🕣','🕘','🕤','🕙','🕥','🕚','🕦','⌚','⏰','⏱️','⏲️','🕰️','⌛','⏳','📅','📆','🗓️','🗑️','📇','🗃️','🗄️','📋','📊','📈','📉','📌','📍','📎','✂️','🔍','🔎','🔏','🔐','🔒','🔓','🔨','🪓','⛏️','⚒️','🛠️','🔧','🔩','⚙️','🗜️','🔗','⛓️','🪝','🧲','🪜','💡','🔦','🕯️','🪔','🧯','🛢️','💰','💴','💵','💶','💷','💸','💳','🪙','💹','📱','💻','🖥️','🖨️','⌨️','🖱️','🖲️','💽','💾','💿','📀','📷','📸','📹','🎥','📡','☎️','📞','📟','📠','🔋','🪫','🔌'] },
+];
+
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+  initColorPicker('cat');
+  initColorPicker('acc');
+  buildEmojiPickerCategories();
+  populateCurrencySelects();
+  document.getElementById('settings-currency').value = settings.currency || 'EUR';
+  document.getElementById('tx-recurring').addEventListener('change', function(){
+    const v = this.value;
+    document.getElementById('recur-end-group').classList.toggle('no-display', v==='none'||v==='custom');
+    document.getElementById('recur-custom-group').classList.toggle('no-display', v!=='custom');
+  });
+  if (!categories.length) seedCategories(); else { processRecurring(); updateAll(); }
+  applyTranslations();
+  renderLangList('');
+  initFirebase();
+});
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+// ===================== FIREBASE CONFIG =====================
+const FB_CONFIG = {
+  apiKey: "AIzaSyAehEZEz72TwMZsqIHH_2hFOH2eypL0t60",
+  authDomain: "finance-hub-c6cfa.firebaseapp.com",
+  databaseURL: "https://finance-hub-c6cfa-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "finance-hub-c6cfa",
+  storageBucket: "finance-hub-c6cfa.firebasestorage.app",
+  messagingSenderId: "568884693042",
+  appId: "1:568884693042:web:ce0602f70a3c25b00b542b"
+};
+
+let fbApp = null, fbAuth = null, fbDb = null, fbUser = null;
+let syncTimeout = null;
+let fbInitialized = false;
+
+function initFirebase(){
+  try {
+    if(typeof firebase === 'undefined'){
+      setTimeout(initFirebase, 800);
+      return;
+    }
+    if(fbInitialized) return;
+    try { fbApp = firebase.app(); } catch(e){ fbApp = firebase.initializeApp(FB_CONFIG); }
+    fbAuth = firebase.auth();
+    fbDb = firebase.database();
+    fbInitialized = true;
+    fbAuth.onAuthStateChanged(user => {
+      fbUser = user;
+      updateProfileDisplay();
+      if(user) syncFromCloud();
+    });
+    // Handle redirect result (for popup-blocked fallback)
+    fbAuth.getRedirectResult().then(result=>{
+      if(result && result.user){
+        fbUser = result.user;
+        toast('Accesso Google effettuato ✓','success');
+        syncFromCloud();
+      }
+    }).catch(e=>{ if(e.code) console.warn('Redirect result error:', e.message); });
+  } catch(e){ console.warn('Firebase init error:', e); }
+}
+
+function ensureFirebase(cb){
+  if(fbInitialized && fbAuth){ cb(); return; }
+  initFirebase();
+  setTimeout(()=>{ if(fbAuth){ cb(); } else { toast('Firebase non disponibile. Riprova.','error'); } }, 1200);
+}
+
+function mergeTxArrays(local, cloud){
+  // Merge by id: keep all unique transactions, newest edit wins for duplicates
+  const map = {};
+  (cloud || []).forEach(tx => { map[tx.id] = tx; });
+  (local || []).forEach(tx => {
+    if(!map[tx.id]){
+      map[tx.id] = tx; // local-only tx: always keep
+    } else {
+      // Both have it: keep whichever was edited more recently
+      const localTs  = tx._updatedAt  || tx._ts  || 0;
+      const cloudTs  = map[tx.id]._updatedAt || map[tx.id]._ts || 0;
+      if(localTs >= cloudTs) map[tx.id] = tx;
+    }
+  });
+  // Sort by date descending
+  return Object.values(map).sort((a,b)=>new Date(b.date)-new Date(a.date));
+}
+
+function mergeCatArrays(local, cloud){
+  const map = {};
+  (cloud || []).forEach(c => { map[c.id] = c; });
+  (local || []).forEach(c => { map[c.id] = c; }); // local wins for cats
+  return Object.values(map);
+}
+
+function mergeAccArrays(local, cloud){
+  const map = {};
+  (cloud || []).forEach(a => { map[a.id] = a; });
+  (local || []).forEach(a => { map[a.id] = a; }); // local wins for accounts
+  return Object.values(map);
+}
+
+function syncToCloud(immediate){
+  if(!fbUser || !fbDb) return;
+  clearTimeout(syncTimeout);
+  const doSync = ()=>{
+    const data = {
+      transactions: transactions,
+      categories: categories,
+      accounts: accounts,
+      settings: settings,
+      profile: userProfile,
+      updatedAt: Date.now()
+    };
+    fbDb.ref('users/'+fbUser.uid+'/data').set(data)
+      .then(()=>{
+        const el = document.getElementById('profile-sync-status');
+        if(el) el.textContent='Sincronizzato ✓';
+        localStorage.setItem('fh_last_cloud_sync', Date.now().toString());
+      })
+      .catch(e=>{
+        console.warn('Sync error',e);
+        const el = document.getElementById('profile-sync-status');
+        if(el) el.textContent='⚠️ Errore sync: ' + (e.message||e.code||'sconosciuto');
+        toast('Errore sincronizzazione: ' + (e.message||e.code||'controlla la connessione'), 'error');
+      });
+  };
+  if(immediate){ doSync(); }
+  else { syncTimeout = setTimeout(doSync, 1500); }
+}
+
+function manualSync(){
+  if(!fbUser || !fbDb){ toast('Accedi prima per sincronizzare','error'); return; }
+  const el = document.getElementById('profile-sync-status');
+  if(el) el.textContent='Sincronizzazione...';
+  // manualSync does a full two-way merge then pushes result up
+  syncFromCloud(true);
+}
+
+function syncFromCloud(thenPush){
+  if(!fbUser || !fbDb) return;
+  fbDb.ref('users/'+fbUser.uid+'/data').once('value').then(snap=>{
+    const data = snap.val();
+    if(!data){
+      // Nothing on cloud yet — push what we have
+      syncToCloud(true);
+      return;
+    }
+
+    // --- MERGE: unite local + cloud, never lose data from either side ---
+    const localTx   = transactions  || [];
+    const localCats = categories    || [];
+    const localAccs = accounts      || [];
+
+    transactions = mergeTxArrays(localTx,   data.transactions || []);
+    categories   = mergeCatArrays(localCats, data.categories  || []);
+    accounts     = mergeAccArrays(localAccs, data.accounts    || []);
+
+    // Settings & profile: cloud wins only if newer
+    const cloudTime = data.updatedAt || 0;
+    const localMod  = parseInt(localStorage.getItem('fh_last_local_mod') || '0');
+    if(cloudTime >= localMod){
+      if(data.settings) settings    = {...settings,    ...data.settings};
+      if(data.profile)  userProfile = {...userProfile, ...data.profile};
+    }
+
+    saveLocal();
+    localStorage.setItem('fh_last_cloud_sync', Date.now().toString());
+
+    // Always push the merged result back to cloud so all devices get it
+    syncToCloud(true);
+
+    updateAll();
+    applyTranslations();
+    updateProfileDisplay();
+    toast('Dati uniti e sincronizzati ✓','success');
+  }).catch(e=>{
+    console.warn('Sync from cloud error',e);
+    toast('Errore sync: ' + (e.message||e.code||'controlla la connessione'), 'error');
+  });
+}
+
+function loginWithGoogle(){
+  ensureFirebase(()=>{
+    const provider = new firebase.auth.GoogleAuthProvider();
+    fbAuth.signInWithPopup(provider)
+      .then(result=>{
+        fbUser = result.user;
+        toast('Accesso Google effettuato ✓','success');
+        closeModal2('profile-modal');
+        syncFromCloud();
+      })
+      .catch(e=>{
+        // Fallback to redirect if popup blocked
+        if(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'){
+          fbAuth.signInWithRedirect(provider);
+        } else {
+          toast(e.message,'error');
+        }
+      });
+  });
+}
+
+function profileLogin(){
+  if(!fbAuth){ ensureFirebase(profileLogin); return; }
+  const email = document.getElementById('profile-email').value.trim();
+  const pass = document.getElementById('profile-password').value;
+  if(!email||!pass){ toast('Inserisci email e password','error'); return; }
+  // Try sign in, if fails try register
+  fbAuth.signInWithEmailAndPassword(email, pass)
+    .then(result=>{
+      fbUser=result.user;
+      if(!fbUser.emailVerified){
+        toast('Email non verificata. Controlla la tua casella.','error');
+        fbAuth.signOut(); fbUser=null; return;
+      }
+      toast('Accesso effettuato ✓','success');
+      closeModal2('profile-modal');
+      syncFromCloud();
+    })
+    .catch(err=>{
+      if(err.code==='auth/user-not-found'||err.code==='auth/invalid-credential'){
+        fbAuth.createUserWithEmailAndPassword(email, pass)
+          .then(result=>{
+            fbUser=result.user;
+            fbUser.sendEmailVerification()
+              .then(()=>toast('Account creato! Controlla la tua email per verificare l\'account.','success'))
+              .catch(()=>toast('Account creato ✓','success'));
+            fbAuth.signOut(); fbUser=null;
+            closeModal2('profile-modal');
+          })
+          .catch(e=>{ toast(e.message,'error'); });
+      } else { toast(err.message,'error'); }
+    });
+}
+
+function profileLogout(){
+  if(!confirm(t('profileLogoutConfirm'))) return;
+  if(fbAuth) fbAuth.signOut().then(()=>{ fbUser=null; updateProfileDisplay(); toast('Disconnesso','info'); });
+}
+
+// ===================== USER PROFILE =====================
+let userProfile = JSON.parse(localStorage.getItem('fh_profile') || '{"name":"","surname":"","email":"","birthday":"","photo":""}');
+
+function saveLocal(){
+  localStorage.setItem('fh_tx',JSON.stringify(transactions));
+  localStorage.setItem('fh_cats',JSON.stringify(categories));
+  localStorage.setItem('fh_accounts',JSON.stringify(accounts));
+  localStorage.setItem('fh_settings',JSON.stringify(settings));
+  localStorage.setItem('fh_profile',JSON.stringify(userProfile));
+}
+
+function markLocalModified(){
+  localStorage.setItem('fh_last_local_mod', Date.now().toString());
+}
+
+function saveData(){
+  markLocalModified();
+  saveLocal();
+  syncToCloud();
+}
+
+function handleProfilePhoto(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    openImageEditor(ev.target.result, 'profile');
+  };
+  reader.readAsDataURL(file);
+}
+
+function openProfileModal(){
+  document.getElementById('profile-name').value=userProfile.name||'';
+  document.getElementById('profile-surname').value=userProfile.surname||'';
+  document.getElementById('profile-birthday').value=userProfile.birthday||'';
+  // Photo
+  if(userProfile.photo){
+    document.getElementById('profile-photo-img').src=userProfile.photo;
+    document.getElementById('profile-photo-img').style.display='block';
+    document.getElementById('profile-photo-placeholder').style.display='none';
+  } else {
+    document.getElementById('profile-photo-img').style.display='none';
+    document.getElementById('profile-photo-placeholder').style.display='block';
+  }
+  // Auth state
+  if(fbUser){
+    document.getElementById('profile-logged-out').style.display='none';
+    document.getElementById('profile-logged-in').style.display='block';
+    document.getElementById('profile-cloud-email').textContent=fbUser.email||'';
+  } else {
+    document.getElementById('profile-logged-out').style.display='block';
+    document.getElementById('profile-logged-in').style.display='none';
+    document.getElementById('profile-email').value=userProfile.email||'';
+  }
+  document.getElementById('profile-modal').classList.add('active');
+}
+
+function saveProfile(){
+  userProfile.name=document.getElementById('profile-name').value.trim();
+  userProfile.surname=document.getElementById('profile-surname').value.trim();
+  userProfile.birthday=document.getElementById('profile-birthday').value;
+  saveData();
+  updateProfileDisplay();
+  closeModal2('profile-modal');
+  toast(t('saved'),'success');
+}
+
+function updateProfileDisplay(){
+  const nameEl=document.getElementById('lbl-profile-name');
+  const iconEl=document.getElementById('settings-profile-icon');
+  if(!nameEl||!iconEl) return;
+  const fullName = [userProfile.name, userProfile.surname].filter(Boolean).join(' ');
+  nameEl.textContent = fullName || (fbUser ? fbUser.email?.split('@')[0] : t('profileGuest')) || t('profileGuest');
+  if(userProfile.photo){
+    iconEl.innerHTML=`<img src="${userProfile.photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover"/>`;
+  } else {
+    iconEl.textContent='👤';
+  }
+  // Show sync badge in header if logged in
+  const hdr=document.getElementById('profile-logged-in');
+  if(hdr && fbUser) hdr.style.display='block';
+  if(hdr && !fbUser) hdr.style.display='none';
+}
+
+// ===================== CURRENCY CONVERSION =====================
+async function convertAllAmounts(fromCode, toCode){
+  if(fromCode===toCode) return;
+  toast(t('convertingCurrency'),'info');
+  try {
+    const res = await fetch(`https://api.frankfurter.app/latest?from=${fromCode}&to=${toCode}`);
+    const data = await res.json();
+    const rate = data.rates[toCode];
+    if(!rate) throw new Error('no rate');
+    // Convert all transaction amounts
+    transactions = transactions.map(tx=>({...tx, amount: Math.round(tx.amount * rate * 100)/100}));
+    // Convert account balances (done via transactions, nothing else needed)
+    saveData(); updateAll();
+    toast(`${t('currencyConverted')} (1 ${fromCode} = ${rate.toFixed(4)} ${toCode})`, 'success');
+  } catch(e){
+    toast(t('currencyConvertError'),'error');
+  }
+}
+
+function saveSettings(){
+  const newCurrency = document.getElementById('settings-currency').value;
+  const oldCurrency = settings.currency || 'EUR';
+  if(newCurrency !== oldCurrency){
+    // Ask user if they want to convert amounts
+    if(confirm(`Convertire tutti gli importi da ${oldCurrency} a ${newCurrency} al tasso attuale?`)){
+      settings.currency = newCurrency;
+      saveData();
+      convertAllAmounts(oldCurrency, newCurrency);
+      return;
+    }
+  }
+  settings.currency = newCurrency;
+  saveData(); updateAll();
+}function seedCategories(){
+  categories=[
+    {id:uid(),name:'Alimentari',color:'#22d48a',emoji:'🛒'},
+    {id:uid(),name:'Trasporti',color:'#4f8ef7',emoji:'🚗'},
+    {id:uid(),name:'Casa',color:'#a78bfa',emoji:'🏠'},
+    {id:uid(),name:'Svago',color:'#fb923c',emoji:'🎮'},
+    {id:uid(),name:'Salute',color:'#f25270',emoji:'💊'},
+    {id:uid(),name:'Abbigliamento',color:'#ec4899',emoji:'👕'},
+    {id:uid(),name:'Ristoranti',color:'#fbbf24',emoji:'🍕'},
+    {id:uid(),name:'Utenze',color:'#22d3ee',emoji:'💡'},
+  ];
+  saveData(); updateAll();
+}
+
+function getCurrencySymbol(code){
+  const c = CURRENCIES.find(c=>c.code===code);
+  return c ? c.symbol : code;
+}
+function getDefaultSymbol(){ return getCurrencySymbol(settings.currency || 'EUR'); }
+
+// ===================== TRANSLATIONS APPLY =====================
+function applyTranslations(){
+  // Header buttons
+  document.getElementById('hdr-btn-income').textContent = '＋ '+t('income');
+  document.getElementById('hdr-btn-expense').textContent = '− '+t('expense');
+  // Dashboard FABs
+  document.getElementById('dash-btn-income').textContent = '📈 '+t('income');
+  document.getElementById('dash-btn-expense').textContent = '📉 '+t('expense');
+  document.getElementById('dash-btn-transfer').textContent = '⇄ '+t('transfer');
+  // Hero
+  document.getElementById('hero-label-total').textContent = t('totalWealth');
+  document.getElementById('hero-net-label').textContent = t('netBalance');
+  // Period tabs
+  document.getElementById('ptab-daily').textContent = t('today');
+  document.getElementById('ptab-weekly').textContent = t('week');
+  document.getElementById('ptab-monthly').textContent = t('month');
+  document.getElementById('ptab-yearly').textContent = t('year');
+  document.getElementById('ptab-total').textContent = t('total');
+  // Trend tabs
+  document.getElementById('ttab-monthly').textContent = t('trendMonthly');
+  document.getElementById('ttab-quarterly').textContent = t('trendQuarterly');
+  document.getElementById('ttab-semiannual').textContent = t('trendSemiannual');
+  document.getElementById('ttab-yearly').textContent = t('trendYearly');
+  document.getElementById('ttab-alltime').textContent = t('trendAllTime');
+  // Section labels
+  document.getElementById('lbl-accounts').textContent = t('yourAccounts');
+  document.getElementById('lbl-trend').textContent = t('trend');
+  document.getElementById('lbl-recent-tx').textContent = t('recentTx');
+  // Transaction type tabs
+  document.getElementById('tab-income').textContent = '📈 '+t('income');
+  document.getElementById('tab-expense').textContent = '📉 '+t('expense');
+  document.getElementById('tab-transfer').textContent = '⇄ '+t('transfer');
+  // Form labels
+  document.getElementById('lbl-description').textContent = t('description');
+  document.getElementById('lbl-amount').textContent = t('amount');
+  document.getElementById('lbl-date').textContent = t('date');
+  if(document.getElementById('lbl-tx-hour')) document.getElementById('lbl-tx-hour').textContent = t('hour');
+  if(document.getElementById('lbl-tx-minute')) document.getElementById('lbl-tx-minute').textContent = t('minute');
+  document.getElementById('account-label').textContent = t('account');
+  document.getElementById('lbl-dest-account').textContent = t('destAccount');
+  document.getElementById('lbl-category').textContent = t('categories');
+  document.getElementById('lbl-notes').textContent = t('notes');
+  document.getElementById('lbl-recurrence').textContent = t('recurrence');
+  document.getElementById('lbl-recur-end').textContent = t('recurEnd');
+  document.getElementById('lbl-custom-recur').textContent = t('customRecur');
+  document.getElementById('lbl-every').textContent = t('every');
+  document.getElementById('lbl-unit').textContent = t('unit');
+  document.getElementById('lbl-time-hour').textContent = t('hour');
+  document.getElementById('lbl-time-min').textContent = t('minute');
+  // Settings profile row
+  document.getElementById('lbl-profile').textContent = t('profile');
+  document.getElementById('lbl-profile-sub').textContent = t('profileSub');
+  updateProfileDisplay();
+  document.getElementById('lbl-photo').textContent = t('photo');
+  document.getElementById('lbl-photo-tap').textContent = t('tapToAddPhoto');
+  document.getElementById('tx-save-btn').textContent = t('save');
+  // Recurring options
+  const recurSel = document.getElementById('tx-recurring');
+  recurSel.options[0].text = t('recurNone');
+  recurSel.options[1].text = t('recurDaily');
+  recurSel.options[2].text = t('recurWeekly');
+  recurSel.options[3].text = t('recurMonthly');
+  recurSel.options[4].text = t('recurYearly');
+  recurSel.options[5].text = t('recurCustom');
+  // Custom recur units
+  const unitSel = document.getElementById('tx-recur-unit');
+  unitSel.options[0].text = t('days');
+  unitSel.options[1].text = t('weeks');
+  unitSel.options[2].text = t('months');
+  // Cat modal
+  document.getElementById('lbl-cat-name').textContent = t('catName');
+  document.getElementById('lbl-cat-color').textContent = t('catColor');
+  document.getElementById('lbl-cat-icon').textContent = t('catIcon');
+  document.getElementById('lbl-tap-choose').textContent = t('tapChoose');
+  document.getElementById('cat-save-btn').textContent = t('createCat');
+  document.getElementById('btn-new-cat').textContent = t('newCategory');
+  document.getElementById('lbl-your-categories').textContent = t('yourCategories');
+  // Acc modal
+  document.getElementById('lbl-acc-name').textContent = t('accName');
+  document.getElementById('lbl-acc-color').textContent = t('accColor');
+  document.getElementById('lbl-acc-emoji').textContent = t('accEmoji');
+  document.getElementById('lbl-acc-currency').textContent = t('accCurrency');
+  document.getElementById('lbl-include-total').textContent = t('includeTotal');
+  document.getElementById('lbl-tap-choose-acc').textContent = t('tapChoose');
+  document.getElementById('acc-save-btn').textContent = t('addAccount');
+  document.getElementById('acc-delete-btn').textContent = t('deleteAccount');
+  // Charts
+  document.getElementById('btn-export-pdf').textContent = t('exportPDF');
+  document.getElementById('lbl-inc-vs-exp').textContent = t('incVsExp');
+  document.getElementById('lbl-monthly-comparison').textContent = t('monthlyComparison');
+  document.getElementById('lbl-exp-by-cat').textContent = t('expByCat');
+  document.getElementById('lbl-current-month').textContent = t('currentMonth');
+  document.getElementById('lbl-acc-distribution').textContent = t('accDistribution');
+  document.getElementById('lbl-top-cats').textContent = t('topCats');
+  document.getElementById('lbl-cumulative-exp').textContent = t('cumulativeExp');
+  // Settings
+  document.getElementById('lbl-general').textContent = t('general');
+  document.getElementById('lbl-default-currency').textContent = t('defaultCurrency');
+  document.getElementById('lbl-currency-sub').textContent = t('currencySub');
+  document.getElementById('lbl-language').textContent = t('language');
+  document.getElementById('lbl-language-sub').textContent = t('languageSub');
+  document.getElementById('lbl-data-section').textContent = t('dataSection');
+  document.getElementById('lbl-export-data').textContent = t('exportData');
+  document.getElementById('lbl-export-sub').textContent = t('exportSub');
+  // Export modal
+  document.getElementById('export-modal-title').innerHTML = t('exportTitle')+' <button class="modal-close" onclick="closeModal2(\'export-modal\')">✕</button>';
+  document.getElementById('lbl-choose-period').textContent = t('choosePeriod');
+  document.getElementById('exp-btn-daily').textContent = t('expToday');
+  document.getElementById('exp-btn-weekly').textContent = t('expWeek');
+  document.getElementById('exp-btn-monthly').textContent = t('expMonth');
+  document.getElementById('exp-btn-yearly').textContent = t('expYear');
+  document.getElementById('exp-btn-total').textContent = t('expAll');
+  // Lang modal
+  document.getElementById('lbl-lang-modal-title').textContent = t('chooseLang');
+  document.getElementById('lang-search').placeholder = t('searchLang');
+  // Emoji picker
+  document.getElementById('lbl-emoji-picker-title').textContent = t('chooseEmoji');
+  document.getElementById('emoji-search-input').placeholder = t('searchEmoji');
+  // Nav labels
+  document.getElementById('nav-lbl-home').textContent = t('navHome');
+  document.getElementById('nav-lbl-movements').textContent = t('navMovements');
+  document.getElementById('nav-lbl-categories').textContent = t('navCategories');
+  document.getElementById('nav-lbl-charts').textContent = t('navCharts');
+  document.getElementById('nav-lbl-settings').textContent = t('navSettings');
+  // Period labels in stats
+  const periodLabelMap = {daily:t('periodToday'),weekly:t('periodWeek'),monthly:t('periodMonth'),yearly:t('periodYear'),total:t('periodAll')};
+  const pl = periodLabelMap[currentPeriod]||'';
+  document.getElementById('period-label-inc').textContent = t('incLabel')+' '+pl;
+  document.getElementById('period-label-exp').textContent = t('expLabel')+' '+pl;
+  // Filter chips
+  const fAccount = document.getElementById('f-account');
+  if(fAccount.options[0]) fAccount.options[0].text = t('allAccounts');
+  const fType = document.getElementById('f-type');
+  if(fType.options[0]) fType.options[0].text = t('all');
+  if(fType.options[1]) fType.options[1].text = t('incomes');
+  if(fType.options[2]) fType.options[2].text = t('expenses');
+  if(fType.options[3]) fType.options[3].text = t('transfers');
+  const fMonth = document.getElementById('f-month');
+  if(fMonth.options[0]) fMonth.options[0].text = t('allMonths');
+  const fCat = document.getElementById('f-cat');
+  if(fCat.options[0]) fCat.options[0].text = t('categories2');
+  // current lang display
+  const lang = LANGUAGES.find(l=>l.code===getLang());
+  if(lang) document.getElementById('lbl-current-lang').textContent = lang.flag+' '+lang.name;
+}
+
+// ===================== LANGUAGE MODAL =====================
+function openLangModal(){
+  renderLangList('');
+  document.getElementById('lang-search').value='';
+  document.getElementById('lang-modal').classList.add('active');
+}
+function filterLangs(q){
+  renderLangList(q.toLowerCase());
+}
+function renderLangList(q){
+  const list = document.getElementById('lang-list');
+  const cur = getLang();
+  const filtered = LANGUAGES.filter(l=>
+    l.name.toLowerCase().includes(q) || l.code.toLowerCase().includes(q)
+  );
+  list.innerHTML = filtered.map(l=>`
+    <div class="lang-item${l.code===cur?' selected':''}" onclick="selectLanguage('${l.code}')">
+      <span class="lang-flag">${l.flag}</span>
+      <span class="lang-name">${l.name}</span>
+      ${l.code===cur?'<span class="lang-check">✓</span>':''}
+    </div>
+  `).join('');
+}
+function selectLanguage(code){
+  settings.language = code;
+  saveData();
+  closeModal2('lang-modal');
+  applyTranslations();
+  updateAll();
+  toast(t('saved'),'success');
+}
+
+// ===================== RECURRING =====================
+function processRecurring(){
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  let changed = false;
+  const toAdd = [];
+  transactions.forEach(tx => {
+    if (!tx.recurring || tx.recurring === 'none') return;
+    if (!tx.recurringMaster) return;
+    if (tx.lastGenerated === today) return;
+    const endDate = tx.recurEnd ? new Date(tx.recurEnd) : null;
+    if (endDate && now > endDate) return;
+    const last = new Date(tx.lastGenerated || tx.date);
+    let next = new Date(last);
+    let generated = false;
+    while (true) {
+      if (tx.recurring === 'daily') next.setDate(next.getDate()+1);
+      else if (tx.recurring === 'weekly') next.setDate(next.getDate()+7);
+      else if (tx.recurring === 'monthly') next.setMonth(next.getMonth()+1);
+      else if (tx.recurring === 'yearly') next.setFullYear(next.getFullYear()+1);
+      else if (tx.recurring === 'custom') {
+        const every = tx.recurEvery||1;
+        const unit = tx.recurUnit||'days';
+        if(unit==='days') next.setDate(next.getDate()+every);
+        else if(unit==='weeks') next.setDate(next.getDate()+every*7);
+        else if(unit==='months') next.setMonth(next.getMonth()+every);
+      }
+      const nextStr = next.toISOString().split('T')[0];
+      if (nextStr > today) break;
+      if (endDate && next > endDate) break;
+      const child = {...tx, id:uid(), date:nextStr, recurringMaster:false, lastGenerated:undefined};
+      toAdd.push(child);
+      generated = true;
+      last.setTime(next.getTime());
+    }
+    if (generated) { tx.lastGenerated = last.toISOString().split('T')[0]; changed = true; }
+  });
+  if (toAdd.length) { transactions = [...toAdd, ...transactions]; changed = true; }
+  if (changed) saveData();
+}
+
+// ===================== BALANCE =====================
+function getAccById(id){ return accounts.find(a=>a.id===id); }
+function getBalance(accId){
+  let b=0;
+  transactions.forEach(tx=>{
+    if(tx.type==='income'&&tx.account===accId) b+=tx.amount;
+    if(tx.type==='expense'&&tx.account===accId) b-=tx.amount;
+    if(tx.type==='transfer'){if(tx.fromAccount===accId)b-=tx.amount;if(tx.toAccount===accId)b+=tx.amount;}
+  });
+  return b;
+}
+function getTotalBalance(){
+  return accounts.filter(a=>a.includeInTotal!==false).reduce((s,a)=>s+getBalance(a.id),0);
+}
+function fmt(n, currCode){
+  const sym = currCode ? getCurrencySymbol(currCode) : getDefaultSymbol();
+  return sym+Math.abs(n).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtShort(n){ const a=Math.abs(n); return getDefaultSymbol()+(a>=1000?(a/1000).toFixed(1)+'k':a.toFixed(0)); }
+function getCatById(id){ return categories.find(c=>c.id===id); }
+
+// ===================== PERIOD =====================
+function setPeriod(p){
+  currentPeriod = p;
+  document.querySelectorAll('.period-tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('ptab-'+p).classList.add('active');
+  updateStats();
+  renderRecent();
+  const periodLabelMap = {daily:t('periodToday'),weekly:t('periodWeek'),monthly:t('periodMonth'),yearly:t('periodYear'),total:t('periodAll')};
+  const pl = periodLabelMap[p]||'';
+  document.getElementById('period-label-inc').textContent = t('incLabel')+' '+pl;
+  document.getElementById('period-label-exp').textContent = t('expLabel')+' '+pl;
+}
+
+function setTrendPeriod(p){
+  currentTrendPeriod = p;
+  document.querySelectorAll('.trend-tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('ttab-'+p).classList.add('active');
+  renderDashLineChart();
+}
+
+function getPeriodRange(){
+  const now = new Date();
+  let from, to;
+  if(currentPeriod==='daily'){
+    from = new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    to = new Date(now.getFullYear(),now.getMonth(),now.getDate(),23,59,59);
+  } else if(currentPeriod==='weekly'){
+    const day = now.getDay();
+    from = new Date(now); from.setDate(now.getDate()-day); from.setHours(0,0,0,0);
+    to = new Date(from); to.setDate(from.getDate()+6); to.setHours(23,59,59);
+  } else if(currentPeriod==='monthly'){
+    from = new Date(now.getFullYear(),now.getMonth(),1);
+    to = new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59);
+  } else if(currentPeriod==='yearly'){
+    from = new Date(now.getFullYear(),0,1);
+    to = new Date(now.getFullYear(),11,31,23,59,59);
+  } else {
+    from = new Date(0); to = new Date(9999,0,1);
+  }
+  return {from, to};
+}
+
+function inPeriod(tx){
+  const {from,to} = getPeriodRange();
+  const d = new Date(tx.date);
+  return d >= from && d <= to;
+}
+
+function updateAll(){
+  updateBalances(); updateStats(); updateFilters();
+  renderAccounts(); renderRecent(); renderTxPage(); renderCatGrid(); renderCharts();
+  document.getElementById('hero-currency-symbol').textContent = getDefaultSymbol();
+}
+
+function updateBalances(){
+  const total = getTotalBalance();
+  document.getElementById('hero-total').textContent = Math.abs(total).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function updateStats(){
+  let inc=0,exp=0;
+  transactions.filter(tx=>inPeriod(tx)).forEach(tx=>{
+    if(tx.type==='income') inc+=tx.amount;
+    if(tx.type==='expense') exp+=tx.amount;
+  });
+  document.getElementById('hero-inc').textContent=fmt(inc);
+  document.getElementById('hero-exp').textContent=fmt(exp);
+  const net=inc-exp;
+  const nel=document.getElementById('hero-net');
+  nel.textContent=(net>=0?'+':'-')+fmt(net);
+  nel.style.color=net>=0?'var(--green)':'var(--red)';
+}
+
+function updateFilters(){
+  const fcat=document.getElementById('f-cat');
+  const txcat=document.getElementById('tx-category');
+  fcat.innerHTML=`<option value="all">${t('categories2')}</option>`;
+  txcat.innerHTML=`<option value="">Nessuna</option>`;
+  categories.forEach(c=>{
+    fcat.innerHTML+=`<option value="${c.id}">${c.emoji} ${c.name}</option>`;
+    txcat.innerHTML+=`<option value="${c.id}">${c.emoji} ${c.name}</option>`;
+  });
+  const fmonth=document.getElementById('f-month');
+  const months=new Set();
+  transactions.forEach(tx=>{const d=new Date(tx.date);months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);});
+  fmonth.innerHTML=`<option value="all">${t('allMonths')}</option>`;
+  [...months].sort().reverse().forEach(m=>{
+    const[y,mo]=m.split('-');
+    fmonth.innerHTML+=`<option value="${m}">${new Date(y,mo-1,1).toLocaleDateString('it-IT',{month:'long',year:'numeric'})}</option>`;
+  });
+  const fAcc=document.getElementById('f-account');
+  fAcc.innerHTML=`<option value="all">${t('allAccounts')}</option>`;
+  accounts.forEach(a=>{ fAcc.innerHTML+=`<option value="${a.id}">${a.emoji} ${a.name}</option>`; });
+  ['tx-account','tx-to-account'].forEach(id=>{
+    const sel=document.getElementById(id); if(!sel) return;
+    const prev=sel.value; sel.innerHTML='';
+    accounts.forEach(a=>{ sel.innerHTML+=`<option value="${a.id}">${a.emoji} ${a.name}</option>`; });
+    if(accounts.find(a=>a.id===prev)) sel.value=prev;
+  });
+  const fType=document.getElementById('f-type');
+  fType.options[0].text = t('all');
+  fType.options[1].text = t('incomes');
+  fType.options[2].text = t('expenses');
+  fType.options[3].text = t('transfers');
+}
+
+// ===================== CURRENCY SELECTS =====================
+function populateCurrencySelects(){
+  ['settings-currency','acc-currency-select'].forEach(id=>{
+    const sel = document.getElementById(id); if(!sel) return;
+    sel.innerHTML = CURRENCIES.map(c=>`<option value="${c.code}">${c.symbol} ${c.code} — ${c.name}</option>`).join('');
+  });
+  document.getElementById('settings-currency').value = settings.currency || 'EUR';
+  document.getElementById('acc-currency-select').value = 'EUR';
+}
+
+// ===================== ACCOUNTS RENDER =====================
+function renderAccounts(){
+  const scroll = document.getElementById('acc-scroll');
+  let html = '';
+  accounts.forEach(a=>{
+    const bal = getBalance(a.id);
+    const currSym = getCurrencySymbol(a.currency||'EUR');
+    const notInTotal = a.includeInTotal===false;
+    html+=`<div class="acc-chip" style="border-color:${a.color}33" onclick="filterByAccount('${a.id}')">
+      <button class="acc-chip-edit" onclick="event.stopPropagation();openAccModal('${a.id}')">✏️</button>
+      <div class="acc-chip-icon">${a.emoji}</div>
+      <div class="acc-chip-name">${a.name}</div>
+      <div class="acc-chip-bal" style="color:${a.color}">${currSym}${Math.abs(bal).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <div class="acc-chip-currency">${a.currency||'EUR'}${notInTotal?' '+t('excluded'):''}</div>
+    </div>`;
+  });
+  html+=`<div class="acc-chip-add" onclick="openAccModal(null)">
+    <div class="acc-chip-add-icon">➕</div>
+    <div class="acc-chip-add-label">${t('addNewAccount')}</div>
+  </div>`;
+  scroll.innerHTML = html;
+}
+
+// ===================== ACCOUNT MODAL =====================
+function openAccModal(accId){
+  populateCurrencySelects();
+  const modal=document.getElementById('acc-modal');
+  const titleEl=document.getElementById('acc-modal-title');
+  const saveBtn=document.getElementById('acc-save-btn');
+  const delBtn=document.getElementById('acc-delete-btn');
+  document.getElementById('acc-edit-id').value=accId||'';
+  if(accId){
+    const a=getAccById(accId); if(!a) return;
+    titleEl.innerHTML=`${t('editAccount')} <button class="modal-close" onclick="closeAccModal()">✕</button>`;
+    document.getElementById('acc-name-input').value=a.name;
+    setColorPickerValue('acc',a.color);
+    document.getElementById('acc-emoji-input').value=a.emoji;
+    document.getElementById('acc-emoji-preview').textContent=a.emoji;
+    document.getElementById('acc-currency-select').value=a.currency||'EUR';
+    document.getElementById('acc-include-total').checked=a.includeInTotal!==false;
+    saveBtn.textContent=t('saveChanges');
+    delBtn.classList.remove('no-display');
+  } else {
+    titleEl.innerHTML=`${t('newAccount')} <button class="modal-close" onclick="closeAccModal()">✕</button>`;
+    document.getElementById('acc-name-input').value='';
+    setColorPickerValue('acc','#4f8ef7');
+    document.getElementById('acc-emoji-input').value='🏦';
+    document.getElementById('acc-emoji-preview').textContent='🏦';
+    document.getElementById('acc-currency-select').value=settings.currency||'EUR';
+    document.getElementById('acc-include-total').checked=true;
+    saveBtn.textContent=t('addAccount');
+    delBtn.classList.add('no-display');
+  }
+  modal.classList.add('active');
+}
+function closeAccModal(){ document.getElementById('acc-modal').classList.remove('active'); }
+function saveAccount(){
+  const name=document.getElementById('acc-name-input').value.trim();
+  const color=document.getElementById('acc-color-input').value;
+  const emoji=document.getElementById('acc-emoji-input').value;
+  const currency=document.getElementById('acc-currency-select').value;
+  const includeInTotal=document.getElementById('acc-include-total').checked;
+  const editId=document.getElementById('acc-edit-id').value;
+  if(!name){ toast(t('nameRequired'),'error'); return; }
+  if(editId){
+    const a=getAccById(editId);
+    if(a){ a.name=name; a.color=color; a.emoji=emoji; a.currency=currency; a.includeInTotal=includeInTotal; }
+  } else {
+    accounts.push({id:'acc_'+uid(),name,emoji,color,currency,includeInTotal});
+  }
+  saveData(); closeAccModal(); updateAll();
+  toast(editId?`"${name}" ${t('accUpdated')}`:`"${name}" ${t('accAdded')}`,'success');
+}
+function deleteAccount(){
+  const editId=document.getElementById('acc-edit-id').value;
+  const a=getAccById(editId); if(!a) return;
+  if(!confirm(`${t('confirmDeleteAcc')} "${a.name}"?`)) return;
+  accounts=accounts.filter(x=>x.id!==editId);
+  saveData(); closeAccModal(); updateAll();
+  toast(`"${a.name}" ${t('accDeleted')}`,'info');
+}
+
+// ===================== PAGE NAV =====================
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+page).classList.add('active');
+  document.getElementById('main-content').scrollTop=0;
+  if(page==='charts') setTimeout(renderCharts,100);
+}
+
+function filterByAccount(accId){
+  document.getElementById('f-account').value=accId;
+  showPage('transactions'); renderTxPage();
+}
+
+// ===================== TX MODAL =====================
+function openModal(type, editId){
+  currentTxType=type;
+  const isEdit=!!editId;
+  document.getElementById('tx-edit-id').value=editId||'';
+  document.getElementById('tx-modal').classList.add('active');
+  setTxType(type);
+  document.getElementById('tx-photo-data').value='';
+  document.getElementById('tx-photo-preview').src='';
+  document.getElementById('tx-photo-preview-wrap').classList.add('no-display');
+  document.getElementById('tx-photo-upload-area').classList.remove('no-display');
+  if(isEdit){
+    const tx=transactions.find(x=>x.id===editId); if(!tx) return;
+    document.getElementById('tx-desc').value=tx.desc;
+    document.getElementById('tx-amount').value=tx.amount;
+    // Parse date and time
+    const txDate = new Date(tx.date);
+    const dateStr = tx.date.includes('T') ? tx.date.split('T')[0] : tx.date;
+    document.getElementById('tx-date').value=dateStr;
+    document.getElementById('tx-hour').value=txDate.getHours ? txDate.getHours() : 0;
+    document.getElementById('tx-minute').value=txDate.getMinutes ? txDate.getMinutes() : 0;
+    document.getElementById('tx-notes').value=tx.notes||'';
+    document.getElementById('tx-recurring').value=tx.recurring||'none';
+    document.getElementById('tx-recur-end').value=tx.recurEnd||'';
+    const v=tx.recurring||'none';
+    document.getElementById('recur-end-group').classList.toggle('no-display',v==='none'||v==='custom');
+    document.getElementById('recur-custom-group').classList.toggle('no-display',v!=='custom');
+    if(v==='custom'){
+      document.getElementById('tx-recur-every').value=tx.recurEvery||1;
+      document.getElementById('tx-recur-unit').value=tx.recurUnit||'days';
+      document.getElementById('tx-recur-hour').value=tx.recurHour||0;
+      document.getElementById('tx-recur-minute').value=tx.recurMinute||0;
+    }
+    if(tx.photo){ document.getElementById('tx-photo-data').value=tx.photo; document.getElementById('tx-photo-preview').src=tx.photo; document.getElementById('tx-photo-preview-wrap').classList.remove('no-display'); document.getElementById('tx-photo-upload-area').classList.add('no-display'); }
+    if(tx.type==='transfer'){ document.getElementById('tx-account').value=tx.fromAccount; document.getElementById('tx-to-account').value=tx.toAccount; }
+    else { document.getElementById('tx-account').value=tx.account; document.getElementById('tx-category').value=tx.category||''; }
+    document.getElementById('tx-save-btn').textContent=t('saveChanges');
+    document.getElementById('modal-title-text').textContent=t('editTx');
+  } else {
+    const now = new Date();
+    document.getElementById('tx-date').value=now.toISOString().split('T')[0];
+    document.getElementById('tx-hour').value=now.getHours();
+    document.getElementById('tx-minute').value=now.getMinutes();
+    document.getElementById('tx-desc').value='';
+    document.getElementById('tx-amount').value='';
+    document.getElementById('tx-notes').value='';
+    document.getElementById('tx-recurring').value='none';
+    document.getElementById('tx-recur-end').value='';
+    document.getElementById('tx-recur-every').value='1';
+    document.getElementById('tx-recur-hour').value='0';
+    document.getElementById('tx-recur-minute').value='0';
+    document.getElementById('recur-end-group').classList.add('no-display');
+    document.getElementById('recur-custom-group').classList.add('no-display');
+    document.getElementById('tx-save-btn').textContent=t('save');
+    document.getElementById('modal-title-text').textContent=t('newTx');
+    setTimeout(()=>document.getElementById('tx-desc').focus(),350);
+  }
+}
+function closeModal(){ document.getElementById('tx-modal').classList.remove('active'); document.getElementById('tx-edit-id').value=''; }
+function closeModal2(id){ document.getElementById(id).classList.remove('active'); }
+function handleModalBg(e,id){ if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('active'); }
+
+function setTxType(type){
+  currentTxType=type;
+  ['income','expense','transfer'].forEach(tp=>{ document.getElementById('tab-'+tp).className='type-tab'; });
+  document.getElementById('tab-'+type).className='type-tab active-'+type;
+  const icons={income:'📈',expense:'📉',transfer:'⇄'};
+  document.getElementById('modal-icon').textContent=icons[type];
+  const tog=document.getElementById('to-account-group');
+  const lbl=document.getElementById('account-label');
+  const cat=document.getElementById('cat-field');
+  if(type==='transfer'){tog.classList.remove('no-display');lbl.textContent='Da';cat.classList.add('no-display');}
+  else{tog.classList.add('no-display');lbl.textContent=t('account');cat.classList.remove('no-display');}
+}
+
+// ===================== PHOTO =====================
+function handlePhotoUpload(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    openImageEditor(ev.target.result, 'tx');
+  };
+  reader.readAsDataURL(file);
+}
+function removePhoto(){
+  document.getElementById('tx-photo-data').value='';
+  document.getElementById('tx-photo-preview').src='';
+  document.getElementById('tx-photo-preview-wrap').classList.add('no-display');
+  document.getElementById('tx-photo-upload-area').classList.remove('no-display');
+  document.getElementById('tx-photo-file').value='';
+}
+function reeditorTxPhoto(){
+  const src = document.getElementById('tx-photo-data').value;
+  if(src) openImageEditor(src, 'tx');
+}
+function openLightbox(src){
+  document.getElementById('lightbox-img').src=src;
+  document.getElementById('lightbox').classList.add('active');
+}
+
+function saveTx(){
+  const desc=document.getElementById('tx-desc').value.trim();
+  const amount=parseFloat(document.getElementById('tx-amount').value);
+  const date=document.getElementById('tx-date').value;
+  const txHour=parseInt(document.getElementById('tx-hour').value)||0;
+  const txMinute=parseInt(document.getElementById('tx-minute').value)||0;
+  const account=document.getElementById('tx-account').value;
+  const toAccount=document.getElementById('tx-to-account').value;
+  const category=document.getElementById('tx-category').value;
+  const notes=document.getElementById('tx-notes').value.trim();
+  const recurring=document.getElementById('tx-recurring').value;
+  const recurEnd=document.getElementById('tx-recur-end').value;
+  const photo=document.getElementById('tx-photo-data').value;
+  const editId=document.getElementById('tx-edit-id').value;
+  const recurEvery=parseInt(document.getElementById('tx-recur-every').value)||1;
+  const recurUnit=document.getElementById('tx-recur-unit').value||'days';
+  const recurHour=parseInt(document.getElementById('tx-recur-hour').value)||0;
+  const recurMinute=parseInt(document.getElementById('tx-recur-minute').value)||0;
+  if(!desc){ toast(t('descRequired'),'error'); return; }
+  if(!amount||amount<=0){ toast(t('amountInvalid'),'error'); return; }
+  if(!date){ toast(t('dateRequired'),'error'); return; }
+  if(currentTxType==='transfer'&&account===toAccount){ toast(t('diffAccounts'),'error'); return; }
+  // Build datetime string with hour/minute
+  const dateTime = date + 'T' + String(txHour).padStart(2,'0') + ':' + String(txMinute).padStart(2,'0') + ':00';
+  const tx={
+    id:editId||uid(), type:currentTxType, desc, amount, date:dateTime, account, category, notes,
+    recurring, recurEnd: recurring!=='none'&&recurring!=='custom'?recurEnd:'',
+    recurringMaster: !editId && recurring!=='none',
+    lastGenerated: !editId && recurring!=='none' ? date : undefined,
+    recurEvery, recurUnit, recurHour, recurMinute,
+    photo,
+    _updatedAt: Date.now()
+  };
+  if(currentTxType==='transfer'){tx.fromAccount=account;tx.toAccount=toAccount;delete tx.account;}
+  if(editId){ const idx=transactions.findIndex(tx2=>tx2.id===editId); if(idx>-1) transactions[idx]=tx; markLocalModified(); saveLocal(); syncToCloud(true); toast(t('edited'),'success'); }
+  else { transactions.unshift(tx); saveData(); toast(t('saved'),'success'); }
+  closeModal(); processRecurring(); updateAll();
+}
+
+function deleteTx(id){
+  if(!confirm(t('confirmDeleteTx'))) return;
+  transactions=transactions.filter(tx=>tx.id!==id);
+  saveData(); updateAll(); toast(t('deleted'),'info');
+}
+function editTx(id){
+  const tx=transactions.find(x=>x.id===id); if(!tx) return;
+  updateFilters(); openModal(tx.type, id);
+}
+
+// ===================== RENDER TX =====================
+function txIcon(tx){
+  if(tx.type==='income') return {bg:'var(--green-d)',emoji:'📈'};
+  if(tx.type==='transfer') return {bg:'var(--purple-d)',emoji:'⇄'};
+  const cat=getCatById(tx.category);
+  return {bg:cat?cat.color+'22':'var(--red-d)',emoji:cat?cat.emoji:'📉'};
+}
+function txAccountLabel(tx){
+  if(tx.type==='transfer'){ const from=getAccById(tx.fromAccount); const to=getAccById(tx.toAccount); return `${from?from.name:tx.fromAccount}→${to?to.name:tx.toAccount}`; }
+  const a=getAccById(tx.account); return a?a.name:(tx.account||'');
+}
+
+function renderTxItem(tx, withDel=true){
+  const {bg,emoji}=txIcon(tx);
+  const acc=txAccountLabel(tx);
+  const ac=tx.type==='income'?'pos':tx.type==='expense'?'neg':'neu';
+  const sign=tx.type==='income'?'+':tx.type==='expense'?'−':'⇄';
+  const cat=getCatById(tx.category);
+  const catLabel=cat?`${cat.emoji} ${cat.name}`:'';
+  const d=new Date(tx.date);
+  const dateStr=d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
+  const timeStr=tx.date.includes('T')?(d.getHours()===0&&d.getMinutes()===0?'':', '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')):'';
+  const dLabel=dateStr+timeStr;
+  const recurBadge=tx.recurring&&tx.recurring!=='none'?`<span class="recur-tag">🔄 ${recurLabel(tx.recurring)}</span>`:'';
+  const photoBtn=tx.photo?`<img class="tx-photo-thumb" src="${tx.photo}" onclick="openLightbox('${tx.photo}')" alt="foto"/>`:'' ;
+  const actions=withDel?`<div class="tx-actions">
+    ${photoBtn}
+    <button class="tx-edit-btn" onclick="editTx('${tx.id}')">✏️</button>
+    <button class="tx-del-btn" onclick="deleteTx('${tx.id}')">🗑</button>
+  </div>`:photoBtn?`<div class="tx-actions">${photoBtn}</div>`:'';
+  const accObj = tx.type!=='transfer' ? getAccById(tx.account) : null;
+  const currSym = accObj ? getCurrencySymbol(accObj.currency||'EUR') : getDefaultSymbol();
+  return `<div class="tx-item">
+    <div class="tx-icon" style="background:${bg}">${emoji}</div>
+    <div class="tx-info">
+      <div class="tx-desc">${tx.desc}${recurBadge}</div>
+      <div class="tx-meta">${dLabel} · ${acc}${catLabel?' · '+catLabel:''}</div>
+    </div>
+    <div class="tx-amount ${ac}">${sign}${currSym}${Math.abs(tx.amount).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+    ${actions}
+  </div>`;
+}
+
+function recurLabel(r){
+  if(r==='custom') return 'custom';
+  return {daily:'giorn.',weekly:'sett.',monthly:'mens.',yearly:'ann.'}[r]||r;
+}
+
+function renderRecent(){
+  const c=document.getElementById('recent-list');
+  const filtered=transactions.filter(tx=>inPeriod(tx)).slice(0,8);
+  if(!filtered.length){ c.innerHTML=`<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-text">${t('noTx')}</div></div>`; return; }
+  c.innerHTML=filtered.map(tx=>renderTxItem(tx)).join('');
+}
+
+function renderTxPage(){
+  const aF=document.getElementById('f-account').value;
+  const tF=document.getElementById('f-type').value;
+  const cF=document.getElementById('f-cat').value;
+  const mF=document.getElementById('f-month').value;
+  let filtered=transactions.filter(tx=>{
+    if(aF!=='all'){ if(tx.type==='transfer'){if(tx.fromAccount!==aF&&tx.toAccount!==aF)return false;}else{if(tx.account!==aF)return false;} }
+    if(tF!=='all'&&tx.type!==tF) return false;
+    if(cF!=='all'&&tx.category!==cF) return false;
+    if(mF!=='all'){const d=new Date(tx.date);const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;if(k!==mF)return false;}
+    return true;
+  });
+  const c=document.getElementById('tx-page-list');
+  if(!filtered.length){ c.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">${t('noTxPage')}</div></div>`; return; }
+  c.innerHTML=filtered.map(tx=>renderTxItem(tx)).join('');
+}
+
+// ===================== CATEGORIES =====================
+function openCatModal(editId){
+  const modal=document.getElementById('cat-modal');
+  const titleEl=document.getElementById('cat-modal-title');
+  const saveBtn=document.getElementById('cat-save-btn');
+  document.getElementById('cat-edit-id').value=editId||'';
+  if(editId){
+    const cat=getCatById(editId); if(!cat) return;
+    titleEl.innerHTML=`${t('editCat')} <button class="modal-close" onclick="closeCatModal()">✕</button>`;
+    document.getElementById('cat-name-input').value=cat.name;
+    setColorPickerValue('cat',cat.color);
+    document.getElementById('cat-emoji-input').value=cat.emoji;
+    document.getElementById('cat-emoji-preview').textContent=cat.emoji;
+    saveBtn.textContent=t('saveChanges');
+  } else {
+    titleEl.innerHTML=`${t('newCat')} <button class="modal-close" onclick="closeCatModal()">✕</button>`;
+    document.getElementById('cat-name-input').value='';
+    setColorPickerValue('cat','#4f8ef7');
+    document.getElementById('cat-emoji-input').value='🏷️';
+    document.getElementById('cat-emoji-preview').textContent='🏷️';
+    saveBtn.textContent=t('createCat');
+  }
+  modal.classList.add('active');
+}
+function closeCatModal(){ document.getElementById('cat-modal').classList.remove('active'); }
+
+// ===================== COLOR PICKER =====================
+function initColorPicker(target){
+  const prefix = target==='cat' ? '' : 'acc-';
+  const presetsEl = document.getElementById(prefix+'gradient-presets');
+  const gridEl = document.getElementById(prefix+'color-grid-full');
+
+  if(presetsEl){
+    presetsEl.innerHTML = '';
+    GRADIENT_PRESETS.forEach((c,i)=>{
+      const sw=document.createElement('div');
+      sw.className='gradient-swatch'+(i===0?' selected':'');
+      sw.style.background=c;
+      sw.onclick=()=>{ selectColor(target,c); };
+      presetsEl.appendChild(sw);
+    });
+  }
+  if(gridEl){
+    gridEl.innerHTML = '';
+    ALL_COLORS.forEach(c=>{
+      const sw=document.createElement('div');
+      sw.style.cssText=`width:28px;height:28px;border-radius:8px;cursor:pointer;background:${c};border:2px solid transparent;transition:all 0.15s;flex-shrink:0;`;
+      sw.onclick=()=>{ selectColor(target,c); };
+      gridEl.appendChild(sw);
+    });
+  }
+}
+
+function selectColor(target, color){
+  const inputId = target==='cat' ? 'cat-color-input' : 'acc-color-input';
+  const previewId = target==='cat' ? 'selected-color-preview' : 'acc-selected-color-preview';
+  const hexId = target==='cat' ? 'cat-color-hex' : 'acc-color-hex';
+  document.getElementById(inputId).value = color;
+  const prev = document.getElementById(previewId);
+  if(prev) prev.style.background = color;
+  const hex = document.getElementById(hexId);
+  if(hex && !color.startsWith('linear')) hex.value = color;
+}
+function setColorPickerValue(target, color){ selectColor(target, color); }
+function onHexInput(target, val){ if(/^#[0-9a-fA-F]{6}$/.test(val)) selectColor(target, val); }
+
+function saveCat(){
+  const name=document.getElementById('cat-name-input').value.trim();
+  const color=document.getElementById('cat-color-input').value;
+  const emoji=document.getElementById('cat-emoji-input').value;
+  const editId=document.getElementById('cat-edit-id').value;
+  if(!name){ toast(t('nameRequired'),'error'); return; }
+  if(editId){ const cat=getCatById(editId); if(cat){ cat.name=name; cat.color=color; cat.emoji=emoji; } toast(`"${name}" ${t('catUpdated')}`,'success'); }
+  else { categories.push({id:uid(),name,color,emoji}); toast(`"${name}" ${t('catCreated')}`,'success'); }
+  saveData(); closeCatModal(); updateAll();
+}
+
+function renderCatGrid(){
+  const g=document.getElementById('cat-grid');
+  if(!categories.length){ g.innerHTML=`<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-text">${t('firstCat')}</div></div>`; return; }
+  const now=new Date(),m=now.getMonth(),y=now.getFullYear();
+  g.innerHTML=categories.map(cat=>{
+    const all=transactions.filter(tx=>tx.type==='expense'&&tx.category===cat.id);
+    const mTx=all.filter(tx=>{const d=new Date(tx.date);return d.getMonth()===m&&d.getFullYear()===y;});
+    const mTot=mTx.reduce((s,tx)=>s+tx.amount,0);
+    const count=all.length;
+    return `<div class="cat-row" onclick="showCatDetail('${cat.id}')">
+      <div class="cat-dot" style="background:${cat.color.startsWith('linear')?'#4f8ef7':cat.color}"></div>
+      <div class="cat-emoji">${cat.emoji}</div>
+      <div class="cat-info"><div class="cat-name">${cat.name}</div><div class="cat-count">${count} transazioni</div></div>
+      <div class="cat-amount">${mTot>0?'−'+fmt(mTot):'€0'}</div>
+      <div class="cat-row-actions"><button class="cat-action-btn" onclick="event.stopPropagation();openCatModal('${cat.id}')">✏️</button></div>
+    </div>`;
+  }).join('');
+}
+
+function showCatDetail(catId){
+  const cat=getCatById(catId); if(!cat) return;
+  const catTx=transactions.filter(tx=>tx.type==='expense'&&tx.category===catId);
+  const tot=catTx.reduce((s,tx)=>s+tx.amount,0);
+  document.getElementById('cat-detail-title').innerHTML=`${cat.emoji} ${cat.name} <small style="font-size:14px;color:var(--t2);font-style:normal">−${fmt(tot)}</small>`;
+  const body=document.getElementById('cat-detail-body');
+  if(!catTx.length){ body.innerHTML=`<div class="empty-state"><div class="empty-icon">${cat.emoji}</div><div class="empty-text">${t('noExpenses')}</div></div>`; }
+  else { body.innerHTML=catTx.slice(0,20).map(tx=>renderTxItem(tx,false)).join(''); }
+  document.getElementById('cat-detail-overlay').classList.add('active');
+}
+
+// ===================== EMOJI PICKER =====================
+function buildEmojiPickerCategories(){
+  const row=document.getElementById('emoji-cats-row');
+  let html=`<button class="emoji-cat-btn active" onclick="filterEmojiCat(this,'all')">Tutti</button>`;
+  EMOJI_CATEGORIES.forEach((cat,i)=>{ html+=`<button class="emoji-cat-btn" onclick="filterEmojiCat(this,'${i}')">${cat.label}</button>`; });
+  row.innerHTML=html; renderEmojiGrid(null);
+}
+
+function renderEmojiGrid(catIndex){
+  const grid=document.getElementById('emoji-grid-full'); let html='';
+  if(catIndex===null){
+    EMOJI_CATEGORIES.forEach(cat=>{
+      html+=`<div class="emoji-section-label">${cat.label}</div>`;
+      cat.emojis.forEach(e=>{ html+=`<button class="emoji-swatch" onclick="selectEmoji('${e}')">${e}</button>`; });
+    });
+  } else {
+    EMOJI_CATEGORIES[catIndex].emojis.forEach(e=>{ html+=`<button class="emoji-swatch" onclick="selectEmoji('${e}')">${e}</button>`; });
+  }
+  grid.innerHTML=html; highlightSelectedEmoji();
+}
+
+function filterEmojiCat(btn,idx){
+  document.querySelectorAll('.emoji-cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('emoji-search-input').value='';
+  if(idx==='all') renderEmojiGrid(null);
+  else renderEmojiGrid(parseInt(idx));
+}
+
+// FIXED: emoji search now works correctly
+function filterEmojis(query){
+  const grid=document.getElementById('emoji-grid-full');
+  if(!query.trim()){ renderEmojiGrid(null); return; }
+  const q = query.toLowerCase();
+  const all=[];
+  EMOJI_CATEGORIES.forEach(cat=>all.push(...cat.emojis));
+  // Search by description using emoji names
+  const emojiNames = {
+    '😀':'faccia sorridente','😃':'sorriso','😄':'risata','😁':'sogghigno','😂':'lacrime','🥰':'amore','😍':'cuori',
+    '👍':'pollice su','👎':'pollice giù','❤️':'cuore','🔥':'fuoco','⭐':'stella','🎉':'festa','🎊':'coriandoli',
+    '🍕':'pizza','🍔':'hamburger','🍟':'patatine','🍣':'sushi','🍜':'noodle','☕':'caffè','🍵':'tè',
+    '🚗':'auto','✈️':'aereo','🚂':'treno','🚀':'razzo','🏠':'casa','🏦':'banca','🏥':'ospedale',
+    '💰':'soldi','💳':'carta','💵':'banconota','📈':'grafico crescita','📉':'grafico calo','📊':'statistiche',
+    '🎮':'videogiochi','🎵':'musica','🎸':'chitarra','🎹':'pianoforte','🎤':'microfono',
+    '💊':'medicina','🩺':'dottore','🏥':'ospedale','🧴':'lozione','🧼':'sapone',
+    '🌸':'fiore','🌊':'onda','🌈':'arcobaleno','❄️':'neve','🔥':'fuoco',
+    '👕':'maglietta','👗':'vestito','👠':'tacco','👟':'scarpa','🧢':'cappello',
+    '💡':'lampadina','🔋':'batteria','📱':'smartphone','💻':'computer','⌨️':'tastiera',
+    '🐶':'cane','🐱':'gatto','🐸':'rana','🦁':'leone','🐧':'pinguino',
+  };
+  const filtered = all.filter(e => {
+    const name = emojiNames[e] || '';
+    return name.includes(q) || e.includes(query);
+  });
+  // If few results, also show emojis whose codepoint matches
+  let result = filtered.length > 0 ? filtered : all.filter(e => e.includes(query));
+  grid.innerHTML = result.length > 0
+    ? result.map(e=>`<button class="emoji-swatch" onclick="selectEmoji('${e}')">${e}</button>`).join('')
+    : `<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center;grid-column:1/-1">Nessun risultato</div>`;
+  highlightSelectedEmoji();
+}
+
+function highlightSelectedEmoji(){
+  if(!emojiPickerTarget) return;
+  const inputId=emojiPickerTarget==='cat'?'cat-emoji-input':'acc-emoji-input';
+  const current=document.getElementById(inputId).value;
+  document.querySelectorAll('.emoji-swatch').forEach(s=>{ s.classList.toggle('selected',s.textContent===current); });
+}
+
+function openEmojiPicker(target){
+  emojiPickerTarget=target;
+  document.getElementById('emoji-overlay').classList.add('open');
+  document.getElementById('emoji-picker-panel').classList.add('open');
+  document.getElementById('emoji-search-input').value='';
+  document.querySelectorAll('.emoji-cat-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  renderEmojiGrid(null);
+}
+
+function closeEmojiPicker(){
+  document.getElementById('emoji-overlay').classList.remove('open');
+  document.getElementById('emoji-picker-panel').classList.remove('open');
+  emojiPickerTarget=null;
+}
+
+function selectEmoji(e){
+  if(!emojiPickerTarget) return;
+  if(emojiPickerTarget==='cat'){
+    document.getElementById('cat-emoji-input').value=e;
+    document.getElementById('cat-emoji-preview').textContent=e;
+  } else {
+    document.getElementById('acc-emoji-input').value=e;
+    document.getElementById('acc-emoji-preview').textContent=e;
+  }
+  highlightSelectedEmoji();
+  closeEmojiPicker();
+}
+
+// ===================== TREND PERIOD DATA =====================
+function getTrendData(){
+  const now = new Date();
+  let labels=[], incomes=[], expenses=[];
+  
+  if(currentTrendPeriod==='monthly'){
+    // Last 4 weeks, week by week
+    for(let i=3;i>=0;i--){
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay() - i*7);
+      weekStart.setHours(0,0,0,0);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate()+6);
+      weekEnd.setHours(23,59,59);
+      labels.push('W'+(4-i));
+      let inc=0,exp=0;
+      transactions.forEach(tx=>{
+        const d=new Date(tx.date);
+        if(d>=weekStart&&d<=weekEnd){
+          if(tx.type==='income')inc+=tx.amount;
+          if(tx.type==='expense')exp+=tx.amount;
+        }
+      });
+      incomes.push(inc); expenses.push(exp);
+    }
+  } else if(currentTrendPeriod==='quarterly'){
+    // Last 3 months
+    for(let i=2;i>=0;i--){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      const m=d.getMonth(),y=d.getFullYear();
+      labels.push(d.toLocaleDateString('it-IT',{month:'short'}));
+      let inc=0,exp=0;
+      transactions.forEach(tx=>{const td=new Date(tx.date);if(td.getMonth()===m&&td.getFullYear()===y){if(tx.type==='income')inc+=tx.amount;if(tx.type==='expense')exp+=tx.amount;}});
+      incomes.push(inc); expenses.push(exp);
+    }
+  } else if(currentTrendPeriod==='semiannual'){
+    // Last 6 months
+    for(let i=5;i>=0;i--){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      const m=d.getMonth(),y=d.getFullYear();
+      labels.push(d.toLocaleDateString('it-IT',{month:'short'}));
+      let inc=0,exp=0;
+      transactions.forEach(tx=>{const td=new Date(tx.date);if(td.getMonth()===m&&td.getFullYear()===y){if(tx.type==='income')inc+=tx.amount;if(tx.type==='expense')exp+=tx.amount;}});
+      incomes.push(inc); expenses.push(exp);
+    }
+  } else if(currentTrendPeriod==='yearly'){
+    // Last 12 months
+    for(let i=11;i>=0;i--){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      const m=d.getMonth(),y=d.getFullYear();
+      labels.push(d.toLocaleDateString('it-IT',{month:'short'})+"'"+(y%100));
+      let inc=0,exp=0;
+      transactions.forEach(tx=>{const td=new Date(tx.date);if(td.getMonth()===m&&td.getFullYear()===y){if(tx.type==='income')inc+=tx.amount;if(tx.type==='expense')exp+=tx.amount;}});
+      incomes.push(inc); expenses.push(exp);
+    }
+  } else if(currentTrendPeriod==='alltime'){
+    // All months with data
+    const monthSet = new Set();
+    transactions.forEach(tx=>{
+      const d=new Date(tx.date);
+      monthSet.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+    });
+    const sortedMonths = [...monthSet].sort();
+    if(sortedMonths.length===0){
+      // No data, show last 6 months
+      for(let i=5;i>=0;i--){
+        const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+        labels.push(d.toLocaleDateString('it-IT',{month:'short'}));
+        incomes.push(0); expenses.push(0);
+      }
+    } else {
+      sortedMonths.forEach(mk=>{
+        const[y,mo]=mk.split('-').map(Number);
+        const d=new Date(y,mo-1,1);
+        labels.push(d.toLocaleDateString('it-IT',{month:'short'})+"'"+(y%100));
+        let inc=0,exp=0;
+        transactions.forEach(tx=>{const td=new Date(tx.date);if(td.getMonth()===mo-1&&td.getFullYear()===y){if(tx.type==='income')inc+=tx.amount;if(tx.type==='expense')exp+=tx.amount;}});
+        incomes.push(inc); expenses.push(exp);
+      });
+    }
+  }
+
+  const subLabels = {
+    monthly: 'Ultime 4 settimane',
+    quarterly: 'Ultimi 3 mesi',
+    semiannual: 'Ultimi 6 mesi',
+    yearly: 'Ultimi 12 mesi',
+    alltime: 'Dati storici completi',
+  };
+  document.getElementById('chart-sub-label').textContent = subLabels[currentTrendPeriod]||'';
+  return {labels, incomes, expenses};
+}
+
+// ===================== CHARTS =====================
+function destroyChart(k){ if(chartRefs[k]){ chartRefs[k].destroy(); delete chartRefs[k]; } }
+
+function getMonthlyData(n=6){
+  const now=new Date(); const labels=[],incomes=[],expenses=[];
+  for(let i=n-1;i>=0;i--){ const d=new Date(now.getFullYear(),now.getMonth()-i,1); const m=d.getMonth(),y=d.getFullYear(); labels.push(d.toLocaleDateString('it-IT',{month:'short'})); let inc=0,exp=0; transactions.forEach(tx=>{const td=new Date(tx.date);if(td.getMonth()===m&&td.getFullYear()===y){if(tx.type==='income')inc+=tx.amount;if(tx.type==='expense')exp+=tx.amount;}}); incomes.push(inc); expenses.push(exp); }
+  return{labels,incomes,expenses};
+}
+
+const scaleOpts={x:{ticks:{color:'#3a4558',font:{size:10,family:'DM Sans'}},grid:{color:'#1c2232'}},y:{ticks:{color:'#3a4558',font:{size:10,family:'DM Sans'}},grid:{color:'#1c2232'}}};
+const legendOpts={labels:{color:'#7b879e',font:{family:'DM Sans',size:11},boxWidth:10,padding:12}};
+
+function renderDashLineChart(){
+  const{labels,incomes,expenses}=getTrendData();
+  destroyChart('dashLine');
+  const dlc=document.getElementById('dashLineChart');
+  if(dlc) chartRefs.dashLine=new Chart(dlc,{type:'line',data:{labels,datasets:[{label:t('incomes'),data:incomes,borderColor:'#22d48a',backgroundColor:'rgba(34,212,138,0.07)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#22d48a'},{label:t('expenses'),data:expenses,borderColor:'#f25270',backgroundColor:'rgba(242,82,112,0.07)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#f25270'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legendOpts},scales:scaleOpts}});
+}
+
+function renderCharts(){
+  renderDashLineChart();
+  const{labels,incomes,expenses}=getMonthlyData(6);
+  destroyChart('bar'); const bc=document.getElementById('barChart');
+  if(bc) chartRefs.bar=new Chart(bc,{type:'bar',data:{labels,datasets:[{label:t('incomes'),data:incomes,backgroundColor:'rgba(34,212,138,0.6)',borderColor:'#22d48a',borderWidth:1,borderRadius:6},{label:t('expenses'),data:expenses,backgroundColor:'rgba(242,82,112,0.6)',borderColor:'#f25270',borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legendOpts},scales:scaleOpts}});
+  destroyChart('pie'); const pc=document.getElementById('pieChart');
+  if(pc){ const now=new Date();const m=now.getMonth(),y=now.getFullYear(); const data=categories.map(cat=>({name:`${cat.emoji} ${cat.name}`,color:cat.color.startsWith('linear')?'#4f8ef7':cat.color,val:transactions.filter(tx=>tx.type==='expense'&&tx.category===cat.id).reduce((s,tx)=>{const d=new Date(tx.date);return d.getMonth()===m&&d.getFullYear()===y?s+tx.amount:s},0)})).filter(c=>c.val>0); if(data.length) chartRefs.pie=new Chart(pc,{type:'doughnut',data:{labels:data.map(c=>c.name),datasets:[{data:data.map(c=>c.val),backgroundColor:data.map(c=>c.color+'cc'),borderColor:data.map(c=>c.color),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:'#7b879e',font:{family:'DM Sans',size:10},padding:8,boxWidth:8}}}}});  }
+  destroyChart('accPie'); const ap=document.getElementById('accPieChart');
+  if(ap){ const data=accounts.map(a=>({name:`${a.emoji} ${a.name}`,val:Math.max(0,getBalance(a.id)),color:a.color.startsWith('linear')?'#4f8ef7':a.color})).filter(a=>a.val>0); if(data.length) chartRefs.accPie=new Chart(ap,{type:'doughnut',data:{labels:data.map(a=>a.name),datasets:[{data:data.map(a=>a.val),backgroundColor:data.map(a=>a.color+'bb'),borderColor:data.map(a=>a.color),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'bottom',labels:{color:'#7b879e',font:{family:'DM Sans',size:10},padding:8,boxWidth:8}}}}});  }
+  destroyChart('catBar'); const cb=document.getElementById('catBarChart');
+  if(cb){ const data=categories.map(cat=>({name:`${cat.emoji} ${cat.name}`,color:cat.color.startsWith('linear')?'#4f8ef7':cat.color,val:transactions.filter(tx=>tx.type==='expense'&&tx.category===cat.id).reduce((s,tx)=>s+tx.amount,0)})).filter(c=>c.val>0).sort((a,b)=>b.val-a.val).slice(0,6); if(data.length) chartRefs.catBar=new Chart(cb,{type:'bar',data:{labels:data.map(c=>c.name),datasets:[{label:t('expenses'),data:data.map(c=>c.val),backgroundColor:data.map(c=>c.color+'aa'),borderColor:data.map(c=>c.color),borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#3a4558',font:{size:10,family:'DM Sans'}},grid:{color:'#1c2232'}},y:{ticks:{color:'#7b879e',font:{size:10,family:'DM Sans'}},grid:{color:'#1c2232'}}}}});  }
+}
+
+// ===================== EXPORT PDF =====================
+function openExportModal(){ document.getElementById('export-modal').classList.add('active'); }
+
+function getPeriodTransactions(period){
+  const now = new Date();
+  let from, to, label;
+  if(period==='daily'){ from=new Date(now.getFullYear(),now.getMonth(),now.getDate()); to=new Date(from.getTime()+86400000-1); label=t('expToday').replace('📅 ','')+' - '+from.toLocaleDateString('it-IT'); }
+  else if(period==='weekly'){ const day=now.getDay(); from=new Date(now); from.setDate(now.getDate()-day); from.setHours(0,0,0,0); to=new Date(from); to.setDate(from.getDate()+6); to.setHours(23,59,59); label=from.toLocaleDateString('it-IT')+' – '+to.toLocaleDateString('it-IT'); }
+  else if(period==='monthly'){ from=new Date(now.getFullYear(),now.getMonth(),1); to=new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59); label=from.toLocaleDateString('it-IT',{month:'long',year:'numeric'}); }
+  else if(period==='yearly'){ from=new Date(now.getFullYear(),0,1); to=new Date(now.getFullYear(),11,31,23,59,59); label=now.getFullYear(); }
+  else { from=new Date(0); to=new Date(9999,0,1); label=t('expAll').replace('📅 ',''); }
+  return { txs: transactions.filter(tx=>{ const d=new Date(tx.date); return d>=from&&d<=to; }), label };
+}
+
+function exportPDF(period){
+  closeModal2('export-modal'); // FIX: close modal first so user can return to app
+  const {txs, label} = getPeriodTransactions(period);
+  const sym = getDefaultSymbol();
+  let inc=0, exp=0;
+  txs.forEach(tx=>{ if(tx.type==='income')inc+=tx.amount; if(tx.type==='expense')exp+=tx.amount; });
+  const net=inc-exp;
+
+  const rows = txs.map(tx=>{
+    const cat=getCatById(tx.category);
+    const acc=txAccountLabel(tx);
+    const sign=tx.type==='income'?'+':tx.type==='expense'?'−':'⇄';
+    const color=tx.type==='income'?'#22d48a':tx.type==='expense'?'#f25270':'#a78bfa';
+    return `<tr>
+      <td>${new Date(tx.date).toLocaleDateString('it-IT')}</td>
+      <td>${tx.desc}</td>
+      <td>${cat?cat.emoji+' '+cat.name:''}</td>
+      <td>${acc}</td>
+      <td style="color:${color};font-weight:700;text-align:right">${sign}${sym}${Math.abs(tx.amount).toLocaleString('it-IT',{minimumFractionDigits:2})}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>FinanceHub – ${label}</title>
+  <style>
+    body{font-family:system-ui,sans-serif;background:#fff;color:#111;padding:32px;font-size:13px;}
+    h1{font-size:24px;margin:0 0 4px;letter-spacing:-0.5px;}
+    .period{color:#666;margin-bottom:20px;font-size:13px;}
+    .stats{display:flex;gap:24px;margin-bottom:24px;flex-wrap:wrap;}
+    .stat{background:#f5f5f5;padding:14px 20px;border-radius:12px;min-width:120px;}
+    .stat-label{font-size:10px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:0.6px;}
+    .stat-val{font-size:20px;font-weight:800;margin-top:4px;}
+    table{width:100%;border-collapse:collapse;margin-top:16px;}
+    th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#888;border-bottom:2px solid #eee;padding:8px 10px;}
+    td{padding:10px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+    .footer{margin-top:32px;font-size:11px;color:#aaa;text-align:center;}
+  </style></head><body>
+  <h1>📊 FinanceHub</h1>
+  <div class="period">${t('reportLabel')} ${label}</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">${t('reportIncome')}</div><div class="stat-val" style="color:#22d48a">+${sym}${inc.toLocaleString('it-IT',{minimumFractionDigits:2})}</div></div>
+    <div class="stat"><div class="stat-label">${t('reportExpenses')}</div><div class="stat-val" style="color:#f25270">−${sym}${exp.toLocaleString('it-IT',{minimumFractionDigits:2})}</div></div>
+    <div class="stat"><div class="stat-label">${t('reportNet')}</div><div class="stat-val" style="color:${net>=0?'#22d48a':'#f25270'}">${net>=0?'+':'−'}${sym}${Math.abs(net).toLocaleString('it-IT',{minimumFractionDigits:2})}</div></div>
+    <div class="stat"><div class="stat-label">${t('reportTx')}</div><div class="stat-val">${txs.length}</div></div>
+  </div>
+  <table><thead><tr><th>Data</th><th>Descrizione</th><th>Categoria</th><th>Conto</th><th style="text-align:right">Importo</th></tr></thead>
+  <tbody>${rows||`<tr><td colspan="5" style="text-align:center;color:#aaa;padding:32px">Nessuna transazione nel periodo</td></tr>`}</tbody></table>
+  <div class="footer">${t('generatedBy')} • ${new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </body></html>`;
+
+  // FIX: Open in new tab without blocking app navigation
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 3000);
+}
+
+// ===================== TOAST =====================
+function toast(msg,type='info'){
+  const t2=document.createElement('div'); t2.className=`toast ${type}`; t2.textContent=msg;
+  document.body.appendChild(t2);
+  setTimeout(()=>{ t2.style.opacity='0'; t2.style.transform='translateY(6px)'; t2.style.transition='all 0.3s'; setTimeout(()=>t2.remove(),300); },2500);
+}
+
+
+// ===================== IMAGE EDITOR =====================
+let imgEditorState = {
+  src: null,          // original data URL
+  target: null,       // 'tx' | 'profile'
+  rotation: 0,        // degrees: 0/90/180/270
+  flipH: false,
+  flipV: false,
+  cropMode: false,
+  cropStart: null,    // {x,y} in canvas coords
+  cropRect: null,     // {x,y,w,h} in canvas coords
+  dragging: false,
+};
+
+function openImageEditor(src, target){
+  imgEditorState = { src, target, rotation:0, flipH:false, flipV:false, cropMode:false, cropStart:null, cropRect:null, dragging:false };
+  document.getElementById('img-editor-overlay').classList.add('active');
+  document.getElementById('img-editor-title').textContent = target==='profile' ? '✂️ Modifica Foto Profilo' : '✂️ Modifica Foto';
+  document.getElementById('crop-toggle-btn').textContent = '✂️ Ritaglia';
+  document.getElementById('crop-rect').style.display='none';
+  imgEditorDraw();
+  imgEditorSetupCrop();
+}
+
+function imgEditorGetCanvas(){ return document.getElementById('img-editor-canvas'); }
+
+function imgEditorDraw(){
+  const canvas = imgEditorGetCanvas();
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = ()=>{
+    const sw = (imgEditorState.rotation%180!==0) ? img.height : img.width;
+    const sh = (imgEditorState.rotation%180!==0) ? img.width  : img.height;
+    const maxW = Math.min(window.innerWidth * 0.96, 700);
+    const maxH = window.innerHeight * 0.52;
+    const scale = Math.min(maxW/sw, maxH/sh, 1);
+    canvas.width  = Math.round(sw * scale);
+    canvas.height = Math.round(sh * scale);
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height/2);
+    ctx.rotate(imgEditorState.rotation * Math.PI/180);
+    ctx.scale(imgEditorState.flipH ? -1 : 1, imgEditorState.flipV ? -1 : 1);
+    ctx.drawImage(img, -img.width*scale/2, -img.height*scale/2, img.width*scale, img.height*scale);
+    ctx.restore();
+    // If crop rect active, draw it
+    if(imgEditorState.cropRect){
+      const r = imgEditorState.cropRect;
+      ctx.save();
+      ctx.fillStyle='rgba(0,0,0,0.45)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.clearRect(r.x,r.y,r.w,r.h);
+      ctx.strokeStyle='#fff';
+      ctx.lineWidth=2;
+      ctx.strokeRect(r.x,r.y,r.w,r.h);
+      ctx.restore();
+    }
+  };
+  img.src = imgEditorState.src;
+}
+
+function imgEditorRotate(deg){
+  imgEditorState.rotation = ((imgEditorState.rotation + deg) % 360 + 360) % 360;
+  imgEditorState.cropRect = null;
+  document.getElementById('crop-rect').style.display='none';
+  imgEditorDraw();
+}
+
+function imgEditorFlip(axis){
+  if(axis==='h') imgEditorState.flipH = !imgEditorState.flipH;
+  else imgEditorState.flipV = !imgEditorState.flipV;
+  imgEditorState.cropRect = null;
+  imgEditorDraw();
+}
+
+function imgEditorToggleCrop(){
+  imgEditorState.cropMode = !imgEditorState.cropMode;
+  const btn = document.getElementById('crop-toggle-btn');
+  btn.textContent = imgEditorState.cropMode ? '❌ Annulla ritaglia' : '✂️ Ritaglia';
+  if(!imgEditorState.cropMode){
+    imgEditorState.cropRect = null;
+    imgEditorDraw();
+  }
+}
+
+function imgEditorSetupCrop(){
+  const canvas = imgEditorGetCanvas();
+  let isDragging = false, startX, startY;
+
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const src  = e.touches ? e.touches[0] : e;
+    return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+  }
+
+  function onStart(e){
+    if(!imgEditorState.cropMode) return;
+    e.preventDefault();
+    isDragging = true;
+    const p = getPos(e);
+    startX = p.x; startY = p.y;
+    imgEditorState.cropRect = {x:startX, y:startY, w:0, h:0};
+  }
+  function onMove(e){
+    if(!isDragging || !imgEditorState.cropMode) return;
+    e.preventDefault();
+    const p = getPos(e);
+    const x = Math.min(startX, p.x);
+    const y = Math.min(startY, p.y);
+    const w = Math.abs(p.x - startX);
+    const h = Math.abs(p.y - startY);
+    imgEditorState.cropRect = {x,y,w,h};
+    imgEditorDraw();
+  }
+  function onEnd(e){
+    isDragging = false;
+  }
+
+  canvas.addEventListener('mousedown',  onStart);
+  canvas.addEventListener('mousemove',  onMove);
+  canvas.addEventListener('mouseup',    onEnd);
+  canvas.addEventListener('touchstart', onStart, {passive:false});
+  canvas.addEventListener('touchmove',  onMove,  {passive:false});
+  canvas.addEventListener('touchend',   onEnd);
+}
+
+function imgEditorGetResult(){
+  return new Promise(resolve=>{
+    const canvas = imgEditorGetCanvas();
+    if(imgEditorState.cropRect && imgEditorState.cropRect.w > 5 && imgEditorState.cropRect.h > 5){
+      const r = imgEditorState.cropRect;
+      const out = document.createElement('canvas');
+      out.width  = Math.round(r.w);
+      out.height = Math.round(r.h);
+      out.getContext('2d').drawImage(canvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+      resolve(out.toDataURL('image/jpeg', 0.9));
+    } else {
+      resolve(canvas.toDataURL('image/jpeg', 0.9));
+    }
+  });
+}
+
+function imgEditorConfirm(){
+  imgEditorGetResult().then(dataUrl=>{
+    if(imgEditorState.target === 'tx'){
+      document.getElementById('tx-photo-data').value = dataUrl;
+      document.getElementById('tx-photo-preview').src = dataUrl;
+      document.getElementById('tx-photo-preview-wrap').classList.remove('no-display');
+      document.getElementById('tx-photo-upload-area').classList.add('no-display');
+      document.getElementById('tx-photo-file').value='';
+    } else if(imgEditorState.target === 'profile'){
+      userProfile.photo = dataUrl;
+      const img = document.getElementById('profile-photo-img');
+      const ph  = document.getElementById('profile-photo-placeholder');
+      img.src = dataUrl; img.style.display='block'; ph.style.display='none';
+      updateProfileDisplay();
+      document.getElementById('profile-photo-file').value='';
+    }
+    document.getElementById('img-editor-overlay').classList.remove('active');
+  });
+}
+
+function imgEditorCancel(){
+  document.getElementById('img-editor-overlay').classList.remove('active');
+  document.getElementById('tx-photo-file').value='';
+  document.getElementById('profile-photo-file').value='';
+}
+
+// ===================== PROFILE PHOTO MENU =====================
+function openProfilePhotoMenu(){
+  const removeBtn = document.getElementById('profile-photo-remove-btn');
+  if(removeBtn) removeBtn.style.display = userProfile.photo ? 'flex' : 'none';
+  document.getElementById('profile-photo-menu').classList.add('active');
+}
+function closeProfilePhotoMenu(){
+  document.getElementById('profile-photo-menu').classList.remove('active');
+}
+function removeProfilePhoto(){
+  userProfile.photo = '';
+  document.getElementById('profile-photo-img').style.display='none';
+  document.getElementById('profile-photo-placeholder').style.display='block';
+  updateProfileDisplay();
+  toast('Foto rimossa','info');
+}
+function openLightboxProfile(){
+  if(!userProfile.photo){ toast('Nessuna foto impostata','info'); return; }
+  document.getElementById('lightbox-profile-img').src = userProfile.photo;
+  document.getElementById('lightbox-profile').classList.add('active');
+}
+
+// ===================== RESET PASSWORD =====================
+function openResetPwd(){
+  const emailEl = document.getElementById('profile-email');
+  const resetEl = document.getElementById('reset-email');
+  if(resetEl && emailEl) resetEl.value = emailEl.value || '';
+  document.getElementById('reset-pwd-modal').classList.add('active');
+}
+function sendPasswordReset(){
+  if(!fbAuth){ ensureFirebase(sendPasswordReset); return; }
+  const email = document.getElementById('reset-email').value.trim();
+  if(!email){ toast('Inserisci la tua email','error'); return; }
+  fbAuth.sendPasswordResetEmail(email)
+    .then(()=>{
+      toast('Email inviata! Controlla la tua casella.','success');
+      closeModal2('reset-pwd-modal');
+    })
+    .catch(e=>{ toast(e.message,'error'); });
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/FinanceHub-/sw.js').catch(err => console.log('SW:', err));
+  });
+}
+</script>
+</body>
+</html>
