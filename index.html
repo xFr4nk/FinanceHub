@@ -1688,6 +1688,38 @@ function ensureFirebase(cb){
   setTimeout(()=>{ if(fbAuth){ cb(); } else { toast('Firebase non disponibile. Riprova.','error'); } }, 1200);
 }
 
+function mergeTxArrays(local, cloud){
+  // Merge by id: keep all unique transactions, newest edit wins for duplicates
+  const map = {};
+  (cloud || []).forEach(tx => { map[tx.id] = tx; });
+  (local || []).forEach(tx => {
+    if(!map[tx.id]){
+      map[tx.id] = tx; // local-only tx: always keep
+    } else {
+      // Both have it: keep whichever was edited more recently
+      const localTs  = tx._updatedAt  || tx._ts  || 0;
+      const cloudTs  = map[tx.id]._updatedAt || map[tx.id]._ts || 0;
+      if(localTs >= cloudTs) map[tx.id] = tx;
+    }
+  });
+  // Sort by date descending
+  return Object.values(map).sort((a,b)=>new Date(b.date)-new Date(a.date));
+}
+
+function mergeCatArrays(local, cloud){
+  const map = {};
+  (cloud || []).forEach(c => { map[c.id] = c; });
+  (local || []).forEach(c => { map[c.id] = c; }); // local wins for cats
+  return Object.values(map);
+}
+
+function mergeAccArrays(local, cloud){
+  const map = {};
+  (cloud || []).forEach(a => { map[a.id] = a; });
+  (local || []).forEach(a => { map[a.id] = a; }); // local wins for accounts
+  return Object.values(map);
+}
+
 function syncToCloud(immediate){
   if(!fbUser || !fbDb) return;
   clearTimeout(syncTimeout);
@@ -1721,44 +1753,50 @@ function manualSync(){
   if(!fbUser || !fbDb){ toast('Accedi prima per sincronizzare','error'); return; }
   const el = document.getElementById('profile-sync-status');
   if(el) el.textContent='Sincronizzazione...';
-  syncToCloud(true);
-  toast('Dati sincronizzati ✓','success');
+  // manualSync does a full two-way merge then pushes result up
+  syncFromCloud(true);
 }
 
-function syncFromCloud(){
+function syncFromCloud(thenPush){
   if(!fbUser || !fbDb) return;
   fbDb.ref('users/'+fbUser.uid+'/data').once('value').then(snap=>{
     const data = snap.val();
-    if(!data) { syncToCloud(true); return; }
-
-    // Compare timestamps: use whichever dataset is more recent
-    const cloudTime    = data.updatedAt || 0;
-    const localSyncTime = parseInt(localStorage.getItem('fh_last_cloud_sync') || '0');
-    const localModTime  = parseInt(localStorage.getItem('fh_last_local_mod')  || '0');
-
-    // If local has unsaved changes newer than last cloud sync, push local up
-    if(localModTime > localSyncTime && localModTime > cloudTime){
-      console.log('Local data is newer — pushing local to cloud');
+    if(!data){
+      // Nothing on cloud yet — push what we have
       syncToCloud(true);
-      toast('Dati locali più recenti — sincronizzati ✓','success');
       return;
     }
 
-    // Otherwise cloud wins
-    transactions = data.transactions || [];
-    categories   = data.categories   || [];
-    accounts     = data.accounts     || [];
-    if(data.settings) settings    = {...settings,    ...data.settings};
-    if(data.profile)  userProfile = {...userProfile, ...data.profile};
+    // --- MERGE: unite local + cloud, never lose data from either side ---
+    const localTx   = transactions  || [];
+    const localCats = categories    || [];
+    const localAccs = accounts      || [];
+
+    transactions = mergeTxArrays(localTx,   data.transactions || []);
+    categories   = mergeCatArrays(localCats, data.categories  || []);
+    accounts     = mergeAccArrays(localAccs, data.accounts    || []);
+
+    // Settings & profile: cloud wins only if newer
+    const cloudTime = data.updatedAt || 0;
+    const localMod  = parseInt(localStorage.getItem('fh_last_local_mod') || '0');
+    if(cloudTime >= localMod){
+      if(data.settings) settings    = {...settings,    ...data.settings};
+      if(data.profile)  userProfile = {...userProfile, ...data.profile};
+    }
+
     saveLocal();
     localStorage.setItem('fh_last_cloud_sync', Date.now().toString());
+
+    // Always push the merged result back to cloud so all devices get it
+    syncToCloud(true);
+
     updateAll();
     applyTranslations();
     updateProfileDisplay();
-    toast('Dati sincronizzati ✓','success');
+    toast('Dati uniti e sincronizzati ✓','success');
   }).catch(e=>{
     console.warn('Sync from cloud error',e);
-    toast('Impossibile leggere il cloud: ' + (e.message||e.code||'controlla la connessione'), 'error');
+    toast('Errore sync: ' + (e.message||e.code||'controlla la connessione'), 'error');
   });
 }
 
@@ -2540,10 +2578,11 @@ function saveTx(){
     recurringMaster: !editId && recurring!=='none',
     lastGenerated: !editId && recurring!=='none' ? date : undefined,
     recurEvery, recurUnit, recurHour, recurMinute,
-    photo
+    photo,
+    _updatedAt: Date.now()
   };
   if(currentTxType==='transfer'){tx.fromAccount=account;tx.toAccount=toAccount;delete tx.account;}
-  if(editId){ const idx=transactions.findIndex(tx2=>tx2.id===editId); if(idx>-1) transactions[idx]=tx; saveLocal(); syncToCloud(true); toast(t('edited'),'success'); }
+  if(editId){ const idx=transactions.findIndex(tx2=>tx2.id===editId); if(idx>-1) transactions[idx]=tx; markLocalModified(); saveLocal(); syncToCloud(true); toast(t('edited'),'success'); }
   else { transactions.unshift(tx); saveData(); toast(t('saved'),'success'); }
   closeModal(); processRecurring(); updateAll();
 }
