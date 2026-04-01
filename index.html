@@ -442,6 +442,60 @@ body {
 .lang-check { color: var(--blue); font-size: 16px; }
 /* Profile icon in settings */
 .settings-row-icon img { width:36px;height:36px;border-radius:50%;object-fit:cover; }
+ 
+/* ===== IMAGE EDITOR MODAL ===== */
+#img-editor-overlay {
+  display:none; position:fixed; inset:0; z-index:2000;
+  background:rgba(0,0,0,0.92); flex-direction:column;
+  align-items:center; justify-content:center; gap:0;
+}
+#img-editor-overlay.active { display:flex; }
+#img-editor-canvas-wrap {
+  width:100%; flex:1; display:flex; align-items:center; justify-content:center;
+  overflow:hidden; position:relative; min-height:0;
+}
+#img-editor-canvas { max-width:96vw; max-height:54vh; display:block; }
+.img-editor-toolbar {
+  width:100%; background:var(--bg1); border-top:1px solid var(--border);
+  padding:10px 12px calc(12px + var(--safe-bottom)); display:flex; flex-direction:column; gap:8px;
+  flex-shrink:0;
+}
+.img-editor-btns { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+.img-editor-btn {
+  background:var(--bg2); border:1px solid var(--border2); color:var(--t1);
+  border-radius:10px; padding:9px 13px; font-size:12.5px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.15s;
+  font-family:var(--font);
+}
+.img-editor-btn:active { background:var(--bg3); transform:scale(0.96); }
+.img-editor-btn.primary { background:var(--blue-d); border-color:var(--blue); color:var(--blue); }
+.img-editor-btn.danger  { background:var(--red-d);  border-color:var(--red);  color:var(--red); }
+.img-editor-title { text-align:center; font-size:12px; font-weight:700; color:var(--t2); text-transform:uppercase; letter-spacing:0.8px; padding-bottom:2px; }
+#crop-rect {
+  position:absolute; border:2px solid #fff; box-shadow:0 0 0 9999px rgba(0,0,0,0.5);
+  cursor:move; display:none; pointer-events:none;
+}
+/* ===== PROFILE PHOTO MENU ===== */
+#profile-photo-menu {
+  display:none; position:fixed; inset:0; z-index:1800;
+  align-items:flex-end; justify-content:center; background:rgba(0,0,0,0.5);
+}
+#profile-photo-menu.active { display:flex; }
+.profile-photo-menu-sheet {
+  width:100%; max-width:480px; background:var(--bg1);
+  border-radius:20px 20px 0 0; padding:16px 16px calc(16px + var(--safe-bottom));
+  display:flex; flex-direction:column; gap:8px;
+}
+.menu-handle { width:36px; height:4px; background:var(--border2); border-radius:2px; margin:0 auto 10px; }
+.photo-menu-btn {
+  display:flex; align-items:center; gap:12px; padding:14px 16px;
+  background:var(--bg2); border:1px solid var(--border); border-radius:var(--r);
+  font-size:14px; font-weight:600; color:var(--t1); cursor:pointer;
+  font-family:var(--font); transition:all 0.15s;
+}
+.photo-menu-btn:active { background:var(--bg3); }
+.photo-menu-btn.danger { color:var(--red); }
+.photo-menu-cancel { padding:13px; text-align:center; font-size:14px; font-weight:700; color:var(--t2); cursor:pointer; border-radius:var(--r); background:var(--bg2); border:1px solid var(--border); font-family:var(--font); margin-top:2px; }
 </style>
 <body>
 <div class="app">
@@ -754,7 +808,8 @@ body {
       <label class="form-label" id="lbl-photo">Foto (scontrino, ecc.)</label>
       <div id="tx-photo-preview-wrap" class="no-display">
         <div class="photo-preview-wrap">
-          <img id="tx-photo-preview" class="photo-preview-img" src="" alt="preview"/>
+          <img id="tx-photo-preview" class="photo-preview-img" src="" alt="preview" onclick="reeditorTxPhoto()"/>
+          <button class="photo-preview-del" style="left:8px;right:auto" onclick="reeditorTxPhoto()">✏️</button>
           <button class="photo-preview-del" onclick="removePhoto()">✕</button>
         </div>
       </div>
@@ -904,6 +959,61 @@ body {
   </div>
 </div>
  
+ 
+<!-- IMAGE EDITOR OVERLAY -->
+<div id="img-editor-overlay">
+  <div id="img-editor-canvas-wrap">
+    <canvas id="img-editor-canvas"></canvas>
+    <div id="crop-rect"></div>
+  </div>
+  <div class="img-editor-toolbar">
+    <div class="img-editor-title" id="img-editor-title">✂️ Modifica Foto</div>
+    <div class="img-editor-btns">
+      <button class="img-editor-btn" onclick="imgEditorRotate(-90)">↺ Ruota SX</button>
+      <button class="img-editor-btn" onclick="imgEditorRotate(90)">↻ Ruota DX</button>
+      <button class="img-editor-btn" onclick="imgEditorFlip('h')">⇄ Specchia H</button>
+      <button class="img-editor-btn" onclick="imgEditorFlip('v')">↕ Specchia V</button>
+    </div>
+    <div class="img-editor-btns">
+      <button class="img-editor-btn" id="crop-toggle-btn" onclick="imgEditorToggleCrop()">✂️ Ritaglia</button>
+      <button class="img-editor-btn primary" onclick="imgEditorConfirm()">✅ Conferma</button>
+      <button class="img-editor-btn danger" onclick="imgEditorCancel()">✕ Annulla</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- PROFILE PHOTO MENU -->
+<div id="profile-photo-menu" onclick="if(event.target===this)closeProfilePhotoMenu()">
+  <div class="profile-photo-menu-sheet">
+    <div class="menu-handle"></div>
+    <button class="photo-menu-btn" onclick="closeProfilePhotoMenu();openLightboxProfile()">🔍 Visualizza foto attuale</button>
+    <button class="photo-menu-btn" onclick="closeProfilePhotoMenu();document.getElementById('profile-photo-file').click()">📷 Cambia foto</button>
+    <button class="photo-menu-btn danger" id="profile-photo-remove-btn" onclick="closeProfilePhotoMenu();removeProfilePhoto()">🗑 Rimuovi foto</button>
+    <div class="photo-menu-cancel" onclick="closeProfilePhotoMenu()">Annulla</div>
+  </div>
+</div>
+ 
+<!-- LIGHTBOX PROFILO -->
+<div class="lightbox" id="lightbox-profile" onclick="document.getElementById('lightbox-profile').classList.remove('active')">
+  <button class="lightbox-close">✕</button>
+  <img id="lightbox-profile-img" src="" alt="foto profilo" style="border-radius:50%;max-width:88vw;max-height:88vw;object-fit:cover"/>
+</div>
+ 
+<!-- RESET PASSWORD MODAL -->
+<div class="modal-overlay" id="reset-pwd-modal" onclick="handleModalBg(event,'reset-pwd-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔑 Recupera Password
+      <button class="modal-close" onclick="closeModal2('reset-pwd-modal')">✕</button>
+    </div>
+    <div style="font-size:13px;color:var(--t2);margin-bottom:16px">Inserisci la tua email: ti invieremo un link per reimpostare la password.</div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" type="email" id="reset-email" placeholder="mario@email.com" autocomplete="email"/>
+    </div>
+    <button class="save-btn" style="background:var(--orange)" onclick="sendPasswordReset()">📧 Invia email di recupero</button>
+  </div>
+</div>
 <!-- IMAGE LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="document.getElementById('lightbox').classList.remove('active')">
   <button class="lightbox-close">✕</button>
@@ -920,7 +1030,7 @@ body {
     </div>
     <!-- Photo -->
     <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:20px">
-      <div id="profile-photo-wrap" style="position:relative;width:88px;height:88px;cursor:pointer" onclick="document.getElementById('profile-photo-file').click()">
+      <div id="profile-photo-wrap" style="position:relative;width:88px;height:88px;cursor:pointer" onclick="openProfilePhotoMenu()">
         <div id="profile-photo-display" style="width:88px;height:88px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden">
           <span id="profile-photo-placeholder">👤</span>
           <img id="profile-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%"/>
@@ -957,6 +1067,9 @@ body {
           <input class="form-input" type="password" id="profile-password" placeholder="••••••••" autocomplete="current-password"/>
         </div>
         <button class="save-btn" style="background:var(--purple);margin-top:0" onclick="profileLogin()">☁️ Accedi / Registrati</button>
+        <div style="text-align:center;margin-top:8px">
+          <span style="font-size:12px;color:var(--blue);cursor:pointer;font-weight:600" onclick="openResetPwd()">🔑 Password dimenticata?</span>
+        </div>
         <button class="save-btn" style="background:#fff;color:#333;border:1px solid #ddd;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="loginWithGoogle()">
           <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
           Accedi con Google
@@ -1703,11 +1816,7 @@ function handleProfilePhoto(e){
   const file=e.target.files[0]; if(!file) return;
   const reader=new FileReader();
   reader.onload=ev=>{
-    userProfile.photo=ev.target.result;
-    const img=document.getElementById('profile-photo-img');
-    const ph=document.getElementById('profile-photo-placeholder');
-    img.src=ev.target.result; img.style.display='block'; ph.style.display='none';
-    updateProfileDisplay();
+    openImageEditor(ev.target.result, 'profile');
   };
   reader.readAsDataURL(file);
 }
@@ -2351,11 +2460,7 @@ function handlePhotoUpload(e){
   const file = e.target.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    const data = ev.target.result;
-    document.getElementById('tx-photo-data').value = data;
-    document.getElementById('tx-photo-preview').src = data;
-    document.getElementById('tx-photo-preview-wrap').classList.remove('no-display');
-    document.getElementById('tx-photo-upload-area').classList.add('no-display');
+    openImageEditor(ev.target.result, 'tx');
   };
   reader.readAsDataURL(file);
 }
@@ -2365,6 +2470,10 @@ function removePhoto(){
   document.getElementById('tx-photo-preview-wrap').classList.add('no-display');
   document.getElementById('tx-photo-upload-area').classList.remove('no-display');
   document.getElementById('tx-photo-file').value='';
+}
+function reeditorTxPhoto(){
+  const src = document.getElementById('tx-photo-data').value;
+  if(src) openImageEditor(src, 'tx');
 }
 function openLightbox(src){
   document.getElementById('lightbox-img').src=src;
@@ -2902,6 +3011,214 @@ function toast(msg,type='info'){
   const t2=document.createElement('div'); t2.className=`toast ${type}`; t2.textContent=msg;
   document.body.appendChild(t2);
   setTimeout(()=>{ t2.style.opacity='0'; t2.style.transform='translateY(6px)'; t2.style.transition='all 0.3s'; setTimeout(()=>t2.remove(),300); },2500);
+}
+ 
+ 
+// ===================== IMAGE EDITOR =====================
+let imgEditorState = {
+  src: null,          // original data URL
+  target: null,       // 'tx' | 'profile'
+  rotation: 0,        // degrees: 0/90/180/270
+  flipH: false,
+  flipV: false,
+  cropMode: false,
+  cropStart: null,    // {x,y} in canvas coords
+  cropRect: null,     // {x,y,w,h} in canvas coords
+  dragging: false,
+};
+ 
+function openImageEditor(src, target){
+  imgEditorState = { src, target, rotation:0, flipH:false, flipV:false, cropMode:false, cropStart:null, cropRect:null, dragging:false };
+  document.getElementById('img-editor-overlay').classList.add('active');
+  document.getElementById('img-editor-title').textContent = target==='profile' ? '✂️ Modifica Foto Profilo' : '✂️ Modifica Foto';
+  document.getElementById('crop-toggle-btn').textContent = '✂️ Ritaglia';
+  document.getElementById('crop-rect').style.display='none';
+  imgEditorDraw();
+  imgEditorSetupCrop();
+}
+ 
+function imgEditorGetCanvas(){ return document.getElementById('img-editor-canvas'); }
+ 
+function imgEditorDraw(){
+  const canvas = imgEditorGetCanvas();
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = ()=>{
+    const sw = (imgEditorState.rotation%180!==0) ? img.height : img.width;
+    const sh = (imgEditorState.rotation%180!==0) ? img.width  : img.height;
+    const maxW = Math.min(window.innerWidth * 0.96, 700);
+    const maxH = window.innerHeight * 0.52;
+    const scale = Math.min(maxW/sw, maxH/sh, 1);
+    canvas.width  = Math.round(sw * scale);
+    canvas.height = Math.round(sh * scale);
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height/2);
+    ctx.rotate(imgEditorState.rotation * Math.PI/180);
+    ctx.scale(imgEditorState.flipH ? -1 : 1, imgEditorState.flipV ? -1 : 1);
+    ctx.drawImage(img, -img.width*scale/2, -img.height*scale/2, img.width*scale, img.height*scale);
+    ctx.restore();
+    // If crop rect active, draw it
+    if(imgEditorState.cropRect){
+      const r = imgEditorState.cropRect;
+      ctx.save();
+      ctx.fillStyle='rgba(0,0,0,0.45)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.clearRect(r.x,r.y,r.w,r.h);
+      ctx.strokeStyle='#fff';
+      ctx.lineWidth=2;
+      ctx.strokeRect(r.x,r.y,r.w,r.h);
+      ctx.restore();
+    }
+  };
+  img.src = imgEditorState.src;
+}
+ 
+function imgEditorRotate(deg){
+  imgEditorState.rotation = ((imgEditorState.rotation + deg) % 360 + 360) % 360;
+  imgEditorState.cropRect = null;
+  document.getElementById('crop-rect').style.display='none';
+  imgEditorDraw();
+}
+ 
+function imgEditorFlip(axis){
+  if(axis==='h') imgEditorState.flipH = !imgEditorState.flipH;
+  else imgEditorState.flipV = !imgEditorState.flipV;
+  imgEditorState.cropRect = null;
+  imgEditorDraw();
+}
+ 
+function imgEditorToggleCrop(){
+  imgEditorState.cropMode = !imgEditorState.cropMode;
+  const btn = document.getElementById('crop-toggle-btn');
+  btn.textContent = imgEditorState.cropMode ? '❌ Annulla ritaglia' : '✂️ Ritaglia';
+  if(!imgEditorState.cropMode){
+    imgEditorState.cropRect = null;
+    imgEditorDraw();
+  }
+}
+ 
+function imgEditorSetupCrop(){
+  const canvas = imgEditorGetCanvas();
+  let isDragging = false, startX, startY;
+ 
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const src  = e.touches ? e.touches[0] : e;
+    return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+  }
+ 
+  function onStart(e){
+    if(!imgEditorState.cropMode) return;
+    e.preventDefault();
+    isDragging = true;
+    const p = getPos(e);
+    startX = p.x; startY = p.y;
+    imgEditorState.cropRect = {x:startX, y:startY, w:0, h:0};
+  }
+  function onMove(e){
+    if(!isDragging || !imgEditorState.cropMode) return;
+    e.preventDefault();
+    const p = getPos(e);
+    const x = Math.min(startX, p.x);
+    const y = Math.min(startY, p.y);
+    const w = Math.abs(p.x - startX);
+    const h = Math.abs(p.y - startY);
+    imgEditorState.cropRect = {x,y,w,h};
+    imgEditorDraw();
+  }
+  function onEnd(e){
+    isDragging = false;
+  }
+ 
+  canvas.addEventListener('mousedown',  onStart);
+  canvas.addEventListener('mousemove',  onMove);
+  canvas.addEventListener('mouseup',    onEnd);
+  canvas.addEventListener('touchstart', onStart, {passive:false});
+  canvas.addEventListener('touchmove',  onMove,  {passive:false});
+  canvas.addEventListener('touchend',   onEnd);
+}
+ 
+function imgEditorGetResult(){
+  return new Promise(resolve=>{
+    const canvas = imgEditorGetCanvas();
+    if(imgEditorState.cropRect && imgEditorState.cropRect.w > 5 && imgEditorState.cropRect.h > 5){
+      const r = imgEditorState.cropRect;
+      const out = document.createElement('canvas');
+      out.width  = Math.round(r.w);
+      out.height = Math.round(r.h);
+      out.getContext('2d').drawImage(canvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+      resolve(out.toDataURL('image/jpeg', 0.9));
+    } else {
+      resolve(canvas.toDataURL('image/jpeg', 0.9));
+    }
+  });
+}
+ 
+function imgEditorConfirm(){
+  imgEditorGetResult().then(dataUrl=>{
+    if(imgEditorState.target === 'tx'){
+      document.getElementById('tx-photo-data').value = dataUrl;
+      document.getElementById('tx-photo-preview').src = dataUrl;
+      document.getElementById('tx-photo-preview-wrap').classList.remove('no-display');
+      document.getElementById('tx-photo-upload-area').classList.add('no-display');
+      document.getElementById('tx-photo-file').value='';
+    } else if(imgEditorState.target === 'profile'){
+      userProfile.photo = dataUrl;
+      const img = document.getElementById('profile-photo-img');
+      const ph  = document.getElementById('profile-photo-placeholder');
+      img.src = dataUrl; img.style.display='block'; ph.style.display='none';
+      updateProfileDisplay();
+      document.getElementById('profile-photo-file').value='';
+    }
+    document.getElementById('img-editor-overlay').classList.remove('active');
+  });
+}
+ 
+function imgEditorCancel(){
+  document.getElementById('img-editor-overlay').classList.remove('active');
+  document.getElementById('tx-photo-file').value='';
+  document.getElementById('profile-photo-file').value='';
+}
+ 
+// ===================== PROFILE PHOTO MENU =====================
+function openProfilePhotoMenu(){
+  const removeBtn = document.getElementById('profile-photo-remove-btn');
+  if(removeBtn) removeBtn.style.display = userProfile.photo ? 'flex' : 'none';
+  document.getElementById('profile-photo-menu').classList.add('active');
+}
+function closeProfilePhotoMenu(){
+  document.getElementById('profile-photo-menu').classList.remove('active');
+}
+function removeProfilePhoto(){
+  userProfile.photo = '';
+  document.getElementById('profile-photo-img').style.display='none';
+  document.getElementById('profile-photo-placeholder').style.display='block';
+  updateProfileDisplay();
+  toast('Foto rimossa','info');
+}
+function openLightboxProfile(){
+  if(!userProfile.photo){ toast('Nessuna foto impostata','info'); return; }
+  document.getElementById('lightbox-profile-img').src = userProfile.photo;
+  document.getElementById('lightbox-profile').classList.add('active');
+}
+ 
+// ===================== RESET PASSWORD =====================
+function openResetPwd(){
+  const emailEl = document.getElementById('profile-email');
+  const resetEl = document.getElementById('reset-email');
+  if(resetEl && emailEl) resetEl.value = emailEl.value || '';
+  document.getElementById('reset-pwd-modal').classList.add('active');
+}
+function sendPasswordReset(){
+  if(!fbAuth){ ensureFirebase(sendPasswordReset); return; }
+  const email = document.getElementById('reset-email').value.trim();
+  if(!email){ toast('Inserisci la tua email','error'); return; }
+  fbAuth.sendPasswordResetEmail(email)
+    .then(()=>{
+      toast('Email inviata! Controlla la tua casella.','success');
+      closeModal2('reset-pwd-modal');
+    })
+    .catch(e=>{ toast(e.message,'error'); });
 }
  
 if ('serviceWorker' in navigator) {
