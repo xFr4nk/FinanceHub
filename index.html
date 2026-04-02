@@ -955,7 +955,29 @@ html.light-mode .lightbox-close { background: rgba(255,255,255,0.15); border-col
   position:absolute; border:2px solid #fff; box-shadow:0 0 0 9999px rgba(0,0,0,0.5);
   cursor:move; display:none; pointer-events:none;
 }
-/* ===== PROFILE PHOTO MENU ===== */
+/* ===== SWIPE TO DELETE ===== */
+.tx-swipe-wrap {
+  position: relative; overflow: hidden; border-radius: 0;
+}
+.tx-swipe-inner {
+  position: relative; transition: transform 0.25s cubic-bezier(0.25,1,0.5,1);
+  will-change: transform; z-index: 1;
+  background: var(--bg);
+}
+.tx-swipe-bg {
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 72px; background: var(--red);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 0; z-index: 0;
+  transition: width 0.15s ease;
+}
+.tx-swipe-bg-icon {
+  color: #fff; font-size: 20px; pointer-events: none;
+}
+
+/* ===== NOTIFICATIONS STATUS ===== */
+html.light-mode #notif-status-val { color: var(--t2); }
+
 #profile-photo-menu {
   display:none; position:fixed; inset:0; z-index:1800;
   align-items:flex-end; justify-content:center; background:rgba(0,0,0,0.5);
@@ -1054,16 +1076,19 @@ html.light-mode .lightbox-close { background: rgba(255,255,255,0.15); border-col
       <div class="section-title" style="margin-top:14px" id="lbl-recent-tx">Transazioni recenti</div>
       <div class="recent-section" id="recent-list"></div>
 
+      <!-- Upcoming recurring — above stats -->
+      <div class="chart-card" id="upcoming-recurring" style="margin-top:0;margin-bottom:16px;display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="chart-card-title" style="margin-bottom:0;">🔁 Prossime ricorrenze</div>
+          <button onclick="showPage('transactions')" style="background:none;border:none;color:var(--blue);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;padding:4px 0;">Vedi tutte ›</button>
+        </div>
+        <div id="upcoming-list"></div>
+      </div>
+
       <!-- Advanced Stats -->
       <div class="chart-card" style="margin-top:0;margin-bottom:16px" id="adv-stats-card">
         <div class="chart-card-title" style="margin-bottom:14px">📊 Statistiche</div>
         <div id="adv-stats-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
-      </div>
-
-      <!-- Upcoming recurring -->
-      <div class="chart-card" id="upcoming-recurring" style="margin-top:0;margin-bottom:16px;display:none;">
-        <div class="chart-card-title" style="margin-bottom:4px;">🔁 Prossime ricorrenze</div>
-        <div id="upcoming-list"></div>
       </div>
     </div>
 
@@ -1074,10 +1099,10 @@ html.light-mode .lightbox-close { background: rgba(255,255,255,0.15); border-col
         <div style="position:relative;flex:1;">
           <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--t3);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input id="tx-search" type="text" placeholder="Cerca transazioni..." autocomplete="off"
-            style="width:100%;padding:11px 12px 11px 36px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.07);border-radius:14px;color:var(--t1);font-family:var(--font);font-size:14px;outline:none;transition:border-color 0.2s;"
-            oninput="renderTxPage()" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='rgba(255,255,255,0.07)'"/>
+            style="width:100%;padding:11px 12px 11px 36px;background:var(--blue-d);border:1px solid rgba(79,142,247,0.22);border-radius:14px;color:var(--t1);font-family:var(--font);font-size:14px;outline:none;transition:border-color 0.2s;"
+            oninput="renderTxPage()" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='rgba(79,142,247,0.22)'"/>
         </div>
-        <button id="tx-sort-btn" onclick="cycleTxSort()" style="flex-shrink:0;padding:10px 12px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.07);border-radius:14px;color:var(--t2);font-family:var(--font);font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.18s;">📅 Recenti</button>
+        <button id="tx-sort-btn" onclick="cycleTxSort()" style="flex-shrink:0;padding:10px 12px;background:var(--blue-d);border:1px solid rgba(79,142,247,0.22);border-radius:14px;color:var(--blue);font-family:var(--font);font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.18s;">📅 Recenti</button>
       </div>
       <div class="filter-row">
         <select class="filter-chip" id="f-account" onchange="renderTxPage()">
@@ -1180,6 +1205,19 @@ html.light-mode .lightbox-close { background: rgba(255,255,255,0.15); border-col
           <div class="settings-row-arrow">›</div>
         </div>
 
+        <!-- Notifications -->
+        <div class="settings-row" onclick="requestNotificationPermission()">
+          <div class="settings-row-left">
+            <div class="settings-row-icon">🔔</div>
+            <div>
+              <div class="settings-row-label">Notifiche</div>
+              <div class="settings-row-sub" id="notif-status-sub">Avvisi per pagamenti ricorrenti</div>
+            </div>
+          </div>
+          <div class="settings-row-value" id="notif-status-val">—</div>
+          <div class="settings-row-arrow">›</div>
+        </div>
+
         <!-- Theme -->
         <div class="settings-row" style="cursor:default;flex-direction:column;align-items:stretch;gap:10px;">
           <div style="display:flex;align-items:center;gap:12px;">
@@ -1189,7 +1227,7 @@ html.light-mode .lightbox-close { background: rgba(255,255,255,0.15); border-col
               <div class="settings-row-sub">Modalità visiva dell'app</div>
             </div>
           </div>
-          <div style="display:flex;gap:6px;background:rgba(0,0,0,0.15);border-radius:12px;padding:3px;" id="theme-seg">
+          <div style="display:flex;gap:6px;background:var(--blue-d);border:1px solid rgba(79,142,247,0.18);border-radius:12px;padding:3px;" id="theme-seg">
             <button onclick="setTheme('auto')"  id="tseg-auto"  style="flex:1;padding:7px 4px;border:none;border-radius:9px;background:transparent;color:var(--t2);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">🌐 Auto</button>
             <button onclick="setTheme('light')" id="tseg-light" style="flex:1;padding:7px 4px;border:none;border-radius:9px;background:transparent;color:var(--t2);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">☀️ Chiaro</button>
             <button onclick="setTheme('dark')"  id="tseg-dark"  style="flex:1;padding:7px 4px;border:none;border-radius:9px;background:transparent;color:var(--t2);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">🌙 Scuro</button>
@@ -1215,6 +1253,16 @@ html.light-mode .lightbox-close { background: rgba(255,255,255,0.15); border-col
             <div>
               <div class="settings-row-label">Esporta CSV</div>
               <div class="settings-row-sub">Apri in Excel o Google Sheets</div>
+            </div>
+          </div>
+          <div class="settings-row-arrow">›</div>
+        </div>
+        <div class="settings-row" onclick="document.getElementById('csv-import-input').click()">
+          <div class="settings-row-left">
+            <div class="settings-row-icon">📥</div>
+            <div>
+              <div class="settings-row-label">Importa CSV</div>
+              <div class="settings-row-sub">Importa transazioni da file CSV</div>
             </div>
           </div>
           <div class="settings-row-arrow">›</div>
@@ -1250,6 +1298,21 @@ html.light-mode .lightbox-close { background: rgba(255,255,255,0.15); border-col
           <div class="settings-row-arrow">›</div>
         </div>
         <input type="file" id="restore-file-input" accept=".json" style="display:none" onchange="restoreJSON(event)"/>
+        <input type="file" id="csv-import-input" accept=".csv" style="display:none" onchange="importCSV(event)"/>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Ripristino</div>
+        <div class="settings-row" onclick="resetAllAppData()" style="border:1px solid rgba(242,82,112,0.2);">
+          <div class="settings-row-left">
+            <div class="settings-row-icon" style="background:var(--red-d);">🗑️</div>
+            <div>
+              <div class="settings-row-label" style="color:var(--red);">Ripristina app</div>
+              <div class="settings-row-sub">Elimina tutti i dati dell'app</div>
+            </div>
+          </div>
+          <div class="settings-row-arrow" style="color:var(--red);">›</div>
+        </div>
       </div>
 
       <div style="padding:0 16px;margin-top:8px">
@@ -3383,7 +3446,7 @@ function renderTxItem(tx, withDel=true){
   </div>`:photoBtn?`<div class="tx-actions">${photoBtn}</div>`:'';
   const accObj = tx.type!=='transfer' ? getAccById(tx.account) : null;
   const currSym = accObj ? getCurrencySymbol(accObj.currency||'EUR') : getDefaultSymbol();
-  return `<div class="tx-item">
+  const inner = `<div class="tx-item">
     <div class="tx-icon" style="background:${bg}">${emoji}</div>
     <div class="tx-info">
       <div class="tx-desc">${tx.desc}${recurBadge}</div>
@@ -3391,6 +3454,11 @@ function renderTxItem(tx, withDel=true){
     </div>
     <div class="tx-amount ${ac}">${sign}${currSym}${Math.abs(tx.amount).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
     ${actions}
+  </div>`;
+  if(!withDel) return inner;
+  return `<div class="tx-swipe-wrap" data-txid="${tx.id}">
+    <div class="tx-swipe-bg"><span class="tx-swipe-bg-icon">🗑️</span></div>
+    <div class="tx-swipe-inner">${inner}</div>
   </div>`;
 }
 
@@ -3404,6 +3472,7 @@ function renderRecent(){
   const filtered=transactions.filter(tx=>inPeriod(tx)).slice(0,8);
   if(!filtered.length){ c.innerHTML=`<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-text">${t('noTx')}</div></div>`; return; }
   c.innerHTML=filtered.map(tx=>renderTxItem(tx)).join('');
+  initSwipeGestures(c);
 }
 
 // ===================== CATEGORIES =====================
@@ -3976,10 +4045,67 @@ function renderCharts(){
   const c=getChartColors();
   destroyChart('bar'); const bc=document.getElementById('barChart');
   if(bc) chartRefs.bar=new Chart(bc,{type:'bar',data:{labels,datasets:[{label:t('incomes'),data:incomes,backgroundColor:'rgba(34,212,138,0.6)',borderColor:'#22d48a',borderWidth:1,borderRadius:6},{label:t('expenses'),data:expenses,backgroundColor:'rgba(242,82,112,0.6)',borderColor:'#f25270',borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:lo},scales:so}});
+
+  // ---- Pie chart "Spese per Categoria" — interactive: tap slice → cat detail ----
   destroyChart('pie'); const pc=document.getElementById('pieChart');
-  if(pc){ const now=new Date();const m=now.getMonth(),y=now.getFullYear(); const data=categories.map(cat=>({name:`${cat.emoji} ${cat.name}`,color:cat.color.startsWith('linear')?'#4f8ef7':cat.color,val:transactions.filter(tx=>tx.type==='expense'&&tx.category===cat.id).reduce((s,tx)=>{const d=new Date(tx.date);return d.getMonth()===m&&d.getFullYear()===y?s+tx.amount:s},0)})).filter(c=>c.val>0); if(data.length) chartRefs.pie=new Chart(pc,{type:'doughnut',data:{labels:data.map(c=>c.name),datasets:[{data:data.map(c=>c.val),backgroundColor:data.map(c=>c.color+'cc'),borderColor:data.map(c=>c.color),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:c.legend,font:{family:'DM Sans',size:10},padding:8,boxWidth:8}}}}});  }
+  if(pc){
+    const now=new Date(); const m=now.getMonth(), y=now.getFullYear();
+    const pieData=categories.map(cat=>({
+      id:cat.id,
+      name:`${cat.emoji} ${cat.name}`,
+      color:cat.color.startsWith('linear')?'#4f8ef7':cat.color,
+      val:transactions.filter(tx=>tx.type==='expense'&&tx.category===cat.id).reduce((s,tx)=>{
+        const d=new Date(tx.date); return d.getMonth()===m&&d.getFullYear()===y?s+tx.amount:s;
+      },0)
+    })).filter(d=>d.val>0);
+    if(pieData.length){
+      chartRefs.pie=new Chart(pc,{
+        type:'doughnut',
+        data:{labels:pieData.map(d=>d.name),datasets:[{data:pieData.map(d=>d.val),backgroundColor:pieData.map(d=>d.color+'cc'),borderColor:pieData.map(d=>d.color),borderWidth:2}]},
+        options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+          plugins:{legend:{position:'bottom',labels:{color:c.legend,font:{family:'DM Sans',size:10},padding:8,boxWidth:8}}},
+          onClick(evt,elements){
+            if(elements.length){
+              const idx=elements[0].index;
+              const catId=pieData[idx].id;
+              if(typeof showCatDetail==='function') showCatDetail(catId);
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // ---- Acc pie "Distribuzione Conti" — interactive: tap slice → filter Movimenti ----
   destroyChart('accPie'); const ap=document.getElementById('accPieChart');
-  if(ap){ const data=accounts.map(a=>({name:`${a.emoji} ${a.name}`,val:Math.max(0,getBalance(a.id)),color:a.color.startsWith('linear')?'#4f8ef7':a.color})).filter(a=>a.val>0); if(data.length) chartRefs.accPie=new Chart(ap,{type:'doughnut',data:{labels:data.map(a=>a.name),datasets:[{data:data.map(a=>a.val),backgroundColor:data.map(a=>a.color+'bb'),borderColor:data.map(a=>a.color),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'bottom',labels:{color:c.legend,font:{family:'DM Sans',size:10},padding:8,boxWidth:8}}}}});  }
+  if(ap){
+    const accData=accounts.map(a=>({
+      id:a.id,
+      name:`${a.emoji} ${a.name}`,
+      val:Math.max(0,getBalance(a.id)),
+      color:a.color.startsWith('linear')?'#4f8ef7':a.color
+    })).filter(a=>a.val>0);
+    if(accData.length){
+      chartRefs.accPie=new Chart(ap,{
+        type:'doughnut',
+        data:{labels:accData.map(a=>a.name),datasets:[{data:accData.map(a=>a.val),backgroundColor:accData.map(a=>a.color+'bb'),borderColor:accData.map(a=>a.color),borderWidth:2}]},
+        options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
+          plugins:{legend:{position:'bottom',labels:{color:c.legend,font:{family:'DM Sans',size:10},padding:8,boxWidth:8}}},
+          onClick(evt,elements){
+            if(elements.length){
+              const idx=elements[0].index;
+              const accId=accData[idx].id;
+              const sel=document.getElementById('f-account');
+              if(sel){ sel.value=accId; }
+              showPage('transactions');
+              setTimeout(renderTxPage,50);
+            }
+          }
+        }
+      });
+    }
+  }
+
   destroyChart('catBar'); const cb=document.getElementById('catBarChart');
   if(cb){ const data=categories.map(cat=>({name:`${cat.emoji} ${cat.name}`,color:cat.color.startsWith('linear')?'#4f8ef7':cat.color,val:transactions.filter(tx=>tx.type==='expense'&&tx.category===cat.id).reduce((s,tx)=>s+tx.amount,0)})).filter(c=>c.val>0).sort((a,b)=>b.val-a.val).slice(0,6); if(data.length) chartRefs.catBar=new Chart(cb,{type:'bar',data:{labels:data.map(c=>c.name),datasets:[{label:t('expenses'),data:data.map(c=>c.val),backgroundColor:data.map(c=>c.color+'aa'),borderColor:data.map(c=>c.color),borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:c.tick,font:{size:10,family:'DM Sans'}},grid:{color:c.grid}},y:{ticks:{color:c.tick2,font:{size:10,family:'DM Sans'}},grid:{color:c.grid}}}}});  }
 }
@@ -4598,10 +4724,21 @@ function sendPasswordReset(){
         <div style="font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-0.8px;margin-bottom:12px;">I tuoi dati<br>sempre con te</div>
         <div style="font-size:15px;color:var(--t2);line-height:1.6;">Accedi con Google per sincronizzare tutto su ogni dispositivo. Oppure usa l'app anche senza account, i dati restano sul tuo telefono.</div>
       </div>
+      <div class="ob-slide" style="display:none;text-align:center;padding:0 4px;">
+        <div style="font-size:64px;margin-bottom:20px;">🎨</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-0.8px;margin-bottom:12px;">Scegli il<br>tuo tema</div>
+        <div style="font-size:15px;color:var(--t2);line-height:1.6;margin-bottom:24px;">Personalizza l'aspetto dell'app come preferisci.</div>
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <button onclick="obSelectTheme('auto')" id="ob-theme-auto" style="flex:1;max-width:100px;padding:14px 8px;border-radius:16px;border:2px solid var(--blue);background:var(--blue-d);color:var(--t1);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;">🌐<br><span style='font-size:11px;color:var(--t2);font-weight:600;'>Auto</span></button>
+          <button onclick="obSelectTheme('light')" id="ob-theme-light" style="flex:1;max-width:100px;padding:14px 8px;border-radius:16px;border:2px solid var(--border2);background:var(--bg2);color:var(--t1);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;">☀️<br><span style='font-size:11px;color:var(--t2);font-weight:600;'>Chiaro</span></button>
+          <button onclick="obSelectTheme('dark')" id="ob-theme-dark" style="flex:1;max-width:100px;padding:14px 8px;border-radius:16px;border:2px solid var(--border2);background:var(--bg2);color:var(--t1);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;">🌙<br><span style='font-size:11px;color:var(--t2);font-weight:600;'>Scuro</span></button>
+        </div>
+      </div>
     </div>
     <!-- Dots -->
     <div style="display:flex;gap:8px;margin:28px 0 32px;" id="ob-dots">
       <div class="ob-dot active" style="width:8px;height:8px;border-radius:50%;background:var(--blue);transition:all 0.3s;"></div>
+      <div class="ob-dot" style="width:8px;height:8px;border-radius:50%;background:var(--t3);transition:all 0.3s;"></div>
       <div class="ob-dot" style="width:8px;height:8px;border-radius:50%;background:var(--t3);transition:all 0.3s;"></div>
       <div class="ob-dot" style="width:8px;height:8px;border-radius:50%;background:var(--t3);transition:all 0.3s;"></div>
       <div class="ob-dot" style="width:8px;height:8px;border-radius:50%;background:var(--t3);transition:all 0.3s;"></div>
@@ -4627,12 +4764,24 @@ function sendPasswordReset(){
 <script>
 // ===================== ONBOARDING =====================
 let obCurrent = 0;
-const obTotal = 4;
+const obTotal = 5;
+let obSelectedTheme = 'auto';
 
 function checkOnboarding(){
   if(!localStorage.getItem('fh_onboarded')){
     document.getElementById('onboarding-overlay').style.display = 'flex';
   }
+}
+
+function obSelectTheme(theme){
+  obSelectedTheme = theme;
+  ['auto','light','dark'].forEach(t=>{
+    const btn = document.getElementById('ob-theme-'+t);
+    if(!btn) return;
+    const isActive = t === theme;
+    btn.style.border = isActive ? '2px solid var(--blue)' : '2px solid var(--border2)';
+    btn.style.background = isActive ? 'var(--blue-d)' : 'var(--bg2)';
+  });
 }
 
 function obNext(){
@@ -4645,6 +4794,8 @@ function obNext(){
     dots.forEach((d,i) => { d.style.background = i===obCurrent ? 'var(--blue)' : 'var(--t3)'; d.style.width = i===obCurrent ? '22px' : '8px'; d.style.borderRadius = '4px'; });
     if(obCurrent === obTotal - 1) document.getElementById('ob-btn').textContent = 'Inizia →';
   } else {
+    // Apply chosen theme before finishing
+    setTheme(obSelectedTheme);
     obSkip();
   }
 }
@@ -4689,6 +4840,7 @@ function renderTxPage(){
   const c=document.getElementById('tx-page-list');
   if(!filtered.length){ c.innerHTML=`<div class="empty-state"><div class="empty-icon">${sq?'🔍':'📋'}</div><div class="empty-text">${sq?'Nessun risultato per "'+sq+'"':t('noTxPage')}</div></div>`; return; }
   c.innerHTML=filtered.map(tx=>renderTxItem(tx)).join('');
+  initSwipeGestures(c);
 }
 
 // ===================== ADVANCED STATS =====================
@@ -4967,14 +5119,20 @@ function renderUpcomingRecurring(){
   const now = new Date();
   const upcoming = [];
   transactions.filter(tx=>tx.recurring && tx.recurring!=='none' && tx.recurringMaster).forEach(tx=>{
-    let next = null;
     const last = tx.lastGenerated ? new Date(tx.lastGenerated) : new Date(tx.date);
-    if(tx.recurring==='daily')       next = new Date(last); next && next.setDate(next.getDate()+1);
-    if(tx.recurring==='weekly')    { next = new Date(last); next.setDate(next.getDate()+7); }
-    if(tx.recurring==='monthly')   { next = new Date(last); next.setMonth(next.getMonth()+1); }
-    if(tx.recurring==='yearly')    { next = new Date(last); next.setFullYear(next.getFullYear()+1); }
-    if(tx.recurring==='custom')    { next = new Date(last); const u=tx.recurUnit||'days'; const n=tx.recurEvery||1; if(u==='days') next.setDate(next.getDate()+n); else if(u==='weeks') next.setDate(next.getDate()+n*7); else next.setMonth(next.getMonth()+n); }
-    if(next && next > now){
+    let next = new Date(last);
+    if(tx.recurring==='daily')       next.setDate(next.getDate()+1);
+    else if(tx.recurring==='weekly') next.setDate(next.getDate()+7);
+    else if(tx.recurring==='monthly')next.setMonth(next.getMonth()+1);
+    else if(tx.recurring==='yearly') next.setFullYear(next.getFullYear()+1);
+    else if(tx.recurring==='custom'){
+      const u=tx.recurUnit||'days'; const n=tx.recurEvery||1;
+      if(u==='days') next.setDate(next.getDate()+n);
+      else if(u==='weeks') next.setDate(next.getDate()+n*7);
+      else next.setMonth(next.getMonth()+n);
+    }
+    next.setHours(0,0,0,0);
+    if(next >= now){
       const diff = Math.ceil((next-now)/(1000*60*60*24));
       upcoming.push({tx, next, diff});
     }
@@ -4986,14 +5144,18 @@ function renderUpcomingRecurring(){
   const icon = tx => tx.type==='income'?'📈':tx.type==='expense'?'📉':'⇄';
   const col  = tx => tx.type==='income'?'var(--green)':tx.type==='expense'?'var(--red)':'var(--purple)';
   const sign = tx => tx.type==='income'?'+':tx.type==='expense'?'-':'';
-  document.getElementById('upcoming-list').innerHTML = top.map(({tx,diff})=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+  const dayColor = diff => diff<=1?'var(--orange)':diff<=3?'var(--yellow)':'var(--t2)';
+  document.getElementById('upcoming-list').innerHTML = top.map(({tx,next,diff})=>`
+    <div onclick="editTx('${tx.id}')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:opacity 0.15s;" onmouseenter="this.style.opacity='0.75'" onmouseleave="this.style.opacity='1'">
       <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${icon(tx)}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${tx.desc}</div>
-        <div style="font-size:10.5px;color:var(--t2);margin-top:2px;">tra ${diff} giorn${diff===1?'o':'i'}</div>
+        <div style="font-size:10.5px;color:var(--t2);margin-top:2px;">${next.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'})}</div>
       </div>
-      <div style="font-size:13.5px;font-weight:700;color:${col(tx)};flex-shrink:0;">${sign(tx)}${fmt(tx.amount)}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;">
+        <div style="font-size:13.5px;font-weight:700;color:${col(tx)}">${sign(tx)}${fmt(tx.amount)}</div>
+        <div style="font-size:10px;font-weight:700;color:${dayColor(diff)}">${diff===0?'Oggi':diff===1?'Domani':'tra '+diff+' gg'}</div>
+      </div>
     </div>`).join('');
 }
 
@@ -5072,7 +5234,228 @@ function checkStorageSize(){
   } catch(e){}
 }
 
-// ===================== LIGHT/DARK MODE =====================
+// ===================== SWIPE TO DELETE =====================
+function initSwipeGestures(container){
+  if(!container) return;
+  const wraps = container.querySelectorAll('.tx-swipe-wrap');
+  let activeWrap = null;
+
+  function closeAll(except){
+    wraps.forEach(w=>{
+      if(w===except) return;
+      const inner = w.querySelector('.tx-swipe-inner');
+      if(inner){ inner.style.transition='transform 0.25s cubic-bezier(0.25,1,0.5,1)'; inner.style.transform='translateX(0)'; }
+      w._swiped = false;
+    });
+  }
+
+  wraps.forEach(wrap=>{
+    const inner = wrap.querySelector('.tx-swipe-inner');
+    const bg    = wrap.querySelector('.tx-swipe-bg');
+    let startX=0, startY=0, curX=0, isDragging=false, isVertical=false;
+    const SNAP = 72;
+
+    wrap.addEventListener('touchstart', e=>{
+      const t=e.touches[0];
+      startX=t.clientX; startY=t.clientY; curX=0;
+      isDragging=true; isVertical=false;
+      inner.style.transition='none';
+    },{passive:true});
+
+    wrap.addEventListener('touchmove', e=>{
+      if(!isDragging) return;
+      const t=e.touches[0];
+      const dx=t.clientX-startX, dy=t.clientY-startY;
+      if(!isVertical && Math.abs(dy)>Math.abs(dx)*1.5){ isVertical=true; }
+      if(isVertical){ closeAll(null); inner.style.transform='translateX(0)'; return; }
+      if(Math.abs(dx)>4) e.preventDefault();
+      const offset = wrap._swiped ? dx - SNAP : dx;
+      const clamped = Math.max(-SNAP*1.15, Math.min(0, offset));
+      inner.style.transform=`translateX(${clamped}px)`;
+      curX=clamped;
+    },{passive:false});
+
+    wrap.addEventListener('touchend', ()=>{
+      if(!isDragging||isVertical){ isDragging=false; return; }
+      isDragging=false;
+      inner.style.transition='transform 0.25s cubic-bezier(0.25,1,0.5,1)';
+      if(curX < -SNAP*0.5){
+        inner.style.transform=`translateX(-${SNAP}px)`;
+        wrap._swiped=true;
+        closeAll(wrap);
+      } else {
+        inner.style.transform='translateX(0)';
+        wrap._swiped=false;
+      }
+    },{passive:true});
+
+    // Tap on red bg → confirm delete
+    bg.addEventListener('click', ()=>{
+      const txId = wrap.dataset.txid;
+      inner.style.transition='transform 0.2s ease';
+      inner.style.transform='translateX(0)';
+      wrap._swiped=false;
+      // Small delay so user sees it snap back before confirm
+      setTimeout(()=>deleteTx(txId), 150);
+    });
+  });
+
+  // Tap elsewhere closes open swipes
+  document.addEventListener('touchstart', e=>{
+    if(!e.target.closest('.tx-swipe-wrap')){
+      closeAll(null);
+    }
+  },{passive:true});
+}
+
+// ===================== RESET APP DATA =====================
+function resetAllAppData(){
+  const existing = document.getElementById('reset-app-confirm');
+  if(existing) existing.remove();
+  const el = document.createElement('div');
+  el.id = 'reset-app-confirm';
+  el.style.cssText=`
+    position:fixed;bottom:calc(80px + var(--safe-bottom,0px));left:16px;right:16px;
+    background:var(--bg2);border:1px solid rgba(242,82,112,0.5);border-radius:18px;
+    padding:18px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.7);
+    animation:toastIn 0.25s ease;
+  `;
+  el.innerHTML=`
+    <div style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:6px;">⚠️ Ripristina app</div>
+    <div style="font-size:13px;color:var(--t2);margin-bottom:14px;">Tutti i dati (transazioni, conti, categorie, impostazioni) verranno eliminati definitivamente. Operazione irreversibile.</div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="document.getElementById('reset-app-confirm').remove()" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:12px;color:var(--t2);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;">Annulla</button>
+      <button id="reset-app-confirm-btn" style="flex:1;padding:12px;background:var(--red-d);border:1px solid rgba(242,82,112,0.4);border-radius:12px;color:var(--red);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;">Elimina tutto</button>
+    </div>`;
+  document.body.appendChild(el);
+  document.getElementById('reset-app-confirm-btn').onclick=()=>{
+    // Clear all localStorage keys for this app
+    const keys = Object.keys(localStorage).filter(k=>k.startsWith('fh_'));
+    keys.forEach(k=>localStorage.removeItem(k));
+    el.remove();
+    toast('App ripristinata. Ricaricamento…','info');
+    setTimeout(()=>location.reload(), 1200);
+  };
+  setTimeout(()=>{ if(el.parentNode) el.remove(); }, 8000);
+}
+
+// ===================== CSV IMPORT =====================
+function importCSV(event){
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const text = e.target.result;
+      const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+      if(lines.length < 2){ toast('File CSV vuoto o non valido','error'); return; }
+      const header = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
+      // Expected columns (flexible): date, description/desc, amount, type, notes/note
+      const idx = {
+        date:       header.findIndex(h=>['date','data'].includes(h)),
+        desc:       header.findIndex(h=>['description','desc','descrizione'].includes(h)),
+        amount:     header.findIndex(h=>['amount','importo'].includes(h)),
+        type:       header.findIndex(h=>['type','tipo'].includes(h)),
+        notes:      header.findIndex(h=>['notes','note','nota'].includes(h)),
+        category:   header.findIndex(h=>['category','categoria'].includes(h)),
+      };
+      if(idx.date<0||idx.desc<0||idx.amount<0){ toast('CSV non valido: mancano colonne date/desc/amount','error'); return; }
+      let imported=0, skipped=0;
+      const mainAcc = accounts[0];
+      const accId = mainAcc ? mainAcc.id : '';
+      for(let i=1;i<lines.length;i++){
+        const cols = lines[i].split(',').map(c=>c.trim().replace(/^"|"$/g,''));
+        const rawDate = cols[idx.date]||'';
+        const desc    = cols[idx.desc]||'';
+        const rawAmt  = parseFloat((cols[idx.amount]||'0').replace(/[^0-9.\-]/g,''));
+        const type    = idx.type>=0 ? cols[idx.type].toLowerCase() : (rawAmt>=0?'income':'expense');
+        const notes   = idx.notes>=0 ? cols[idx.notes]||'' : '';
+        // Parse date: accept YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY
+        let dateStr = rawDate;
+        if(/^\d{2}[\/\-]\d{2}[\/\-]\d{4}$/.test(rawDate)){
+          const p=rawDate.split(/[\/\-]/); dateStr=`${p[2]}-${p[1]}-${p[0]}`;
+        }
+        if(!desc||isNaN(rawAmt)){ skipped++; continue; }
+        const txType = ['income','entrata'].includes(type)?'income':['transfer','trasferimento'].includes(type)?'transfer':'expense';
+        const tx = {
+          id:uid(), type:txType, desc, amount:Math.abs(rawAmt),
+          date: dateStr+'T00:00:00',
+          account:accId, category:'', notes,
+          recurring:'none', recurringMaster:false,
+          _updatedAt:Date.now()
+        };
+        transactions.push(tx);
+        imported++;
+      }
+      if(imported>0){ saveData(); updateAll(); toast(`✅ ${imported} transazioni importate${skipped?' ('+skipped+' saltate)':''}`, 'success'); }
+      else toast('Nessuna transazione importata. Controlla il formato CSV.','error');
+    } catch(err){ toast('Errore importazione CSV: '+err.message,'error'); }
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ===================== NOTIFICATIONS =====================
+function updateNotifStatusUI(){
+  const val = document.getElementById('notif-status-val');
+  const sub = document.getElementById('notif-status-sub');
+  if(!val) return;
+  if(!('Notification' in window)){ val.textContent='Non supportate'; return; }
+  if(Notification.permission==='granted'){ val.textContent='Attive ✓'; if(sub) sub.textContent='Riceverai avvisi il giorno prima'; }
+  else if(Notification.permission==='denied'){ val.textContent='Bloccate'; if(sub) sub.textContent='Sblocca dalle impostazioni browser'; }
+  else { val.textContent='Disattive'; }
+}
+
+function requestNotificationPermission(){
+  if(!('Notification' in window)){ toast('Le notifiche non sono supportate su questo browser','error'); return; }
+  if(Notification.permission==='granted'){ toast('Le notifiche sono già attive ✓','success'); return; }
+  if(Notification.permission==='denied'){ toast('Le notifiche sono bloccate. Sblocca dal browser.','error'); return; }
+  Notification.requestPermission().then(perm=>{
+    updateNotifStatusUI();
+    if(perm==='granted') toast('Notifiche attivate! Riceverai avvisi il giorno prima 🔔','success');
+    else toast('Permesso negato. Le notifiche restano disattive.','info');
+  });
+}
+
+function checkRecurringNotifications(){
+  if(!('Notification' in window)||Notification.permission!=='granted') return;
+  const now = new Date();
+  const tomorrow = new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  transactions.filter(tx=>tx.recurring&&tx.recurring!=='none'&&tx.recurringMaster).forEach(tx=>{
+    const last = tx.lastGenerated ? new Date(tx.lastGenerated) : new Date(tx.date);
+    let next = new Date(last);
+    if(tx.recurring==='daily') next.setDate(next.getDate()+1);
+    else if(tx.recurring==='weekly') next.setDate(next.getDate()+7);
+    else if(tx.recurring==='monthly') next.setMonth(next.getMonth()+1);
+    else if(tx.recurring==='yearly') next.setFullYear(next.getFullYear()+1);
+    else if(tx.recurring==='custom'){
+      const u=tx.recurUnit||'days',n=tx.recurEvery||1;
+      if(u==='days') next.setDate(next.getDate()+n);
+      else if(u==='weeks') next.setDate(next.getDate()+n*7);
+      else next.setMonth(next.getMonth()+n);
+    }
+    const nextStr=next.toISOString().split('T')[0];
+    if(nextStr===tomorrowStr){
+      const notifKey='fh_notif_'+tx.id+'_'+tomorrowStr;
+      if(!sessionStorage.getItem(notifKey)){
+        sessionStorage.setItem(notifKey,'1');
+        const sym=getDefaultSymbol();
+        new Notification('FinanceHub – Pagamento domani 🔔',{
+          body:`${tx.desc} · ${sym}${tx.amount.toLocaleString('it-IT',{minimumFractionDigits:2})}`,
+          icon:'icon-192.png', tag:notifKey
+        });
+      }
+    }
+  });
+}
+
+// Start hourly notification check
+document.addEventListener('DOMContentLoaded',()=>{
+  updateNotifStatusUI();
+  checkRecurringNotifications();
+  setInterval(checkRecurringNotifications, 60*60*1000);
+});
+
 let currentTheme = localStorage.getItem('fh_theme') || 'auto';
 
 function applyTheme(theme){
@@ -5105,9 +5488,9 @@ function updateThemeSegmented(){
     const btn = document.getElementById('tseg-'+id);
     if(!btn) return;
     const active = currentTheme === id;
-    btn.style.background = active ? 'var(--bg1)' : 'transparent';
-    btn.style.color      = active ? 'var(--t1)'  : 'var(--t2)';
-    btn.style.boxShadow  = active ? '0 1px 4px rgba(0,0,0,0.2)' : 'none';
+    btn.style.background = active ? 'var(--blue)' : 'transparent';
+    btn.style.color      = active ? '#fff'        : 'var(--t2)';
+    btn.style.boxShadow  = active ? '0 2px 8px rgba(79,142,247,0.35)' : 'none';
   });
 }
 
