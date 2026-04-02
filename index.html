@@ -92,25 +92,31 @@ body {
 .content {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
-  min-height: 0; padding-bottom: calc(64px + var(--safe-bottom));
+  min-height: 0; padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px) + 8px);
 }
 
 /* BOTTOM NAV */
 .bottom-nav {
   flex-shrink: 0;
-  height: calc(68px + var(--safe-bottom));
-  padding: 0 8px var(--safe-bottom);
   background: rgba(10,13,20,0.98);
   backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px);
   border-top: 1px solid rgba(255,255,255,0.055);
-  display: flex; z-index: 50; align-items: center;
+  display: flex; flex-direction: column; z-index: 50;
   box-shadow: 0 -1px 0 rgba(255,255,255,0.03), 0 -8px 32px rgba(0,0,0,0.4);
+}
+.nav-tab-row {
+  display: flex; align-items: center;
+  height: 58px; padding: 0 8px;
+}
+.nav-safe-spacer {
+  height: env(safe-area-inset-bottom, 0px);
+  min-height: 0;
 }
 .nav-tab {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 5px; cursor: pointer;
-  color: var(--t3); padding: 8px 4px 4px;
+  gap: 5px; cursor: pointer; height: 100%;
+  color: var(--t3); padding: 6px 4px 4px;
   position: relative; border-radius: 16px;
   transition: color 0.22s ease;
   -webkit-tap-highlight-color: transparent;
@@ -964,6 +970,7 @@ body {
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
+  <div class="nav-tab-row">
 
     <!-- Home / Dashboard -->
     <div class="nav-tab active" id="nav-dashboard" onclick="showPage('dashboard')">
@@ -1026,6 +1033,8 @@ body {
       <span class="nav-tab-label" id="nav-lbl-settings">Impostazioni</span>
     </div>
 
+  </div>
+  <div class="nav-safe-spacer"></div>
   </nav>
 
 </div>
