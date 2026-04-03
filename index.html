@@ -3439,11 +3439,13 @@ function renderTxItem(tx, withDel=true){
   const dLabel=dateStr+timeStr;
   const recurBadge=tx.recurring&&tx.recurring!=='none'?`<span class="recur-tag">🔄 ${recurLabel(tx.recurring)}</span>`:'';
   const photoBtn=tx.photo?`<img class="tx-photo-thumb" src="${tx.photo}" onclick="openLightbox('${tx.photo}')" alt="foto"/>`:'' ;
-  const actions=withDel?`<div class="tx-actions">
-    ${photoBtn}
-    <button class="tx-edit-btn" onclick="editTx('${tx.id}')">✏️</button>
-    <button class="tx-del-btn" onclick="deleteTx('${tx.id}')">🗑</button>
-  </div>`:photoBtn?`<div class="tx-actions">${photoBtn}</div>`:'';
+  // When using swipe-to-delete, only show the edit button (trash is on the swipe bg)
+  const actions = withDel
+    ? `<div class="tx-actions">
+        ${photoBtn}
+        <button class="tx-edit-btn" onclick="editTx('${tx.id}')">✏️</button>
+      </div>`
+    : photoBtn ? `<div class="tx-actions">${photoBtn}</div>` : '';
   const accObj = tx.type!=='transfer' ? getAccById(tx.account) : null;
   const currSym = accObj ? getCurrencySymbol(accObj.currency||'EUR') : getDefaultSymbol();
   const inner = `<div class="tx-item">
@@ -5033,6 +5035,8 @@ document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(checkOnboarding, 
   const content = document.getElementById('main-content');
   if(!content) return;
   let startY = 0, pulling = false, indicator = null;
+  const DEAD_ZONE  = 12;  // px to move before indicator appears at all
+  const TRIGGER_H  = 64;  // px of indicator height needed to fire refresh
 
   function createIndicator(){
     if(indicator) return;
@@ -5051,7 +5055,9 @@ document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(checkOnboarding, 
 
   content.addEventListener('touchstart', e => {
     if(content.scrollTop !== 0) return;
-    startY = e.touches[0].clientY;
+    // Don't start PTR if touch originated on a swipe item (let swipe handle it)
+    if(e.target.closest('.tx-swipe-wrap')) return;
+    startY  = e.touches[0].clientY;
     pulling = true;
     createIndicator();
   }, {passive:true});
@@ -5059,24 +5065,28 @@ document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(checkOnboarding, 
   content.addEventListener('touchmove', e => {
     if(!pulling) return;
     const dy = e.touches[0].clientY - startY;
-    if(dy <= 0) return;
-    const h = Math.min(dy * 0.4, 64);
-    if(indicator){ indicator.style.height = h + 'px'; }
+    if(dy <= DEAD_ZONE){ 
+      // Still in dead zone — keep indicator hidden
+      if(indicator) indicator.style.height = '0px';
+      return;
+    }
+    // Past dead zone: show indicator proportionally
+    const h = Math.min((dy - DEAD_ZONE) * 0.45, TRIGGER_H + 8);
+    if(indicator) indicator.style.height = h + 'px';
     const arrow = document.getElementById('ptr-arrow');
-    const txt = document.getElementById('ptr-text');
-    if(arrow) arrow.style.transform = h > 48 ? 'rotate(180deg)' : 'none';
-    if(txt) txt.textContent = h > 48 ? 'Rilascia per aggiornare' : 'Tira per aggiornare';
+    const txt   = document.getElementById('ptr-text');
+    if(arrow) arrow.style.transform = h > TRIGGER_H ? 'rotate(180deg)' : 'none';
+    if(txt)   txt.textContent = h > TRIGGER_H ? 'Rilascia per aggiornare' : 'Tira per aggiornare';
   }, {passive:true});
 
   content.addEventListener('touchend', e => {
     if(!pulling || !indicator) return;
     pulling = false;
     const h = parseFloat(indicator.style.height || '0');
-    if(h > 48){
+    if(h > TRIGGER_H){
       indicator.style.height = '48px';
       const txt = document.getElementById('ptr-text');
       if(txt) txt.textContent = '⟳ Aggiornamento...';
-      // Sync if logged in, otherwise just refresh UI
       if(typeof fbUser !== 'undefined' && fbUser && typeof syncFromCloud === 'function'){
         syncFromCloud(false);
         setTimeout(()=>{ if(indicator){ indicator.style.height='0'; } }, 1500);
@@ -5238,13 +5248,17 @@ function checkStorageSize(){
 function initSwipeGestures(container){
   if(!container) return;
   const wraps = container.querySelectorAll('.tx-swipe-wrap');
-  let activeWrap = null;
+  const SNAP = 72;          // px revealed when snapped open
+  const DIR_THRESHOLD = 6;  // px moved before we decide direction
 
   function closeAll(except){
     wraps.forEach(w=>{
-      if(w===except) return;
+      if(w === except) return;
       const inner = w.querySelector('.tx-swipe-inner');
-      if(inner){ inner.style.transition='transform 0.25s cubic-bezier(0.25,1,0.5,1)'; inner.style.transform='translateX(0)'; }
+      if(inner){
+        inner.style.transition = 'transform 0.25s cubic-bezier(0.25,1,0.5,1)';
+        inner.style.transform  = 'translateX(0)';
+      }
       w._swiped = false;
     });
   }
@@ -5252,60 +5266,85 @@ function initSwipeGestures(container){
   wraps.forEach(wrap=>{
     const inner = wrap.querySelector('.tx-swipe-inner');
     const bg    = wrap.querySelector('.tx-swipe-bg');
-    let startX=0, startY=0, curX=0, isDragging=false, isVertical=false;
-    const SNAP = 72;
+    let startX = 0, startY = 0;
+    let curX   = 0;
+    // 'none' | 'horizontal' | 'vertical'
+    let direction = 'none';
 
     wrap.addEventListener('touchstart', e=>{
-      const t=e.touches[0];
-      startX=t.clientX; startY=t.clientY; curX=0;
-      isDragging=true; isVertical=false;
-      inner.style.transition='none';
-    },{passive:true});
+      const t = e.touches[0];
+      startX    = t.clientX;
+      startY    = t.clientY;
+      curX      = wrap._swiped ? -SNAP : 0;
+      direction = 'none';
+      // Remove transition while user is touching
+      inner.style.transition = 'none';
+    }, { passive: true });
 
     wrap.addEventListener('touchmove', e=>{
-      if(!isDragging) return;
-      const t=e.touches[0];
-      const dx=t.clientX-startX, dy=t.clientY-startY;
-      if(!isVertical && Math.abs(dy)>Math.abs(dx)*1.5){ isVertical=true; }
-      if(isVertical){ closeAll(null); inner.style.transform='translateX(0)'; return; }
-      if(Math.abs(dx)>4) e.preventDefault();
-      const offset = wrap._swiped ? dx - SNAP : dx;
-      const clamped = Math.max(-SNAP*1.15, Math.min(0, offset));
-      inner.style.transform=`translateX(${clamped}px)`;
-      curX=clamped;
-    },{passive:false});
+      const t  = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      // Lock direction once we have enough movement
+      if(direction === 'none'){
+        if(Math.abs(dx) < DIR_THRESHOLD && Math.abs(dy) < DIR_THRESHOLD) return;
+        direction = Math.abs(dx) >= Math.abs(dy) ? 'horizontal' : 'vertical';
+      }
+
+      if(direction === 'vertical'){
+        // Vertical scroll — reset any partial swipe silently and do NOT move
+        if(!wrap._swiped){
+          inner.style.transition = 'none';
+          inner.style.transform  = 'translateX(0)';
+        }
+        return;
+      }
+
+      // Horizontal swipe — prevent page scroll
+      e.preventDefault();
+
+      const base   = wrap._swiped ? -SNAP : 0;
+      const offset = base + dx;
+      const clamped = Math.max(-SNAP * 1.1, Math.min(0, offset));
+      inner.style.transform = `translateX(${clamped}px)`;
+      curX = clamped;
+    }, { passive: false });
 
     wrap.addEventListener('touchend', ()=>{
-      if(!isDragging||isVertical){ isDragging=false; return; }
-      isDragging=false;
-      inner.style.transition='transform 0.25s cubic-bezier(0.25,1,0.5,1)';
-      if(curX < -SNAP*0.5){
-        inner.style.transform=`translateX(-${SNAP}px)`;
-        wrap._swiped=true;
+      if(direction !== 'horizontal'){
+        // Not a horizontal gesture — restore transition for snap-back if needed
+        inner.style.transition = 'transform 0.25s cubic-bezier(0.25,1,0.5,1)';
+        direction = 'none';
+        return;
+      }
+      direction = 'none';
+      inner.style.transition = 'transform 0.25s cubic-bezier(0.25,1,0.5,1)';
+
+      if(curX < -SNAP * 0.45){
+        inner.style.transform = `translateX(-${SNAP}px)`;
+        wrap._swiped = true;
         closeAll(wrap);
       } else {
-        inner.style.transform='translateX(0)';
-        wrap._swiped=false;
+        inner.style.transform = 'translateX(0)';
+        wrap._swiped = false;
       }
-    },{passive:true});
+    }, { passive: true });
 
-    // Tap on red bg → confirm delete
+    // Tap on red bg → delete
     bg.addEventListener('click', ()=>{
       const txId = wrap.dataset.txid;
-      inner.style.transition='transform 0.2s ease';
-      inner.style.transform='translateX(0)';
-      wrap._swiped=false;
-      // Small delay so user sees it snap back before confirm
+      inner.style.transition = 'transform 0.2s ease';
+      inner.style.transform  = 'translateX(0)';
+      wrap._swiped = false;
       setTimeout(()=>deleteTx(txId), 150);
     });
   });
 
-  // Tap elsewhere closes open swipes
+  // Tap anywhere outside a swipe wrap → close all
   document.addEventListener('touchstart', e=>{
-    if(!e.target.closest('.tx-swipe-wrap')){
-      closeAll(null);
-    }
-  },{passive:true});
+    if(!e.target.closest('.tx-swipe-wrap')) closeAll(null);
+  }, { passive: true });
 }
 
 // ===================== RESET APP DATA =====================
