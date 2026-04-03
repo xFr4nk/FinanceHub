@@ -255,17 +255,22 @@ html.light-mode .trend-tab.active {
 
 /* TX items */
 html.light-mode .tx-item {
-  background: linear-gradient(145deg, #f5f9ff, #eef4ff);
-  border-color: rgba(47,120,240,0.12);
-  box-shadow: 0 2px 10px rgba(47,120,240,0.07);
+  background: rgba(255,255,255,0.75);
+  border-color: rgba(47,120,240,0.14);
+  box-shadow: 0 2px 12px rgba(47,120,240,0.09), inset 0 1px 0 rgba(255,255,255,0.9);
 }
 html.light-mode .tx-icon { box-shadow: 0 2px 8px rgba(47,120,240,0.08); }
 
 /* Category rows */
 html.light-mode .cat-row {
-  background: linear-gradient(145deg, #f5f9ff, #eef4ff);
-  border-color: rgba(47,120,240,0.12);
-  box-shadow: 0 2px 10px rgba(47,120,240,0.07);
+  background: rgba(255,255,255,0.75);
+  border-color: rgba(47,120,240,0.14);
+  box-shadow: 0 2px 12px rgba(47,120,240,0.09), inset 0 1px 0 rgba(255,255,255,0.9);
+}
+html.light-mode .cat-action-box {
+  background: rgba(255,255,255,0.75);
+  border-color: rgba(47,120,240,0.14);
+  box-shadow: 0 2px 12px rgba(47,120,240,0.09), inset 0 1px 0 rgba(255,255,255,0.9);
 }
 
 /* Modals */
@@ -990,7 +995,6 @@ html.light-mode .cat-action-box {
 .tx-swipe-inner {
   position: relative; transition: transform 0.25s cubic-bezier(0.25,1,0.5,1);
   will-change: transform; z-index: 1;
-  background: var(--bg);
 }
 .tx-swipe-bg {
   position: absolute; right: 0; top: 0; bottom: 0;
