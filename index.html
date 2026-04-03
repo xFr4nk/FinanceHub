@@ -997,19 +997,11 @@ html.light-mode .cat-action-box {
   will-change: transform; z-index: 1;
 }
 .tx-swipe-bg {
-  position: absolute; right: 0; top: 0; bottom: 0;
-  width: 58px; background: var(--blue);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 0; opacity: 0; transition: opacity 0.15s ease;
-  /* Extend slightly left so the card's rounded corners don't expose gaps */
-  left: auto;
-}
-/* Fill the corners by extending the blue bg to cover the full wrap when active */
-.tx-swipe-wrap.swipe-active::before {
-  content: '';
   position: absolute; inset: 0;
   background: var(--blue);
-  z-index: 0;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding-right: 18px;
+  z-index: 0; opacity: 0; transition: opacity 0.15s ease;
 }
 .tx-swipe-wrap.swipe-active .tx-swipe-bg {
   opacity: 1;
@@ -1022,16 +1014,16 @@ html.light-mode .cat-action-box {
 .cat-swipe-wrap {
   position: relative; overflow: hidden; border-radius: 18px;
   touch-action: pan-y;
-  background: var(--blue);
 }
 .cat-swipe-inner {
   position: relative; transition: transform 0.25s cubic-bezier(0.25,1,0.5,1);
   will-change: transform; z-index: 1;
 }
 .cat-swipe-bg {
-  position: absolute; right: 0; top: 0; bottom: 0;
-  width: 68px; background: var(--blue);
-  display: flex; align-items: center; justify-content: center;
+  position: absolute; inset: 0;
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: flex-end;
+  padding-right: 22px;
   z-index: 0; opacity: 0; transition: opacity 0.15s ease;
 }
 .cat-swipe-wrap.swipe-active .cat-swipe-bg { opacity: 1; }
@@ -2371,6 +2363,11 @@ const TRANSLATIONS = {
 // Fallback for unsupported languages
 function getLang(){ return settings.language || 'it'; }
 function t(key){ const l=getLang(); const tr=TRANSLATIONS[l]||TRANSLATIONS['it']; return tr[key]!==undefined?tr[key]:(TRANSLATIONS['it'][key]||key); }
+
+// ===================== DEVICE DETECTION =====================
+function isTouchDevice(){
+  return window.matchMedia('(pointer: coarse)').matches;
+}
 
 // ===================== DATA =====================
 let transactions = JSON.parse(localStorage.getItem('fh_tx') || '[]');
@@ -5586,11 +5583,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   checkRecurringNotifications();
   setInterval(checkRecurringNotifications, 60*60*1000);
 });
-
-// ===================== DEVICE DETECTION =====================
-function isTouchDevice(){
-  return window.matchMedia('(pointer: coarse)').matches;
-}
 
 // ===================== CAT SWIPE GESTURES (mobile) =====================
 function initCatSwipeGestures(container){
