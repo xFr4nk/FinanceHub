@@ -967,17 +967,17 @@ html.light-mode .lightbox-close { background: rgba(255,255,255,0.15); border-col
 }
 .tx-swipe-bg {
   position: absolute; right: 0; top: 0; bottom: 0;
-  width: 72px; background: var(--red);
+  width: 72px; background: var(--blue);
   display: flex; align-items: center; justify-content: center;
   border-radius: 0; z-index: 0;
-  opacity: 0; /* hidden until swipe starts */
+  opacity: 0;
   transition: opacity 0.15s ease;
 }
 .tx-swipe-wrap.swipe-active .tx-swipe-bg {
   opacity: 1;
 }
 .tx-swipe-bg-icon {
-  color: #fff; font-size: 20px; pointer-events: none;
+  color: #fff; font-size: 22px; pointer-events: none;
 }
 
 /* ===== NOTIFICATIONS STATUS ===== */
@@ -1515,6 +1515,7 @@ html.light-mode #notif-status-val { color: var(--t2); }
     <input type="hidden" id="tx-edit-id" value=""/>
     <input type="hidden" id="tx-photo-data" value=""/>
     <button class="save-btn" id="tx-save-btn" onclick="saveTx()">💾 Salva</button>
+    <button class="danger-btn no-display" id="tx-modal-del-btn" onclick="txModalDelete()" style="margin-top:8px;">🗑️ Elimina transazione</button>
   </div>
 </div>
 
@@ -3301,6 +3302,7 @@ function openModal(type, editId){
     else { document.getElementById('tx-account').value=tx.account; document.getElementById('tx-category').value=tx.category||''; }
     document.getElementById('tx-save-btn').textContent=t('saveChanges');
     document.getElementById('modal-title-text').textContent=t('editTx');
+    document.getElementById('tx-modal-del-btn').classList.remove('no-display');
   } else {
     const now = new Date();
     document.getElementById('tx-date').value=now.toISOString().split('T')[0];
@@ -3318,10 +3320,18 @@ function openModal(type, editId){
     document.getElementById('recur-custom-group').classList.add('no-display');
     document.getElementById('tx-save-btn').textContent=t('save');
     document.getElementById('modal-title-text').textContent=t('newTx');
+    document.getElementById('tx-modal-del-btn').classList.add('no-display');
     setTimeout(()=>document.getElementById('tx-desc').focus(),350);
   }
 }
 function closeModal(){ document.getElementById('tx-modal').classList.remove('active'); document.getElementById('tx-edit-id').value=''; }
+function txModalDelete(){
+  const id = document.getElementById('tx-edit-id').value;
+  if(!id) return;
+  closeModal();
+  // Small delay so modal closes before confirm toast appears
+  setTimeout(()=>deleteTx(id), 200);
+}
 function closeModal2(id){ document.getElementById(id).classList.remove('active'); }
 function handleModalBg(e,id){ if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('active'); }
 
@@ -3444,16 +3454,13 @@ function renderTxItem(tx, withDel=true){
   const dLabel=dateStr+timeStr;
   const recurBadge=tx.recurring&&tx.recurring!=='none'?`<span class="recur-tag">🔄 ${recurLabel(tx.recurring)}</span>`:'';
   const photoBtn=tx.photo?`<img class="tx-photo-thumb" src="${tx.photo}" onclick="openLightbox('${tx.photo}')" alt="foto"/>`:'' ;
-  // When using swipe-to-delete, only show the edit button (trash is on the swipe bg)
+  // When using swipe-to-edit, no buttons needed in the card (edit via swipe or dblclick, delete via modal)
   const actions = withDel
-    ? `<div class="tx-actions">
-        ${photoBtn}
-        <button class="tx-edit-btn" onclick="editTx('${tx.id}')">✏️</button>
-      </div>`
+    ? (photoBtn ? `<div class="tx-actions">${photoBtn}</div>` : '')
     : photoBtn ? `<div class="tx-actions">${photoBtn}</div>` : '';
   const accObj = tx.type!=='transfer' ? getAccById(tx.account) : null;
   const currSym = accObj ? getCurrencySymbol(accObj.currency||'EUR') : getDefaultSymbol();
-  const inner = `<div class="tx-item">
+  const inner = `<div class="tx-item" ondblclick="editTx('${tx.id}')" style="cursor:default;">
     <div class="tx-icon" style="background:${bg}">${emoji}</div>
     <div class="tx-info">
       <div class="tx-desc">${tx.desc}${recurBadge}</div>
@@ -3464,7 +3471,7 @@ function renderTxItem(tx, withDel=true){
   </div>`;
   if(!withDel) return inner;
   return `<div class="tx-swipe-wrap" data-txid="${tx.id}">
-    <div class="tx-swipe-bg"><span class="tx-swipe-bg-icon">🗑️</span></div>
+    <div class="tx-swipe-bg"><span class="tx-swipe-bg-icon">✏️</span></div>
     <div class="tx-swipe-inner">${inner}</div>
   </div>`;
 }
@@ -5344,15 +5351,16 @@ function initSwipeGestures(container){
   container._swipeMoveHandler = onMove;
   container._swipeEndHandler  = onEnd;
 
-  // Tap on red bg → delete
-  container.addEventListener('click', e => {
+  // Tap on blue bg → edit (use touchend to avoid race with closeAll)
+  container.addEventListener('touchend', e => {
     const bg = e.target.closest('.tx-swipe-bg');
     if(!bg) return;
     const wrap = bg.closest('.tx-swipe-wrap');
-    if(!wrap) return;
+    if(!wrap || !wrap._open) return;
+    e.stopPropagation();
     snapClose(wrap, true);
-    setTimeout(() => deleteTx(wrap.dataset.txid), 150);
-  });
+    setTimeout(() => editTx(wrap.dataset.txid), 150);
+  }, { passive: true });
 
   // Tap outside → close all
   document.addEventListener('touchstart', e => {
