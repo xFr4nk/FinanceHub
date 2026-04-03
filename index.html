@@ -5260,7 +5260,8 @@ function initSwipeGestures(container){
     container.removeEventListener('touchend',   container._swipeEndHandler);
   }
 
-  const SNAP = 72;
+  const SNAP      = 72;
+  const MIN_SWIPE = 18; // px orizzontali minimi prima di attivare lo swipe
 
   function snapClose(wrap, animate){
     if(!wrap) return;
@@ -5299,6 +5300,9 @@ function initSwipeGestures(container){
     // With touch-action:pan-y, the browser already handles vertical scroll.
     // Any touchmove we receive here is dominantly horizontal — just guard dx<0.
     if(dx > 0 && !activeWrap._open) return; // swiping right on closed card — ignore
+
+    // Require a minimum horizontal movement before activating
+    if(Math.abs(dx) < MIN_SWIPE && !activeWrap._open) return;
 
     moved = true;
     activeWrap.classList.add('swipe-active');
