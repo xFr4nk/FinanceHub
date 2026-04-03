@@ -958,6 +958,7 @@ html.light-mode .lightbox-close { background: rgba(255,255,255,0.15); border-col
 /* ===== SWIPE TO DELETE ===== */
 .tx-swipe-wrap {
   position: relative; overflow: hidden; border-radius: 0;
+  touch-action: pan-y; /* browser handles vertical scroll, JS handles horizontal */
 }
 .tx-swipe-inner {
   position: relative; transition: transform 0.25s cubic-bezier(0.25,1,0.5,1);
@@ -969,7 +970,11 @@ html.light-mode .lightbox-close { background: rgba(255,255,255,0.15); border-col
   width: 72px; background: var(--red);
   display: flex; align-items: center; justify-content: center;
   border-radius: 0; z-index: 0;
-  transition: width 0.15s ease;
+  opacity: 0; /* hidden until swipe starts */
+  transition: opacity 0.15s ease;
+}
+.tx-swipe-wrap.swipe-active .tx-swipe-bg {
+  opacity: 1;
 }
 .tx-swipe-bg-icon {
   color: #fff; font-size: 20px; pointer-events: none;
@@ -5248,33 +5253,22 @@ function checkStorageSize(){
 function initSwipeGestures(container){
   if(!container) return;
 
-  // Remove any previously attached swipe listener to avoid duplicates
+  // Clean up previous listeners
   if(container._swipeHandler){
     container.removeEventListener('touchstart', container._swipeHandler);
     container.removeEventListener('touchmove',  container._swipeMoveHandler);
     container.removeEventListener('touchend',   container._swipeEndHandler);
   }
 
-  const SNAP          = 72;   // px to reveal
-  const DIR_THRESHOLD = 10;   // px before locking direction — bigger = less false positives
-  const H_RATIO       = 1.2;  // horizontal must be H_RATIO× vertical to count as horizontal
-
-  let activeWrap = null;
-  let startX = 0, startY = 0;
-  let direction = 'none'; // 'none' | 'h' | 'v'
-  let tracking  = false;
-
-  function getWrap(el){
-    return el.closest ? el.closest('.tx-swipe-wrap') : null;
-  }
+  const SNAP = 72;
 
   function snapClose(wrap, animate){
     if(!wrap) return;
     const inner = wrap.querySelector('.tx-swipe-inner');
     if(!inner) return;
-    if(animate) inner.style.transition = 'transform 0.25s cubic-bezier(0.25,1,0.5,1)';
-    else inner.style.transition = 'none';
-    inner.style.transform = 'translateX(0)';
+    inner.style.transition = animate ? 'transform 0.25s cubic-bezier(0.25,1,0.5,1)' : 'none';
+    inner.style.transform  = 'translateX(0)';
+    wrap.classList.remove('swipe-active');
     wrap._open = false;
   }
 
@@ -5284,88 +5278,69 @@ function initSwipeGestures(container){
     });
   }
 
+  let activeWrap = null;
+  let startX = 0;
+  let moved  = false;
+
   const onStart = e => {
     if(e.touches.length !== 1) return;
-    const wrap = getWrap(e.target);
+    const wrap = e.target.closest('.tx-swipe-wrap');
     if(!wrap) return;
-    startX    = e.touches[0].clientX;
-    startY    = e.touches[0].clientY;
-    direction = 'none';
-    tracking  = true;
     activeWrap = wrap;
-    // Remove transition while finger is down — but DON'T move yet
-    const inner = wrap.querySelector('.tx-swipe-inner');
-    if(inner) inner.style.transition = 'none';
+    startX     = e.touches[0].clientX;
+    moved      = false;
+    wrap.querySelector('.tx-swipe-inner').style.transition = 'none';
   };
 
   const onMove = e => {
-    if(!tracking || !activeWrap || e.touches.length !== 1) return;
+    if(!activeWrap || e.touches.length !== 1) return;
     const dx = e.touches[0].clientX - startX;
-    const dy = e.touches[0].clientY - startY;
-    const adx = Math.abs(dx), ady = Math.abs(dy);
 
-    // Haven't moved enough to decide yet
-    if(direction === 'none'){
-      if(adx < DIR_THRESHOLD && ady < DIR_THRESHOLD) return;
-      // Lock direction: horizontal only if dx dominates clearly
-      direction = (adx >= ady * H_RATIO) ? 'h' : 'v';
-    }
+    // With touch-action:pan-y, the browser already handles vertical scroll.
+    // Any touchmove we receive here is dominantly horizontal — just guard dx<0.
+    if(dx > 0 && !activeWrap._open) return; // swiping right on closed card — ignore
 
-    if(direction === 'v'){
-      // Vertical scroll — ensure card stays put, don't preventDefault
-      snapClose(activeWrap, false);
-      return;
-    }
-
-    // Confirmed horizontal swipe
-    e.preventDefault();
-    const base    = activeWrap._open ? -SNAP : 0;
-    const offset  = Math.max(-SNAP * 1.05, Math.min(0, base + dx));
-    const inner   = activeWrap.querySelector('.tx-swipe-inner');
-    if(inner) inner.style.transform = `translateX(${offset}px)`;
+    moved = true;
+    activeWrap.classList.add('swipe-active');
+    const base   = activeWrap._open ? -SNAP : 0;
+    const offset = Math.max(-SNAP * 1.05, Math.min(0, base + dx));
+    activeWrap.querySelector('.tx-swipe-inner').style.transform = `translateX(${offset}px)`;
   };
 
   const onEnd = e => {
-    if(!tracking || !activeWrap) return;
-    tracking = false;
+    if(!activeWrap) return;
+    const wrap = activeWrap;
+    activeWrap = null;
 
-    if(direction !== 'h'){
-      // Was vertical or undecided — restore without animation glitch
-      snapClose(activeWrap, false);
-      activeWrap = null;
-      direction = 'none';
+    if(!moved){
+      snapClose(wrap, false);
       return;
     }
 
-    direction = 'none';
-    const inner = activeWrap.querySelector('.tx-swipe-inner');
-    if(!inner){ activeWrap = null; return; }
+    const dx     = e.changedTouches[0].clientX - startX;
+    const finalX = (wrap._open ? -SNAP : 0) + dx;
+    const inner  = wrap.querySelector('.tx-swipe-inner');
     inner.style.transition = 'transform 0.25s cubic-bezier(0.25,1,0.5,1)';
 
-    const dx = e.changedTouches[0].clientX - startX;
-    const finalX = (activeWrap._open ? -SNAP : 0) + dx;
-
-    if(finalX < -SNAP * 0.45){
+    if(finalX < -SNAP * 0.4){
       inner.style.transform = `translateX(-${SNAP}px)`;
-      activeWrap._open = true;
-      closeAll(activeWrap);
+      wrap._open = true;
+      wrap.classList.add('swipe-active');
+      closeAll(wrap);
     } else {
-      inner.style.transform = 'translateX(0)';
-      activeWrap._open = false;
+      snapClose(wrap, true);
     }
-    activeWrap = null;
   };
 
   container.addEventListener('touchstart', onStart, { passive: true });
-  container.addEventListener('touchmove',  onMove,  { passive: false });
+  container.addEventListener('touchmove',  onMove,  { passive: true }); // pan-y handles scroll, no need for preventDefault
   container.addEventListener('touchend',   onEnd,   { passive: true });
 
-  // Store refs for cleanup on next render
   container._swipeHandler     = onStart;
   container._swipeMoveHandler = onMove;
   container._swipeEndHandler  = onEnd;
 
-  // Red bg tap → delete
+  // Tap on red bg → delete
   container.addEventListener('click', e => {
     const bg = e.target.closest('.tx-swipe-bg');
     if(!bg) return;
