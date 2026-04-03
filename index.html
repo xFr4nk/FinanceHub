@@ -967,7 +967,7 @@ html.light-mode .lightbox-close { background: rgba(255,255,255,0.15); border-col
 }
 .tx-swipe-bg {
   position: absolute; right: 0; top: 0; bottom: 0;
-  width: 72px; background: var(--blue);
+  width: 58px; background: var(--blue);
   display: flex; align-items: center; justify-content: center;
   border-radius: 0; z-index: 0;
   opacity: 0;
@@ -5267,7 +5267,7 @@ function initSwipeGestures(container){
     container.removeEventListener('touchend',   container._swipeEndHandler);
   }
 
-  const SNAP      = 72;
+  const SNAP      = 58;
   const MIN_SWIPE = 18; // px orizzontali minimi prima di attivare lo swipe
 
   function snapClose(wrap, animate){
