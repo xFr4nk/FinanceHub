@@ -1000,9 +1000,16 @@ html.light-mode .cat-action-box {
   position: absolute; right: 0; top: 0; bottom: 0;
   width: 58px; background: var(--blue);
   display: flex; align-items: center; justify-content: center;
-  border-radius: 0; z-index: 0;
-  opacity: 0;
-  transition: opacity 0.15s ease;
+  z-index: 0; opacity: 0; transition: opacity 0.15s ease;
+  /* Extend slightly left so the card's rounded corners don't expose gaps */
+  left: auto;
+}
+/* Fill the corners by extending the blue bg to cover the full wrap when active */
+.tx-swipe-wrap.swipe-active::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--blue);
+  z-index: 0;
 }
 .tx-swipe-wrap.swipe-active .tx-swipe-bg {
   opacity: 1;
@@ -1011,7 +1018,24 @@ html.light-mode .cat-action-box {
   color: #fff; font-size: 22px; pointer-events: none;
 }
 
-/* ===== NOTIFICATIONS STATUS ===== */
+/* Category swipe (mobile only) */
+.cat-swipe-wrap {
+  position: relative; overflow: hidden; border-radius: 18px;
+  touch-action: pan-y;
+  background: var(--blue);
+}
+.cat-swipe-inner {
+  position: relative; transition: transform 0.25s cubic-bezier(0.25,1,0.5,1);
+  will-change: transform; z-index: 1;
+}
+.cat-swipe-bg {
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 68px; background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 0; opacity: 0; transition: opacity 0.15s ease;
+}
+.cat-swipe-wrap.swipe-active .cat-swipe-bg { opacity: 1; }
+.cat-swipe-bg-icon { color: #fff; font-size: 22px; pointer-events: none; }
 html.light-mode #notif-status-val { color: var(--t2); }
 
 #profile-photo-menu {
@@ -4983,6 +5007,7 @@ function renderCatGrid(){
   const g=document.getElementById('cat-grid');
   if(!categories.length){ g.innerHTML=`<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-text">${t('firstCat')}</div></div>`; return; }
   const now=new Date(),m=now.getMonth(),y=now.getFullYear();
+  const touch = isTouchDevice();
   g.innerHTML=categories.map(cat=>{
     const all=transactions.filter(tx=>tx.type==='expense'&&tx.category===cat.id);
     const mTx=all.filter(tx=>{const d=new Date(tx.date);return d.getMonth()===m&&d.getFullYear()===y;});
@@ -4992,19 +5017,30 @@ function renderCatGrid(){
     const pct=budget?Math.min(100,Math.round(mTot/budget*100)):0;
     const barColor=pct>=100?'var(--red)':pct>=80?'var(--orange)':'var(--green)';
     const budgetBar=budget?`<div style="margin-top:6px;height:3px;background:var(--bg3);border-radius:2px;"><div style="height:3px;border-radius:2px;background:${barColor};width:${pct}%;transition:width 0.4s;"></div></div><div style="font-size:9px;color:${barColor};margin-top:3px;font-weight:700;">${pct}% del budget ${pct>=100?'⚠️':''}</div>`:'';
-    return `<div style="display:flex;gap:8px;align-items:stretch;">
-      <div class="cat-row" style="flex:1;" onclick="showCatDetail('${cat.id}')">
+    const rowInner = `<div class="cat-row" style="flex:1;border-radius:${touch?'18px':'18px'};" onclick="showCatDetail('${cat.id}')">
         <div class="cat-dot" style="background:${cat.color.startsWith('linear')?'#4f8ef7':cat.color};box-shadow:0 0 6px ${cat.color.startsWith('linear')?'#4f8ef7':cat.color};"></div>
         <div class="cat-emoji">${cat.emoji}</div>
         <div class="cat-info"><div class="cat-name">${cat.name}</div><div class="cat-count">${count} transazioni</div>${budgetBar}</div>
         <div class="cat-amount">${mTot>0?'−'+fmt(mTot):'€0'}</div>
-      </div>
-      <div class="cat-action-box" style="flex-direction:row;gap:0;padding:0;overflow:hidden;">
-        <div onclick="openCatModal('${cat.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;height:100%;padding:0 14px;border-right:1px solid rgba(255,255,255,0.06);transition:background 0.15s;" onmouseenter="this.style.background='var(--blue-d)'" onmouseleave="this.style.background='transparent'">✏️</div>
-        <div onclick="deleteCatById('${cat.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;height:100%;padding:0 14px;transition:background 0.15s;" onmouseenter="this.style.background='var(--red-d)'" onmouseleave="this.style.background='transparent'">🗑️</div>
-      </div>
-    </div>`;
+      </div>`;
+    if(touch){
+      // Mobile: swipe to reveal edit button
+      return `<div class="cat-swipe-wrap" data-catid="${cat.id}">
+        <div class="cat-swipe-bg"><span class="cat-swipe-bg-icon">✏️</span></div>
+        <div class="cat-swipe-inner">${rowInner}</div>
+      </div>`;
+    } else {
+      // Desktop: two action buttons side by side
+      return `<div style="display:flex;gap:8px;align-items:stretch;">
+        ${rowInner}
+        <div class="cat-action-box" style="flex-direction:row;gap:0;padding:0;overflow:hidden;">
+          <div onclick="openCatModal('${cat.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;height:100%;padding:0 14px;border-right:1px solid rgba(255,255,255,0.06);transition:background 0.15s;" onmouseenter="this.style.background='var(--blue-d)'" onmouseleave="this.style.background='transparent'">✏️</div>
+          <div onclick="deleteCatById('${cat.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;height:100%;padding:0 14px;transition:background 0.15s;" onmouseenter="this.style.background='var(--red-d)'" onmouseleave="this.style.background='transparent'">🗑️</div>
+        </div>
+      </div>`;
+    }
   }).join('');
+  if(touch) initCatSwipeGestures(g);
 }
 
 // ===================== CSV EXPORT =====================
@@ -5550,6 +5586,140 @@ document.addEventListener('DOMContentLoaded',()=>{
   checkRecurringNotifications();
   setInterval(checkRecurringNotifications, 60*60*1000);
 });
+
+// ===================== DEVICE DETECTION =====================
+function isTouchDevice(){
+  return window.matchMedia('(pointer: coarse)').matches;
+}
+
+// ===================== CAT SWIPE GESTURES (mobile) =====================
+function initCatSwipeGestures(container){
+  if(!container) return;
+  if(container._catSwipeHandler){
+    container.removeEventListener('touchstart', container._catSwipeHandler);
+    container.removeEventListener('touchmove',  container._catSwipeMoveHandler);
+    container.removeEventListener('touchend',   container._catSwipeEndHandler);
+  }
+  const SNAP = 68;
+  const MIN_SWIPE = 18;
+
+  function snapClose(wrap, animate){
+    if(!wrap) return;
+    const inner = wrap.querySelector('.cat-swipe-inner');
+    if(!inner) return;
+    inner.style.transition = animate ? 'transform 0.25s cubic-bezier(0.25,1,0.5,1)' : 'none';
+    inner.style.transform  = 'translateX(0)';
+    wrap.classList.remove('swipe-active');
+    wrap._open = false;
+  }
+  function closeAll(except){
+    container.querySelectorAll('.cat-swipe-wrap').forEach(w=>{ if(w!==except) snapClose(w,true); });
+  }
+
+  let activeWrap=null, startX=0, moved=false;
+
+  const onStart = e=>{
+    if(e.touches.length!==1) return;
+    const wrap=e.target.closest('.cat-swipe-wrap'); if(!wrap) return;
+    activeWrap=wrap; startX=e.touches[0].clientX; moved=false;
+    wrap.querySelector('.cat-swipe-inner').style.transition='none';
+  };
+  const onMove = e=>{
+    if(!activeWrap||e.touches.length!==1) return;
+    const dx=e.touches[0].clientX-startX;
+    if(dx>0&&!activeWrap._open) return;
+    if(Math.abs(dx)<MIN_SWIPE&&!activeWrap._open) return;
+    moved=true;
+    activeWrap.classList.add('swipe-active');
+    const base=activeWrap._open?-SNAP:0;
+    const offset=Math.max(-SNAP*1.05,Math.min(0,base+dx));
+    activeWrap.querySelector('.cat-swipe-inner').style.transform=`translateX(${offset}px)`;
+  };
+  const onEnd = e=>{
+    if(!activeWrap) return;
+    const wrap=activeWrap; activeWrap=null;
+    if(!moved){ snapClose(wrap,false); return; }
+    const dx=e.changedTouches[0].clientX-startX;
+    const finalX=(wrap._open?-SNAP:0)+dx;
+    const inner=wrap.querySelector('.cat-swipe-inner');
+    inner.style.transition='transform 0.25s cubic-bezier(0.25,1,0.5,1)';
+    if(finalX<-SNAP*0.4){
+      inner.style.transform=`translateX(-${SNAP}px)`;
+      wrap._open=true; wrap.classList.add('swipe-active');
+      closeAll(wrap);
+    } else {
+      snapClose(wrap,true);
+    }
+  };
+
+  container.addEventListener('touchstart', onStart, {passive:true});
+  container.addEventListener('touchmove',  onMove,  {passive:true});
+  container.addEventListener('touchend',   onEnd,   {passive:true});
+  container._catSwipeHandler     = onStart;
+  container._catSwipeMoveHandler = onMove;
+  container._catSwipeEndHandler  = onEnd;
+
+  // Tap on blue bg → open cat action sheet
+  container.addEventListener('touchend', e=>{
+    const bg=e.target.closest('.cat-swipe-bg'); if(!bg) return;
+    const wrap=bg.closest('.cat-swipe-wrap'); if(!wrap||!wrap._open) return;
+    e.stopPropagation();
+    snapClose(wrap,true);
+    setTimeout(()=>openCatActionSheet(wrap.dataset.catid), 150);
+  }, {passive:true});
+
+  // Tap outside → close all
+  document.addEventListener('touchstart', e=>{
+    if(!e.target.closest('.cat-swipe-wrap')) closeAll(null);
+  }, {passive:true});
+}
+
+function openCatActionSheet(catId){
+  const cat = getCatById(catId); if(!cat) return;
+  const existing = document.getElementById('cat-action-sheet');
+  if(existing) existing.remove();
+  const el = document.createElement('div');
+  el.id = 'cat-action-sheet';
+  el.style.cssText = `
+    position:fixed;inset:0;z-index:9000;
+    display:flex;align-items:flex-end;justify-content:center;
+    background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+  `;
+  el.innerHTML = `
+    <div style="
+      width:100%;max-width:480px;
+      background:var(--bg1);border-radius:24px 24px 0 0;
+      border:1px solid var(--border2);
+      padding:14px 16px calc(18px + var(--safe-bottom,0px));
+      animation:slideUp 0.28s cubic-bezier(0.34,1.4,0.64,1);
+    ">
+      <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:0 4px;">
+        <span style="font-size:26px;">${cat.emoji}</span>
+        <span style="font-size:16px;font-weight:700;">${cat.name}</span>
+      </div>
+      <button onclick="document.getElementById('cat-action-sheet').remove();openCatModal('${catId}')"
+        style="width:100%;padding:15px 16px;background:var(--blue-d);border:1px solid rgba(79,142,247,0.3);
+        border-radius:16px;color:var(--blue);font-family:var(--font);font-size:14px;font-weight:700;
+        cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:10px;text-align:left;">
+        ✏️ <span>Modifica categoria</span>
+      </button>
+      <button onclick="document.getElementById('cat-action-sheet').remove();deleteCatById('${catId}')"
+        style="width:100%;padding:15px 16px;background:var(--red-d);border:1px solid rgba(242,82,112,0.3);
+        border-radius:16px;color:var(--red);font-family:var(--font);font-size:14px;font-weight:700;
+        cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:10px;text-align:left;">
+        🗑️ <span>Elimina categoria</span>
+      </button>
+      <button onclick="document.getElementById('cat-action-sheet').remove()"
+        style="width:100%;padding:13px;background:var(--bg2);border:1px solid var(--border);
+        border-radius:16px;color:var(--t2);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">
+        Annulla
+      </button>
+    </div>`;
+  el.addEventListener('touchstart', e=>{ if(e.target===el) el.remove(); }, {passive:true});
+  document.body.appendChild(el);
+}
 
 let currentTheme = localStorage.getItem('fh_theme') || 'auto';
 
